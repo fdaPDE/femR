@@ -1,0 +1,6 @@
+## include fdaPDE-core library in the include path and set compiler flags
+PKG_CXXFLAGS=-Wno-ignored-attributes -I$(PWD)/core -O2 -DNDEBUG -ffast-math -std=c++17
+CXX_STD=CXX17
+
+SOURCES = $(wildcard ./*.cpp)
+OBJECTS = $(SOURCES:.cpp=.o) $(SOURCES_LIBS:.cpp=.o)

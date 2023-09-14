@@ -1,0 +1,37 @@
+## create pde object backed by Cpp_pde_module
+pde <- function(D, L, u, fe_order = 1) {
+    ## set pde type
+    pde_type <- 0
+    pde_parameters <- NULL
+    if (length(L@tokens) == 1 && L@tokens[1] == "diffusion" &&
+        length(L@params$diffusion) == 1 && L@params$diffusion == 1.0) {
+        ## specialized implementation for laplace operator
+        pde_type <- 1 
+    } else {
+        ## general diffusion-transport-reaction problem, constant coefficients
+        pde_type <- 2
+        ## prepare pde_parameters list
+        pde_parameters$diffusion <- matrix(0, nrow = 2, ncol = 2)
+        pde_parameters$transport <- matrix(0, nrow = 2, ncol = 1)
+        pde_parameters$reaction  <- 0.0
+
+        for(i in 1:length(L@tokens)) {
+            pde_parameters[[paste(L@tokens[i])]] <- L@params[[paste(L@tokens[i])]]
+        }
+    }
+
+    ## define Rcpp module
+    if (fe_order == 1) { ## linear finite elements
+        pde_ <- new(PDE_2D_ORDER_1, D, pde_type, pde_parameters)
+    }
+    if (fe_order == 2) { ## quadratic finite elements
+        pde_ <- new(PDE_2D_ORDER_2, D, pde_type, pde_parameters)
+    }
+        
+    ## evaluate forcing term on quadrature nodes
+    quad_nodes <- as.matrix(pde_$get_quadrature_nodes())
+    pde_$set_forcing(as.matrix(u(quad_nodes)))
+    ## initialize and return
+    pde_$init()
+    return(pde_)
+}
