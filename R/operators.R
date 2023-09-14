@@ -2,14 +2,14 @@
 setClass(
     "Function",
     slots = c(
-        fe_order = "numeric", 
-        coeff    = "matrix"
+        mesh  = "list", 
+        coeff = "matrix"
     )
 )
 ## constructor
-Function <- function(fe_order = 1) {
+Function <- function(domain) {
     coeff = matrix(ncol = 1, nrow = 0)
-    new("Function", coeff = coeff, fe_order = fe_order)
+    new("Function", coeff = coeff, mesh = domain)
 }
 
 ## gradient of Function

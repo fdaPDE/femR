@@ -13,18 +13,21 @@ using fdapde::core::diffusion;
 using fdapde::core::reaction;
 using fdapde::core::FEM;
 using fdapde::core::Mesh;
+using fdapde::core::Integrator;
 
 // M : local dimension, N : embedding dimension, R : FEM order
 template <unsigned int M, unsigned int N, unsigned int R>
 class R_PDE {
 private:
   typedef Mesh<M,N,R> DomainType;
+  typedef Integrator<DomainType::local_dimension, DomainType::order> QuadratureRule;
   
   // internal data
   Mesh<M,N,R> domain_;
-  PDEBase* pde_;
+  QuadratureRule integrator_ {};
+  PDEBase* pde_ = nullptr;
   int pde_type_;
-  const Rcpp::Nullable<Rcpp::List>& pde_parameters_;
+  Rcpp::Nullable<Rcpp::List> pde_parameters_;
   DMatrix<double> u_; // discretized forcing term
 public:
   // constructor
@@ -42,7 +45,7 @@ public:
   void set_dirichlet_bc(const DMatrix<double>& data) { pde_->set_dirichlet_bc(data); }
   void set_forcing(const DMatrix<double>& data) { u_ = data; }
   // getters
-  DMatrix<double> get_quadrature_nodes() const { return pde_->quadrature_nodes(); };
+  DMatrix<double> get_quadrature_nodes() const { return integrator_.quadrature_nodes(domain_); };
   DMatrix<double> get_dofs_coordinates() const { return domain_.dof_coords(); };
 
   SpMatrix<double> R0() const { return pde_->R0(); }

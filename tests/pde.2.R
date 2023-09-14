@@ -1,0 +1,29 @@
+library(femR)
+
+## load domain specification
+data("unit_square", package="femR")
+
+exact_solution <- function(points){
+    return( sin(2. * pi * points[,1]) * sin(2. * pi * points[,2]) )
+}
+
+## define differential operator in its strong formulation
+f = Function(domain = unit_square)
+L = laplace(f)
+## forcing term
+u <- function(points){
+    return(8.*pi^2* sin( 2.* pi * points[,1]) * sin(2.*pi* points[,2]) ) 
+}
+## create pde
+pde <- pde(L, u, fe_order = 1)
+## set boundary conditions
+nodes <- pde$get_dofs_coordinates()
+dirichletBC <- as.matrix(rep(0., times = dim(nodes)[1]))
+pde$set_dirichlet_bc(dirichletBC)
+
+## solve problem
+pde$solve()
+
+u_ex <- as.matrix(exact_solution(nodes))
+error.L2 <- sqrt(sum(pde$get_mass() %*% (u_ex - pde$solution())^2))
+cat("L2 error = ", error.L2, "\n")

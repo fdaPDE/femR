@@ -35,3 +35,5 @@
 *.o
 *.so
 !.gitignore
+!data/
+!data/*

@@ -1,5 +1,7 @@
 ## create pde object backed by Cpp_pde_module
-pde <- function(D, L, u, fe_order = 1) {
+pde <- function(L, u, fe_order = 1) {
+    D = L@f@mesh
+
     ## set pde type
     pde_type <- 0
     pde_parameters <- NULL
@@ -21,13 +23,14 @@ pde <- function(D, L, u, fe_order = 1) {
     }
 
     ## define Rcpp module
+    pde_ <- NULL
     if (fe_order == 1) { ## linear finite elements
         pde_ <- new(PDE_2D_ORDER_1, D, pde_type, pde_parameters)
     }
     if (fe_order == 2) { ## quadratic finite elements
         pde_ <- new(PDE_2D_ORDER_2, D, pde_type, pde_parameters)
     }
-        
+    
     ## evaluate forcing term on quadrature nodes
     quad_nodes <- as.matrix(pde_$get_quadrature_nodes())
     pde_$set_forcing(as.matrix(u(quad_nodes)))
