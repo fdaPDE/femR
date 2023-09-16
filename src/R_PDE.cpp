@@ -14,9 +14,10 @@ using fdapde::core::reaction;
 using fdapde::core::FEM;
 using fdapde::core::Mesh;
 using fdapde::core::Integrator;
-using fdapde::core::ADT;
 using fdapde::core::LagrangianElement;
 using fdapde::core::FiniteElementBasis;
+
+#include "R_Mesh.h"
 
 // M : local dimension, N : embedding dimension, R : FEM order
 template <unsigned int M, unsigned int N, unsigned int R>
@@ -24,48 +25,40 @@ class R_PDE {
 private:
   typedef Mesh<M,N,R> DomainType;
   typedef Integrator<DomainType::local_dimension, DomainType::order> QuadratureRule;
+  typedef LagrangianElement<DomainType::local_dimension, DomainType::order> FunctionSpace;
+  typedef FiniteElementBasis<FunctionSpace> FunctionBasis;
   
   // internal data
-  Mesh<M,N,R> domain_;
-  ADT<M,N,R> point_locator_;
+  DomainType domain_ {};
   QuadratureRule integrator_ {};
   PDEBase* pde_ = nullptr;
   int pde_type_;
-  bool init_ = false; // asserted true if PDE is init
   Rcpp::Nullable<Rcpp::List> pde_parameters_; // eventual PDE coefficients
   DMatrix<double> u_; // discretized forcing term
-   
-  Rcpp::Environment function_;
-
-  typedef LagrangianElement<DomainType::local_dimension, DomainType::order> FunctionSpace;
-  typedef FiniteElementBasis<FunctionSpace> FunctionBasis;
-  FunctionBasis basis_ {};
+  FunctionBasis basis_ {}; // functional basis
+  Rcpp::Environment solution_;
 public:
   // constructor
-  R_PDE(const Rcpp::List& mesh_data,
-	int pde_type,
-	const Rcpp::Nullable<Rcpp::List>& pde_parameters,
-	const Rcpp::Environment& function) :
-    domain_(Rcpp::as<DMatrix<double>>(mesh_data["nodes"]),
-	    Rcpp::as<DMatrix<int>>   (mesh_data["elements"]),
-	    Rcpp::as<DMatrix<int>>   (mesh_data["neigh"]),
-	    Rcpp::as<DMatrix<int>>   (mesh_data["boundary"])),
-    pde_type_(pde_type), pde_parameters_(pde_parameters), function_(function),
-    point_locator_(domain_) { }
-  
+  R_PDE(Rcpp::Environment mesh, int pde_type, const Rcpp::Nullable<Rcpp::List>& pde_parameters,
+	Rcpp::Environment solution) :
+    pde_type_(pde_type), pde_parameters_(pde_parameters), solution_(solution) {    
+    SEXP meshptr = mesh[".pointer"];
+    R_Mesh<M,N>* ptr = (R_Mesh<M,N>*) R_ExternalPtrAddr(meshptr);
+    domain_ = ptr->domain(); // assign domain (re-enumerate if R>1)
+  }
+
   // setters
   void set_dirichlet_bc(const DMatrix<double>& data) { pde_->set_dirichlet_bc(data); }
   void set_forcing(const DMatrix<double>& data) { u_ = data; }
   // getters
   DMatrix<double> get_quadrature_nodes() const { return integrator_.quadrature_nodes(domain_); };
   DMatrix<double> get_dofs_coordinates() const { return domain_.dof_coords(); };
-
   SpMatrix<double> R0() const { return pde_->R0(); }
   SpMatrix<double> R1() const { return pde_->R1(); }
   DMatrix<double> solution() const { return pde_->solution(); }
-  
+
+  // init pde_ pointer
   void init() {
-    // define at run-time the pde object based on requested type
     switch(pde_type_) {
     case 1:
       { // L = Laplacian
@@ -97,29 +90,31 @@ public:
 
   void solve() {
     pde_->solve();
-    function_["coeff"] = pde_->solution();
+    solution_["coeff"] = pde_->solution();
   }
 
-  // eval at point
-  DMatrix<double> eval(const DMatrix<double>& coeff, const DMatrix<double>& point) {
+  // eval solution at point
+  DMatrix<double> eval(Rcpp::Environment mesh, const DMatrix<double>& coeff, const DMatrix<double>& point) {
+    SEXP meshptr = mesh[".pointer"];
+    R_Mesh<M,N>* ptr = (R_Mesh<M,N>*) R_ExternalPtrAddr(meshptr);
+
     if(point.cols() != M) {
       throw std::runtime_error("evaluation point must be a " + std::to_string(M) + "-dimensional vector");
     }
 
     DMatrix<double> evals;
     evals.resize(point.rows(), 1);
-
     for(std::size_t j = 0; j < point.rows(); ++j) { 
       SVector<M> p;
       for(int i = 0; i < M; ++i) p[i] = point(j,i);
       // locate element containing point
-      auto e = point_locator_.locate(p);
+      auto e = ptr->point_locator().locate(p);
       // compute value of function at point
       double v = std::numeric_limits<double>::quiet_NaN();
       if(e != nullptr){
 	v = 0;
 	for(std::size_t j = 0; j < DomainType::n_dof_per_element; ++j) {
-	  v += coeff(domain_.elements()(e->ID(), j), 0) * basis_(*e, j)(p);
+	  v += coeff(ptr->domain().elements()(e->ID(), j), 0) * basis_(*e, j)(p);
 	}
       }
       evals(j,0) = v;
@@ -128,16 +123,15 @@ public:
   }
   
   // destructor
-  ~R_PDE() { delete pde_; }
+  ~R_PDE() = default;
 };
-
 
 // Rcpp modules definition
 
 typedef R_PDE<2,2,1> PDE_2D_ORDER_1;
 RCPP_MODULE(PDE_2D_ORDER_1) {
   Rcpp::class_<PDE_2D_ORDER_1>("PDE_2D_ORDER_1")
-    .constructor<Rcpp::List, int, Rcpp::Nullable<Rcpp::List>, Rcpp::Environment>()
+    .constructor<Rcpp::Environment, int, Rcpp::Nullable<Rcpp::List>, Rcpp::Environment>()
     // getters
     .method("get_quadrature_nodes", &PDE_2D_ORDER_1::get_quadrature_nodes)
     .method("get_dofs_coordinates", &PDE_2D_ORDER_1::get_dofs_coordinates)
@@ -156,7 +150,7 @@ RCPP_MODULE(PDE_2D_ORDER_1) {
 typedef R_PDE<2,2,2> PDE_2D_ORDER_2;
 RCPP_MODULE(PDE_2D_ORDER_2) {
   Rcpp::class_<PDE_2D_ORDER_2>("PDE_2D_ORDER_2")
-    .constructor<Rcpp::List, int, Rcpp::Nullable<Rcpp::List>, Rcpp::Environment>()
+    .constructor<Rcpp::Environment, int, Rcpp::Nullable<Rcpp::List>, Rcpp::Environment>()
     // getters
     .method("get_quadrature_nodes", &PDE_2D_ORDER_2::get_quadrature_nodes)
     .method("get_dofs_coordinates", &PDE_2D_ORDER_2::get_dofs_coordinates)

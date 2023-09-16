@@ -36,6 +36,7 @@ pde <- function(L, u, fe_order = 1) {
     ## evaluate forcing term on quadrature nodes
     quad_nodes <- as.matrix(pde_$get_quadrature_nodes())
     pde_$set_forcing(as.matrix(u(quad_nodes)))
+
     ## initialize and return
     pde_$init()
     return(pde_)

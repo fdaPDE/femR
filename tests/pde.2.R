@@ -2,14 +2,15 @@ library(femR)
 
 ## load domain data and generate mesh object
 data("unit_square", package="femR")
+unit_square = create_mesh(data = unit_square)
 
 exact_solution <- function(points){
     return( sin(2. * pi * points[,1]) * sin(2. * pi * points[,2]) )
 }
 
 ## define differential operator in its strong formulation
-f = Function(domain = unit_square)
-L = laplace(f)
+f <- Function(domain = unit_square)
+L <- laplace(f)
 ## forcing term
 u <- function(points){
     return(8.*pi^2* sin( 2.* pi * points[,1]) * sin(2.*pi* points[,2]) ) 

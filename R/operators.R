@@ -8,14 +8,14 @@
     ),
     methods = list(
         eval_at = function(X) {
-            M = dim(mesh$nodes)[2]
+            M = dim(mesh$nodes())[2]
             if(is.vector(X)) {
-                pde$eval(coeff, as.matrix(t(X)))
+                pde$eval(mesh, coeff, as.matrix(t(X)))
             } else {           
             if(dim(X)[2] != M) {
                 stop(paste("matrix of evaluation points should be an N x", M, "matrix"))
             }
-            pde$eval(coeff, as.matrix(X))
+            pde$eval(mesh, coeff, as.matrix(X))
             }
         }
     )
