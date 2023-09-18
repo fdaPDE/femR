@@ -1,5 +1,5 @@
-#include <fdaPDE/mesh.h>
 #include <fdaPDE/utils/symbols.h>
+#include <fdaPDE/mesh.h>
 
 #include <memory>
 using fdapde::core::ADT;

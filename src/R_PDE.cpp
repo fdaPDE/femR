@@ -2,9 +2,9 @@
 #include <RcppEigen.h>
 // [[Rcpp::depends(RcppEigen)]]
 
+#include <fdaPDE/utils/symbols.h>
 #include <fdaPDE/mesh.h>
 #include <fdaPDE/pde.h>
-#include <fdaPDE/utils/symbols.h>
 using fdapde::core::advection;
 using fdapde::core::diffusion;
 using fdapde::core::FEM;
@@ -61,7 +61,12 @@ template <unsigned int M, unsigned int N, unsigned int R> class R_PDE {
     void init() {
         switch (pde_type_) {
         case 1: {   // L = Laplacian
-            auto L = -laplacian<FEM>();
+            Rcpp::List pde_parameters(pde_parameters_);
+            double K = Rcpp::as<double>(pde_parameters["diffusion"]);
+            SVector<M> b = Rcpp::as<DMatrix<double>>(pde_parameters["transport"]);
+            double c = Rcpp::as<double>(pde_parameters["reaction"]);
+            // define bilinear form
+            auto L = K*laplacian<FEM>() + advection<FEM>(b) + reaction<FEM>(c);
             pde_ = new PDE<DomainType, decltype(L), DMatrix<double>, FEM>(domain_, L, u_);
         } break;
         case 2: {   // L = div(K*grad(f)) + b*grad(f) + c*f
@@ -72,7 +77,7 @@ template <unsigned int M, unsigned int N, unsigned int R> class R_PDE {
                 SVector<M> b = Rcpp::as<DMatrix<double>>(pde_parameters["transport"]);
                 double c = Rcpp::as<double>(pde_parameters["reaction"]);
                 // define bilinear form
-                auto L = -diffusion<FEM>(K) + advection<FEM>(b) + reaction<FEM>(c);
+                auto L = diffusion<FEM>(K) + advection<FEM>(b) + reaction<FEM>(c);
                 pde_ = new PDE<DomainType, decltype(L), DMatrix<double>, FEM>(domain_, L, u_);
             } else {
                 throw std::runtime_error("pde parameters not supplied.");

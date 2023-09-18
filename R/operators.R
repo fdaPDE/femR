@@ -74,10 +74,17 @@ setMethod("grad", signature(f = "FunctionObject"), function(f) {
         f = op1$f
     )
 }
+
+## differential operators minus (unary) operator
+`-.DiffOpObject` <- function(op) {
+  op$params[[1]] <- -op$params[[1]]
+  op
+}
+
 ## differential operator product by scalar
 `*.DiffOpObject` <- function(op1, op2){
     if (!is.numeric(op1)) stop("bad product")
-    op2$params <- op1*op2$params
+    op2$params[[1]] <- op1*op2$params[[1]]
     op2
 }
 

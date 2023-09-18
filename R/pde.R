@@ -5,23 +5,27 @@ pde <- function(L, u, fe_order = 1) {
     ## set pde type
     pde_type <- 0
     pde_parameters <- NULL
-    if (length(L$tokens) == 1 && L$tokens[1] == "diffusion" &&
-        length(L$params$diffusion) == 1 && L$params$diffusion == 1.0) {
+    if ("diffusion" %in% names(L$params) & !is.matrix(L$params$diffusion)){
         ## specialized implementation for laplace operator
         pde_type <- 1 
+        
+        pde_parameters$diffusion <- 0.0
+        
     } else {
         ## general diffusion-transport-reaction problem, constant coefficients
         pde_type <- 2
-        ## prepare pde_parameters list
+        
         pde_parameters$diffusion <- matrix(0, nrow = 2, ncol = 2)
-        pde_parameters$transport <- matrix(0, nrow = 2, ncol = 1)
-        pde_parameters$reaction  <- 0.0
-
-        for(i in 1:length(L$tokens)) {
-            pde_parameters[[paste(L$tokens[i])]] <- L$params[[paste(L$tokens[i])]]
-        }
+        
     }
-
+    
+    ## prepare pde_parameters list
+    pde_parameters$transport <- matrix(0, nrow = 2, ncol = 1)
+    pde_parameters$reaction  <- 0.0
+    for(i in 1:length(L$tokens)) {
+      pde_parameters[[paste(L$tokens[i])]] <- L$params[[paste(L$tokens[i])]]
+    }
+    
     ## define Rcpp module
     pde_ <- NULL
     if (fe_order == 1) { ## linear finite elements
