@@ -41,3 +41,15 @@ pde$solve()
 u_ex <- as.matrix(exact_solution(nodes))
 error.L2 <- sqrt(sum(pde$get_mass() %*% (u_ex - pde$solution())^2))
 cat("L2 error = ", error.L2, "\n")
+
+library(plotly)
+options(warn = -1)
+plot(f)
+plot(f, colorscale="Rainbow")
+plot(f, colorscale="Jet")
+plot(f, colorscale="Electric") %>% hide_colorbar() 
+plot(f, colorscale="Electric") %>% colorbar(title = "")
+
+contour(f)
+contour(f, colorscale="Jet")
+# see: https://plotly.com/r/reference/mesh3d/

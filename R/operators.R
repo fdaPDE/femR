@@ -19,7 +19,6 @@
             }
         }
     )
-    
 )
 ## constructor
 Function <- function(domain) {
@@ -27,7 +26,35 @@ Function <- function(domain) {
     .FunctionCtr(coeff = coeff, mesh = domain)
 }
 
-## gradient of Function
+# overload
+plot.FunctionObject <- function(f, ...){
+  DATA <- data.frame(x=f$mesh$nodes()[,1], y=f$mesh$nodes()[,2],z = f$coeff)
+  plot_ly(DATA, x=~x, y=~y, z=~z, intensity=~z,color = ~z, type="mesh3d", 
+          i = f$mesh$elements()[,1],
+          j = f$mesh$elements()[,2],
+          k = f$mesh$elements()[,3],
+          ...
+  ) %>%
+    layout(
+      camera = list(
+        eye = list(x = 1.25, 
+                   y = -1.25, 
+                   z = 1.25))
+    ) %>%
+    colorbar(len = 1)
+}
+
+# overload
+contour.FunctionObject = function(f, ...){
+  DATA <- data.frame(x=f$mesh$nodes()[,1], y=f$mesh$nodes()[,2],z = f$coeff)
+  plot_ly(DATA, x=~x, y=~y, z=~z, intensity=~z,color = ~z, type="contour", 
+          i = f$mesh$elements()[,1],
+          j = f$mesh$elements()[,2],
+          k = f$mesh$elements()[,3],
+          ...)
+}
+
+# gradient of Function
 .FunctionGradCtr <- setRefClass(
     Class = "FunctionGradObject",
     fields = c(
