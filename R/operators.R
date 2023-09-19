@@ -63,9 +63,10 @@ setMethod("contour", signature=c(x="FunctionObject"), function(x, ...){
                           Y = f$pde$get_dofs_coordinates()[,2],
                           Z = f$coeff)
   fig <- plot_ly(plot_data, type="contour", x=~X, y=~Y, z=~Z, intensity=~Z, color = ~Z,
-                 contours=list(showlabels = TRUE), ...) %>%
+                 contours=list(showlabels = TRUE),
+                 colorbar=list(title=""), ...) %>%
     layout(xaxis = list(title = ""),
-           yaxis = list(title = "")) #%>% colorbar(title = "",orientation="h") #does not work
+           yaxis = list(title = ""))
   fig
   }
 )

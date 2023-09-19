@@ -1,0 +1,150 @@
+---
+title: "Introduction"
+output: rmarkdown::html_vignette
+description: >
+  This document explain the basic usage of femR to solve PDEs in R. 
+vignette: >
+  %\VignetteIndexEntry{Diffusion}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width= 5., 
+                                   fig.height= 4., 
+                                   fig.align= "center",
+                                   collapse = TRUE,
+                                   comment = "#>")
+```
+
+`femR` is an R package that solves PDEs on R relying on the Finite Element Method (FEM). Consider $\Omega \subset \mathbb{R}^d$, `femR` solves advection-reaction-diffusion problem of the following form:
+
+$$
+\begin{cases}
+-\mu \Delta u + \boldsymbol{b} \cdot \nabla u + c u = f \qquad & in \ \Omega \\
+ BC \ conditions \ (Dirichlet \ or \ Neumann) \qquad         & on \ \partial \Omega,
+\end{cases}
+$$
+where $\mu \in \mathbb{R}$, $\boldsymbol{b} \in \mathbb{R}^d$, $a \in \mathbb{R}$ are the diffusion coefficient, the transport coefficient and the reaction coefficient, respectively. 
+`femR` exploits the modules feature provided by the R package [Rcpp](https://CRAN.R-project.org/package=Rcpp) to wrap C++ classes. 
+See [Rcpp-modules](https://cran.r-project.org/web/packages/Rcpp/vignettes/Rcpp-modules.pdf) for a brief overview on modules. 
+
+This vignette illustrates how to solve a linear partial differential equation. In particular, the following section explains step by step the solution of a simple Poisson problem using `femR` package.
+
+# Solving a Poisson problem 
+Let $\Omega$ be the unit square $[0,1]^2$.
+Let us consider the following problem  defined over $\Omega$:
+
+\begin{equation}
+\begin{cases}
+\Delta u = 8\pi^2 \sin( 2\pi x)\sin(2\pi y) \quad &in \ \Omega \\
+     u = 0   \quad  &on \ \partial \Omega
+\end{cases}
+(\#eq:problem)
+\end{equation}
+
+where $\partial \Omega$ is the boundary of $\Omega$ where we have prescribed homogeneous Dirichelet boundary condition.
+The exact solution of the previous problem reads as follows:
+$$ 
+u_{ex}(x,y) = \sin(2\pi x) \sin(2 \pi y) 
+$$
+
+First, we create a proper Mesh object exploiting the function \verb|create_mesh| that accepts a R named list containing geometrical information of the domain, i.e. the mesh.
+In particular, such named list should contain the following parameters: 
+
+* `nodes`, a 2-columns matrix containing the coordinates of the nodes of the mesh. 
+
+* `elements`, a 3-columns matrix that for each row $i$ contains the indexes of the mesh nodes that are vertices of the $i$-th element.
+
+* `neigh`, a 3-columns matrix storing information on neighbor elements. 
+
+* `boundary`, a 1-column matrix that indicates the nodes on the boundary of the domain. 
+
+`femR` contains the `unit_square` named list that can be used to perform some tests.
+
+```{r Creating mesh}
+library(femR)
+data("unit_square", package="femR")
+unit_square <- create_mesh(unit_square)
+plot(unit_square)
+```
+Moreover, `femR` package provide an utility that reads file storing such geometrical information and provided by third-party software such as FreeFem++. Indeed, `read_mesh(filename)` reads a .mesh file from FreeFem++ and returns a named list that can be passed to `create_mesh` function. The following chunk, that is not executed, explains how `read_mesh` works.
+```{r FreeFem++, eval=FALSE}
+filename <- "path/to/domain.mesh" #domain.mesh stored by the FreeFem utility savemesh() 
+domain <- read_mesh(filename)
+mesh <- create_mesh(domain)
+```
+Next, we introduce a `Function` defined over the domain that represents the solution of the differential problem.  
+```{r Defining Differential Operator}
+## solution of the PDE
+f <- Function(domain = unit_square)
+```
+
+Then, we define the differential operator in its strong formulation.
+```{r Differentail Operator}
+L <- -laplace(f) # L <- -div(I*grad(f))
+                 # In general:
+                 # L <- (-mu)*laplace(f) + dot(b,grad(f)) + c*f
+```
+Note that, according to the well-known identity $div(\nabla f) = \Delta f$, we could have written `L <- -div(I*grad(f))`, where `I` is the 2-dimensional identity matrix. Indeed, `femR` package let you define every term of a generic second-order linear differential operator $Lf= -div(K \nabla f) + \mathbf{b}\cdot \nabla f + a f$ as follows:
+
+  * Diffusion: `-div(K grad(f))` or `(-mu)*laplacian(f)`, where either `K` or `mu` represent the diffusion matrix in an anysotropic problem or the diffusion coefficient in a isotropic problem, implements the first term of the differential operator according to the problem at hand 
+  
+  * Advection: `dot(b,grad(f))`, where b is a two-dimensional vector, implements the second term of the second order differential operator
+  
+  * Reaction: `c*f`, where `c` is a scalar, implements the last term of the differential operator
+
+The forcing term of the differential problem is passed as a simple R `function`.
+```{r}
+## forcing term
+u <- function(points){
+    return(8.*pi^2* sin(2.*pi*points[,1])*sin(2.*pi*points[,2])) 
+}
+```
+
+Then, we create a `pde` object
+```{r Defining PDE object}
+## create pde
+pde <- pde(L, u, fe_order = 2)
+```
+where the first parameter `L` is the differential operator, the second term is the forcing term and the third term fix the order of the finite elements. The package provide first order and second order finite elements. 
+```{r}
+## set boundary conditions
+nodes <- pde$get_dofs_coordinates()
+dirichletBC <- as.matrix(rep(0., times = dim(nodes)[1]))
+pde$set_dirichlet_bc(dirichletBC)
+```
+Finally, we can compute the actual solution by calling the `solve` method of the `pde` object:
+```{r Solving the problem}
+## solve problem
+pde$solve()
+```
+
+Since, we are dealing with a simple differential problem and we know the analytic form of the exact solution, we can compute the $L^2$ norm of the error relying on the mass matrix provided by the `pde` object:
+```{r Compute error}
+exact_solution <- function(points){
+    return( sin(2.*pi*points[,1])*sin(2.*pi*points[,2]))
+}
+u_ex <- as.matrix(exact_solution(nodes))
+error.L2 <- sqrt(sum(pde$get_mass()%*%(u_ex-pde$solution())^2))
+cat("L2 error = ", error.L2, "\n")
+```
+
+We can plot the computed solution as follows:
+```{r Plots}
+## plot solution 
+options(warn=-1)
+plot(f)
+```
+
+```{r Contour}
+# contour 
+contour(f)
+```
+
+Either `plot` or `contour` return a `plotly` object that can be modified as one wish.
+```{r Using Plotly}
+plot(f, colorscale="Jet") %>% layout(scene=list(aspectmode="cube"))
+```
+
+

@@ -41,8 +41,7 @@ y <- x
 points <- expand.grid(x, y)
 f$eval_at(points)
 
-# plot solution 
+## plot solution 
 options(warn=-1)
-plot(f)
 plot(f) %>% layout(scene=list(aspectmode="cube"))
 contour(f)
