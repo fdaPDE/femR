@@ -3,6 +3,7 @@ library(femR)
 ## load domain data and generate mesh object
 data("unit_square", package="femR")
 unit_square = create_mesh(data = unit_square)
+plot(unit_square)
 
 W_ <- 1.
 R_ <- 1.

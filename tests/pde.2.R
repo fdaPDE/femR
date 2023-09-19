@@ -3,6 +3,7 @@ library(femR)
 ## load domain data and generate mesh object
 data("unit_square", package="femR")
 unit_square = create_mesh(data = unit_square)
+plot(unit_square)
 
 exact_solution <- function(points){
     return( sin(2. * pi * points[,1]) * sin(2. * pi * points[,2]) )

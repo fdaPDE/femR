@@ -6,6 +6,8 @@ graphics.off()
 
 data("unit_square", package="femR")
 unit_square = create_mesh(data = unit_square)
+plot(unit_square)
+
 K <- matrix(c(1,0,0,1), byrow=T, nrow=2,ncol=2)
 
 W_ <- 1.
