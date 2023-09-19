@@ -39,3 +39,9 @@ x <- seq(0, 1, length.out = 10)
 y <- x
 points <- expand.grid(x, y)
 f$eval_at(points)
+
+# plot solution 
+options(warn=-1)
+plot(f)
+plot(f) %>% layout(scene=list(aspectmode="cube"))
+contour(f)

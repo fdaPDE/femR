@@ -26,33 +26,49 @@ Function <- function(domain) {
     .FunctionCtr(coeff = coeff, mesh = domain)
 }
 
-# overload
-plot.FunctionObject <- function(f, ...){
-  DATA <- data.frame(x=f$mesh$nodes()[,1], y=f$mesh$nodes()[,2],z = f$coeff)
-  plot_ly(DATA, x=~x, y=~y, z=~z, intensity=~z,color = ~z, type="mesh3d", 
-          i = f$mesh$elements()[,1],
-          j = f$mesh$elements()[,2],
-          k = f$mesh$elements()[,3],
-          ...
-  ) %>%
-    layout(
-      camera = list(
-        eye = list(x = 1.25, 
-                   y = -1.25, 
-                   z = 1.25))
-    ) %>%
-    colorbar(len = 1)
-}
+## FunctionObject plot overload
+setMethod("plot", signature=c(x="FunctionObject"), function(x, ...){
+    plot_data <- data.frame(X = f$pde$get_dofs_coordinates()[,1], 
+                            Y = f$pde$get_dofs_coordinates()[,2],
+                            Z = f$coeff)
+    plot_ly(plot_data, x=~X, y=~Y, z=~Z, intensity=~Z,color = ~Z, type="mesh3d", ...) %>%
+      layout(scene = list(
+        aspectmode = "data", 
+        xaxis = list(
+          title = '',
+          showgrid = F,
+          zeroline = F,
+          showticklabels = F),
+        yaxis = list(
+          title = '',
+          showgrid = F,
+          zeroline = F,
+          showticklabels = F),
+        zaxis = list(
+          title = '',
+          showgrid = F,
+          zeroline = F,
+          showticklabels = F)),
+        camera = list(
+          eye = list(x = 1.25, 
+                     y = -1.25, 
+                     z = 1.25))) %>%
+      colorbar(len = 1, title="")
+    }
+)
 
-# overload
-contour.FunctionObject = function(f, ...){
-  DATA <- data.frame(x=f$mesh$nodes()[,1], y=f$mesh$nodes()[,2],z = f$coeff)
-  plot_ly(DATA, x=~x, y=~y, z=~z, intensity=~z,color = ~z, type="contour", 
-          i = f$mesh$elements()[,1],
-          j = f$mesh$elements()[,2],
-          k = f$mesh$elements()[,3],
-          ...)
-}
+## FunctionObject contour overload
+setMethod("contour", signature=c(x="FunctionObject"), function(x, ...){
+  plot_data <- data.frame(X = f$pde$get_dofs_coordinates()[,1], 
+                          Y = f$pde$get_dofs_coordinates()[,2],
+                          Z = f$coeff)
+  fig <- plot_ly(plot_data, type="contour", x=~X, y=~Y, z=~Z, intensity=~Z, color = ~Z,
+                 contours=list(showlabels = TRUE), ...) %>%
+    layout(xaxis = list(title = ""),
+           yaxis = list(title = "")) #%>% colorbar(title = "",orientation="h") #does not work
+  fig
+  }
+)
 
 # gradient of Function
 .FunctionGradCtr <- setRefClass(
