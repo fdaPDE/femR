@@ -1,5 +1,5 @@
 # Reads .mesh file (FreeFem++) 
-read.mesh <-function(filename){
+read_mesh <-function(filename){
   
   # Reading file
   file <- readLines(filename)
