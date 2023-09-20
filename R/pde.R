@@ -1,5 +1,5 @@
 ## create pde object backed by Cpp_pde_module
-pde <- function(L, u, fe_order = 1) {
+pde <- function(L, u, dirichletBC, fe_order = 1) {
     D = L$f$mesh ## domain object
 
     ## set pde type
@@ -43,5 +43,9 @@ pde <- function(L, u, fe_order = 1) {
 
     ## initialize and return
     pde_$init()
+    
+    ## set Dirichlet boundary conditions
+    pde_$set_dirichlet_bc(as.matrix(dirichletBC(pde_$get_dofs_coordinates())))
+    
     return(pde_)
 }

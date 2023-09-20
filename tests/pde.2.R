@@ -6,7 +6,7 @@ unit_square = create_mesh(data = unit_square)
 plot(unit_square)
 
 exact_solution <- function(points){
-    return( sin(2. * pi * points[,1]) * sin(2. * pi * points[,2]) )
+  return( sin(2. * pi * points[,1]) * sin(2. * pi * points[,2]) )
 }
 
 ## define differential operator in its strong formulation
@@ -16,20 +16,20 @@ L <- -laplace(f)
 u <- function(points){
     return(8.*pi^2* sin( 2.* pi * points[,1]) * sin(2.*pi* points[,2]) ) 
 }
+## Dirichlet BC
+dirichletBC <- function(points){
+  return(rep(0, times=nrow(points)))
+}
 ## create pde
-pde <- pde(L, u, fe_order = 2)
-## set boundary conditions
-nodes <- pde$get_dofs_coordinates()
-dirichletBC <- as.matrix(rep(0., times = dim(nodes)[1]))
-pde$set_dirichlet_bc(dirichletBC)
+pde <- pde(L, u, dirichletBC, fe_order = 2)
 
 ## solve problem
 pde$solve()
 
-u_ex <- as.matrix(exact_solution(nodes))
+## compute L2 norm of the error
+u_ex <- as.matrix(exact_solution(pde$get_dofs_coordinates()))
 error.L2 <- sqrt(sum(pde$get_mass() %*% (u_ex - pde$solution())^2))
 cat("L2 error = ", error.L2, "\n")
-
 
 ## perform evaluation at single point
 point = c(0.2, 0.5)
@@ -43,5 +43,6 @@ f$eval_at(points)
 
 ## plot solution 
 options(warn=-1)
-plot(f) %>% layout(scene=list(aspectmode="cube"))
+plot(f) %>% layout(scene=list(aspectmode="cube")) %>% hide_colorbar()
+
 contour(f)

@@ -29,17 +29,18 @@ L <- -laplace(f) + dot(c(alpha_,0), grad(f))
 u <- function(points){
   return(gamma_ * sin(pi * points[,2])) 
 }
+## Dirichlet BC
+dirichletBC <- function(points){
+  return(matrix(0,nrow=nrow(points), ncol=1))
+}
 ## create pde
-pde <- pde(L, u, fe_order = 1)
-## set boundary conditions
-nodes <- pde$get_dofs_coordinates()
-dirichletBC <- as.matrix(rep(0., times = dim(nodes)[1]))
-pde$set_dirichlet_bc(dirichletBC)
+pde <- pde(L, u, dirichletBC, fe_order = 1)
 
 ## solve problem
 pde$solve()
 
-u_ex <- as.matrix(exact_solution(nodes))
+## compute L2 norm of the error
+u_ex <- as.matrix(exact_solution(pde$get_dofs_coordinates()))
 error.L2 <- sqrt(sum(pde$get_mass() %*% (u_ex - pde$solution())^2))
 cat("L2 error = ", error.L2, "\n")
 
