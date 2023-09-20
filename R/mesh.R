@@ -15,25 +15,20 @@ setMethod("plot", "Rcpp_Mesh_2D", function(x, ...){
   edges <- unroll_edges(x)
   plot_ly(...) %>% 
     add_markers(x = x$nodes()[,1],
-                y = x$nodes()[,2], 
-                color = I('black'),
+                y = x$nodes()[,2],
+                color = I('black'), size = I(1),
                 hoverinfo = 'text',
-                
                 text = paste('</br><b> Coordinates:', round(x$nodes()[,1],2),
-                             round(x$nodes()[,2],2)), 
-                showlegend = T, 
+                             round(x$nodes()[,2],2)),
+                showlegend = T,
                 visible = T) %>%
     add_segments(x = x$nodes()[edges[,1],1],
                  y = x$nodes()[edges[,1],2],
                  xend = x$nodes()[edges[,2],1],
                  yend = x$nodes()[edges[,2],2], 
-                 color = I('black'),
+                 color = I('black'), size = I(1),
                  showlegend = F) %>%
-    layout(scene = list(
-      camera = list(
-        eye = list(x = 0, 
-                   y = 0, 
-                   z = 1.5))), 
+    layout(
       xaxis = list(
         title = '',
         showgrid = F,

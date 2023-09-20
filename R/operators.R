@@ -28,10 +28,14 @@ Function <- function(domain) {
 
 ## FunctionObject plot overload
 setMethod("plot", signature=c(x="FunctionObject"), function(x, ...){
-    plot_data <- data.frame(X = f$pde$get_dofs_coordinates()[,1], 
-                            Y = f$pde$get_dofs_coordinates()[,2],
-                            Z = f$coeff)
-    plot_ly(plot_data, x=~X, y=~Y, z=~Z, intensity=~Z,color = ~Z, type="mesh3d", ...) %>%
+    plot_data <- data.frame(X=f$pde$get_dofs_coordinates()[1:nrow(f$mesh$nodes()),1], 
+                            Y=f$pde$get_dofs_coordinates()[1:nrow(f$mesh$nodes()),2],
+                            Z=f$coeff[1:nrow(f$mesh$nodes())],
+                            coeff=f$coeff[1:nrow(f$mesh$nodes())])
+    I=(f$mesh$elements()[,1]); J=(f$mesh$elements()[,2]); K=(f$mesh$elements()[,3])
+    plot_ly(plot_data, x=~X, y=~Y, z=~Z,
+            i = I, j = J, k = K,
+            intensity=~coeff,color = ~coeff, type="mesh3d", ...) %>%
       layout(scene = list(
         aspectmode = "data", 
         xaxis = list(
@@ -59,10 +63,14 @@ setMethod("plot", signature=c(x="FunctionObject"), function(x, ...){
 
 ## FunctionObject contour overload
 setMethod("contour", signature=c(x="FunctionObject"), function(x, ...){
-  plot_data <- data.frame(X = f$pde$get_dofs_coordinates()[,1], 
-                          Y = f$pde$get_dofs_coordinates()[,2],
-                          Z = f$coeff)
-  fig <- plot_ly(plot_data, type="contour", x=~X, y=~Y, z=~Z, intensity=~Z, color = ~Z,
+  plot_data <- data.frame(X=f$pde$get_dofs_coordinates()[1:nrow(f$mesh$nodes()),1], 
+                          Y=f$pde$get_dofs_coordinates()[1:nrow(f$mesh$nodes()),2],
+                          Z=f$coeff[1:nrow(f$mesh$nodes())],
+                          coeff=f$coeff[1:nrow(f$mesh$nodes())])
+  I=(f$mesh$elements()[,1]); J=(f$mesh$elements()[,2]); K=(f$mesh$elements()[,3])
+  fig <- plot_ly(plot_data, type="contour", x=~X, y=~Y, z=~Z, 
+                 i = I, j = J, k = K,
+                 intensity=~Z, color = ~Z,
                  contours=list(showlabels = TRUE),
                  colorbar=list(title=""), ...) %>%
     layout(xaxis = list(title = ""),
