@@ -6,8 +6,10 @@ The R wrapper to the fdaPDE finite element solver for Partial Differential Equat
 ## Installation
 
 Make sure to have the following dependencies installed on your system:
+
 * a C++17 compliant compiler
 * the `Rcpp` and `RcppEigen` packages 
+
 then, to install the latest stable version of `femR`, you can either either:
 
 1. use the `devtools` package. From the R console, execute
