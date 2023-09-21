@@ -1,24 +1,32 @@
 # fem-R
 The R wrapper to the fdaPDE finite element solver for Partial Differential Equations 
 
-## Installation:
+> This is a first pre-release of the package, as such, bugs might occur. Feel free to open an issue in case of problems.
 
-1. Quick installation relying on `devtools` package, from R console: 
+## Installation
 
-      ```> devtools::install_github("fdaPDE/fem-R", ref="develop") ```
+Make sure to have the following dependencies installed on your system:
+* a C++17 compliant compiler
+* the `Rcpp` and `RcppEigen` packages 
 
-2. Cloning the development version of the package.
-  
-      from terminal:
-  
-      ``` $ git clone --recurse-submodules -b develop git@github.com:fdaPDE/fem-R.git ```
-  
-      ``` $ cd path/to/fem-R ```
-  
-      from R console:
-        
-      ``` > install.packages(".", type="source", repos=NULL) ```
+then, to install the latest stable version of `femR` on your system, you can either either:
 
-**Remark** 
-femR makes use of git submodules, hence do not download the .zip file from the repository, unzip it and try to install it because the installation procedure will fail. 
+1. use the `devtools` package. From the R console, execute
 
+      ```
+	  devtools::install_github("fdaPDE/fem-R", ref="develop") 
+	  ```
+
+2. clone this repository and install. From a terminal, execute
+      ``` 
+	  git clone --recurse-submodules -b develop git@github.com:fdaPDE/fem-R.git 
+      cd path/to/fem-R 
+	  ```
+
+	and install the package from the R console
+
+	``` 
+	  install.packages(".", type="source", repos=NULL) 
+	  ```
+
+Both procedures will automatically pull the [fdaPDE-core](https://github.com/fdaPDE/fdaPDE-core) submodule dependence required by `femR`. It is not recommended to download the source code directly from Github, as this won't include any submodule dependence, making the installation procedure to fail.
