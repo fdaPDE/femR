@@ -8,18 +8,18 @@ The R wrapper to the fdaPDE finite element solver for Partial Differential Equat
 Make sure to have the following dependencies installed on your system:
 * a C++17 compliant compiler
 * the `Rcpp` and `RcppEigen` packages 
-
-then, to install the latest stable version of `femR` on your system, you can either either:
+then, to install the latest stable version of `femR`, you can either either:
 
 1. use the `devtools` package. From the R console, execute
 
       ```
-	  devtools::install_github("fdaPDE/fem-R", ref="develop") 
+	  devtools::install_github("fdaPDE/fem-R", ref="stable") 
 	  ```
 
 2. clone this repository and install. From a terminal, execute
+
       ``` 
-	  git clone --recurse-submodules -b develop git@github.com:fdaPDE/fem-R.git 
+	  git clone --recurse-submodules -b stable git@github.com:fdaPDE/fem-R.git 
       cd path/to/fem-R 
 	  ```
 
