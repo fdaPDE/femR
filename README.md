@@ -1,4 +1,4 @@
-# fem-R
+# femR
 The R wrapper to the fdaPDE finite element solver for Partial Differential Equations 
 
 > This is a first pre-release of the package, as such, bugs might occur. Feel free to open an issue in case of problems.
@@ -15,14 +15,14 @@ then, to install the latest stable version of `femR`, you can either:
 1. use the `devtools` package. From the R console, execute
 
       ```
-	  devtools::install_github("fdaPDE/fem-R", ref="stable") 
+	  devtools::install_github("fdaPDE/femR", ref="stable") 
 	  ```
 
 2. clone this repository and install. From a terminal, execute
 
       ``` 
-	  git clone --recurse-submodules -b stable git@github.com:fdaPDE/fem-R.git 
-      cd path/to/fem-R 
+	  git clone --recurse-submodules -b stable git@github.com:fdaPDE/femR.git 
+      cd path/to/femR 
 	  ```
 
 	and install the package from the R console
