@@ -5,8 +5,9 @@ rm(list=ls())
 graphics.off()
 
 data("unit_square", package="femR")
-unit_square = create_mesh(data = unit_square)
-plot(unit_square)
+# create Functional Space
+Vh <- FunctionalSpace(unit_square,fe_order = 1)
+plot(Vh$mesh)
 
 W_ <- 1.
 R_ <- 1.
@@ -26,7 +27,7 @@ exact_solution <- function(points){
 }
 
 ## define differential operator in its strong formulation
-f <- Function(domain = unit_square)
+f <- feFunction(Vh)
 #L <- -laplace(f) + dot(c(alpha_,0), grad(f))   
 #L <- -1*laplace(f) + dot(c(alpha_,0), grad(f)) # OK
 I <- matrix(c(1,0,0,1), byrow=T, nrow=2,ncol=2)
@@ -41,7 +42,7 @@ dirichletBC <- function(points){
   return(matrix(0,nrow=nrow(points), ncol=1))
 }
 ## create pde
-pde <- pde(L, u, dirichletBC, fe_order = 1)
+pde <- pde(L, u, dirichletBC)
 
 ## solve problem
 pde$solve()
@@ -50,6 +51,16 @@ pde$solve()
 u_ex <- as.matrix(exact_solution(pde$get_dofs_coordinates()))
 error.L2 <- sqrt(sum(pde$get_mass() %*% (u_ex - pde$solution())^2))
 cat("L2 error = ", error.L2, "\n")
+
+## perform evaluation at single point
+point = c(0.2, 0.5)
+f$eval_at(point)
+
+## evaluate over a 10x10 grid
+x <- seq(0, 1, length.out = 50)
+y <- x
+points <- expand.grid(x, y)
+f$eval_at(points)
 
 # plot solution 
 options(warn=-1)

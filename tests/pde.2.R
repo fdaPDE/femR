@@ -2,15 +2,18 @@ library(femR)
 
 ## load domain data and generate mesh object
 data("unit_square", package="femR")
-unit_square = create_mesh(data = unit_square)
-plot(unit_square)
+fe_order = 2
+
+# create Functional Space
+Vh <- FunctionalSpace(unit_square, fe_order = 2)
+plot(Vh$mesh)
 
 exact_solution <- function(points){
   return( sin(2. * pi * points[,1]) * sin(2. * pi * points[,2]) )
 }
 
 ## define differential operator in its strong formulation
-f <- Function(domain = unit_square)
+f <- feFunction(Vh)
 L <- -laplace(f)
 ## forcing term
 u <- function(points){
@@ -21,7 +24,7 @@ dirichletBC <- function(points){
   return(rep(0, times=nrow(points)))
 }
 ## create pde
-pde <- pde(L, u, dirichletBC, fe_order = 2)
+pde <- pde(L, u, dirichletBC)
 
 ## solve problem
 pde$solve()
@@ -36,7 +39,7 @@ point = c(0.2, 0.5)
 f$eval_at(point)
 
 ## evaluate over a 10x10 grid
-x <- seq(0, 1, length.out = 10)
+x <- seq(0, 1, length.out = 50)
 y <- x
 points <- expand.grid(x, y)
 f$eval_at(points)

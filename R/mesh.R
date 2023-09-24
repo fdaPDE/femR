@@ -1,6 +1,6 @@
 ## Mesh - auxiliary methods
-setGeneric("unroll_edges", function(mesh) 0)
-setMethod("unroll_edges", "Rcpp_Mesh_2D", function(mesh){
+
+unroll_edges_aux <- function(mesh){
   edges <- matrix(nrow=3*nrow(mesh$elements()), ncol=2)
   for(i in 1:nrow(mesh$elements())){
     edges[(3*(i-1) + 1),]   = mesh$elements()[i,c(1,2)] + 1
@@ -8,10 +8,18 @@ setMethod("unroll_edges", "Rcpp_Mesh_2D", function(mesh){
     edges[(3*(i-1) + 3),] = mesh$elements()[i,c(3,1)] + 1
   }
   edges
-  }
-)
+}
 
-setMethod("plot", "Rcpp_Mesh_2D", function(x, ...){
+setGeneric("unroll_edges", function(mesh) standardGeneric("unroll_edges"))
+setMethod("unroll_edges", "Rcpp_Mesh_2D_ORDER_1", function(mesh){
+  unroll_edges_aux(mesh)
+})
+
+setMethod("unroll_edges", "Rcpp_Mesh_2D_ORDER_2", function(mesh){
+  unroll_edges_aux(mesh)
+})
+
+plot_mesh_aux <- function(x, ...){
   edges <- unroll_edges(x)
   plot_ly(...) %>% 
     add_markers(x = x$nodes()[,1],
@@ -41,4 +49,13 @@ setMethod("plot", "Rcpp_Mesh_2D", function(x, ...){
         zeroline = F,
         showticklabels = F
       ))
+}
+
+setMethod("plot", "Rcpp_Mesh_2D_ORDER_1", function(x, ...){
+  plot_mesh_aux(x, ...)  
+})
+
+
+setMethod("plot", "Rcpp_Mesh_2D_ORDER_2", function(x, ...){
+  plot_mesh_aux(x, ...)  
 })

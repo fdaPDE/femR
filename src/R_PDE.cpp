@@ -43,7 +43,7 @@ template <unsigned int M, unsigned int N, unsigned int R> class R_PDE {
       Rcpp::Environment solution) :
         pde_type_(pde_type), pde_parameters_(pde_parameters), solution_(solution) {
         SEXP meshptr = mesh[".pointer"];
-        R_Mesh<M, N>* ptr = (R_Mesh<M, N>*)R_ExternalPtrAddr(meshptr);
+        R_Mesh<M, N, R>* ptr = (R_Mesh<M, N, R>*)R_ExternalPtrAddr(meshptr);
         domain_ = ptr->domain();   // assign domain (re-enumerate if R>1)
     }
 
@@ -97,23 +97,23 @@ template <unsigned int M, unsigned int N, unsigned int R> class R_PDE {
     // eval solution at point
     DMatrix<double> eval(Rcpp::Environment mesh, const DMatrix<double>& coeff, const DMatrix<double>& point) {
         SEXP meshptr = mesh[".pointer"];
-        R_Mesh<M, N>* ptr = (R_Mesh<M, N>*)R_ExternalPtrAddr(meshptr);
+        R_Mesh<M, N, R>* ptr = (R_Mesh<M, N, R>*)R_ExternalPtrAddr(meshptr);
         if (point.cols() != M) {
             throw std::runtime_error("evaluation point must be a " + std::to_string(M) + "-dimensional vector");
         }
         DMatrix<double> evals;
         evals.resize(point.rows(), 1);
         for (std::size_t j = 0; j < point.rows(); ++j) {
-            SVector<M> p;
-            for (int i = 0; i < M; ++i) p[i] = point(j, i);
+            SVector<N> p;
+            for (int i = 0; i < N; ++i) p[i] = point(j, i);
             // locate element containing point
             auto e = ptr->point_locator().locate(p);
             // compute value of function at point
             double v = std::numeric_limits<double>::quiet_NaN();
             if (e != nullptr) {
                 v = 0;
-                for (std::size_t j = 0; j < DomainType::n_dof_per_element; ++j) {
-                    v += coeff(ptr->domain().elements()(e->ID(), j), 0) * basis_(*e, j)(p);
+                for (std::size_t k = 0; k < DomainType::n_dof_per_element; ++k) {
+                    v += coeff(ptr->domain().elements()(e->ID(), k), 0) * basis_(*e, k)(p);
                 }
             }
             evals(j, 0) = v;

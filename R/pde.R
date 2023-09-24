@@ -1,6 +1,6 @@
 ## create pde object backed by Cpp_pde_module
-pde <- function(L, u, dirichletBC, fe_order = 1) {
-    D = L$f$mesh ## domain object
+pde <- function(L, u, dirichletBC) {
+    D = L$f$FunctionalSpace$mesh ## domain object
 
     ## set pde type
     pde_type <- 0
@@ -26,6 +26,7 @@ pde <- function(L, u, dirichletBC, fe_order = 1) {
       pde_parameters[[paste(L$tokens[i])]] <- L$params[[paste(L$tokens[i])]]
     }
     
+    fe_order <- D$fe_order()
     ## define Rcpp module
     pde_ <- NULL
     if (fe_order == 1) { ## linear finite elements
@@ -35,8 +36,6 @@ pde <- function(L, u, dirichletBC, fe_order = 1) {
         pde_ <- new(PDE_2D_ORDER_2, D, pde_type, pde_parameters, L$f)
     }
 
-    L$f$pde = pde_
-    
     ## evaluate forcing term on quadrature nodes
     quad_nodes <- as.matrix(pde_$get_quadrature_nodes())
     pde_$set_forcing(as.matrix(u(quad_nodes)))
