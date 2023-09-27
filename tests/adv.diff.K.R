@@ -27,7 +27,7 @@ exact_solution <- function(points){
 }
 
 ## define differential operator in its strong formulation
-f <- feFunction(Vh)
+f <- Function(Vh)
 #L <- -laplace(f) + dot(c(alpha_,0), grad(f))   
 #L <- -1*laplace(f) + dot(c(alpha_,0), grad(f)) # OK
 I <- matrix(c(1,0,0,1), byrow=T, nrow=2,ncol=2)

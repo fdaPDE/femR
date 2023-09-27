@@ -8,7 +8,7 @@ Vh <- FunctionalSpace(domain=unit_square, fe_order=2)
 plot(Vh$mesh)
 
 ## 2. Defining the solution of the PDE
-f <- feFunction(Vh)
+f <- Function(Vh)
 ## 3. Defining the differential operator
 L <- -laplace(f) 
 ## 4. Defining the forcing term and the Dirichlet boundary conditions as standard R functions

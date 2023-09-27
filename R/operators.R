@@ -1,14 +1,14 @@
 ## take gradient of Function
 setGeneric("grad", function(f) standardGeneric("grad"))
-setMethod("grad", signature(f = "feFunctionObject"), function(f) {
-  .feFunctionGradCtr(f = f)
+setMethod("grad", signature(f = "FunctionObject"), function(f) {
+  .FunctionGradCtr(f = f)
 })
 
 ## diffusion tensor - FunctionGrad product overload
-`*.feFunctionGradObject` <- function(op1, op2) {
+`*.FunctionGradObject` <- function(op1, op2) {
   if (!is.matrix(op1) && !is.function(op1))
     stop("bad diffusion tensor type")
-  .feFunctionGradCtr(f = op2$f, K = op1)
+  .FunctionGradCtr(f = op2$f, K = op1)
 }
 
 ## base class for differential operators
@@ -19,7 +19,7 @@ setMethod("grad", signature(f = "feFunctionObject"), function(f) {
         tokens = "vector",
         params = "list",
         ## Function to which the operator is applied
-        f = "feFunctionObject"
+        f = "FunctionObject"
     )
 )
 ## sum of differential operators
@@ -59,7 +59,7 @@ setMethod("grad", signature(f = "feFunctionObject"), function(f) {
 ## laplace() returns a special operator for the case of
 ## isotropic  and stationary diffusion
 laplace <- function(f) {
-    if (!is(f, "feFunctionObject")) {
+    if (!is(f, "FunctionObject")) {
         stop("wrong argument type")
     }
     .DiffusionCtr(
@@ -70,7 +70,7 @@ laplace <- function(f) {
 }
 ## the general non-isotrpic, non-stationary diffusion operator
 div <- function(f) {
-    if (is(f, "feFunctionGradObject")) {
+    if (is(f, "FunctionGradObject")) {
         if (!is.null(f$K)) {
             return(.DiffusionCtr(
                        tokens = "diffusion",
@@ -88,7 +88,7 @@ div <- function(f) {
     contains = "DiffOpObject"
 )
 setGeneric("dot", function(op1, op2) standardGeneric("dot"))
-setMethod("dot", signature(op1 = "vector", op2 = "feFunctionGradObject"),
+setMethod("dot", signature(op1 = "vector", op2 = "FunctionGradObject"),
           function(op1, op2) {
               .TransportCtr(
                   tokens = "transport",
@@ -102,7 +102,7 @@ setMethod("dot", signature(op1 = "vector", op2 = "feFunctionGradObject"),
     Class = "ReactionOperator",
     contains = "DiffOpObject"
 )
-`*.feFunctionObject` <- function(c, f) {
+`*.FunctionObject` <- function(c, f) {
     if (!is.function(c) && !is.numeric(c)) {
         stop("wrong argument type")
     }

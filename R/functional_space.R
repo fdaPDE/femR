@@ -20,8 +20,8 @@ setMethod("FunctionalSpace", signature = c(domain="list", fe_order="numeric"),
 })
 
 ## finite element function
-.feFunctionCtr <- setRefClass(
-  Class = "feFunctionObject",
+.FunctionCtr <- setRefClass(
+  Class = "FunctionObject",
   fields = c(
     FunctionalSpace  = "ANY", 
     coeff = "matrix"
@@ -41,13 +41,13 @@ setMethod("FunctionalSpace", signature = c(domain="list", fe_order="numeric"),
   )
 )
 ## constructor
-feFunction <- function(FunctionalSpace) {
+Function <- function(FunctionalSpace) {
   coeff = matrix(ncol = 1, nrow = 0)
-  .feFunctionCtr(coeff = coeff, FunctionalSpace = FunctionalSpace)
+  .FunctionCtr(coeff = coeff, FunctionalSpace = FunctionalSpace)
 }
 
-## feFunctionObject plot overload
-setMethod("plot", signature=c(x="feFunctionObject"), function(x, ...){
+## FunctionObject plot overload
+setMethod("plot", signature=c(x="FunctionObject"), function(x, ...){
   plot_data <- data.frame(X=x$FunctionalSpace$mesh$nodes()[,1], 
                           Y=x$FunctionalSpace$mesh$nodes()[,2],
                           coeff=x$coeff[1:nrow(x$FunctionalSpace$mesh$nodes())])
@@ -82,8 +82,8 @@ setMethod("plot", signature=c(x="feFunctionObject"), function(x, ...){
 }
 )
 
-## feFunctionObject contour overload
-setMethod("contour", signature=c(x="feFunctionObject"), function(x, ...){
+## FunctionObject contour overload
+setMethod("contour", signature=c(x="FunctionObject"), function(x, ...){
   plot_data <- data.frame(X=x$FunctionalSpace$mesh$nodes()[,1], 
                           Y=x$FunctionalSpace$mesh$nodes()[,2],
                           coeff=x$coeff[1:nrow(x$FunctionalSpace$mesh$nodes())])
@@ -102,10 +102,10 @@ setMethod("contour", signature=c(x="feFunctionObject"), function(x, ...){
 )
 
 # gradient of Function
-.feFunctionGradCtr <- setRefClass(
-  Class = "feFunctionGradObject",
+.FunctionGradCtr <- setRefClass(
+  Class = "FunctionGradObject",
   fields = c(
-    f = "feFunctionObject", ## Function of which the gradient is taken
+    f = "FunctionObject", ## Function of which the gradient is taken
     K = "ANY" ## set by product operator
   )
 )

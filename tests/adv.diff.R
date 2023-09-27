@@ -25,7 +25,7 @@ exact_solution <- function(points){
 }
 
 ## define differential operator in its strong formulation
-f <- feFunction(Vh)
+f <- Function(Vh)
 L <- -laplace(f) + dot(c(alpha_,0), grad(f))
 ## forcing term
 u <- function(points){
