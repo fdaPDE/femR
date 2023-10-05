@@ -12,9 +12,9 @@ setMethod("FunctionalSpace", signature = c(domain="list", fe_order="numeric"),
           function(domain,fe_order){
             
             if(fe_order == 1){
-              return(.FunctionalSpaceCtr(mesh=new(Mesh_2D_ORDER_1, domain), fe_order=1L))
+              return(.FunctionalSpaceCtr(mesh=new(Mesh_2D, domain), fe_order=1L))
             }else if(fe_order == 2){
-              return(.FunctionalSpaceCtr(mesh=new(Mesh_2D_ORDER_2, domain), fe_order=2L))
+              return(.FunctionalSpaceCtr(mesh=new(Mesh_2D, domain), fe_order=2L))
             }
                                                   
 })
@@ -24,18 +24,19 @@ setMethod("FunctionalSpace", signature = c(domain="list", fe_order="numeric"),
   Class = "FunctionObject",
   fields = c(
     FunctionalSpace  = "ANY", 
-    coeff = "matrix"
+    coeff = "matrix",
+    pde = "ANY"
   ),
   methods = list(
     eval_at = function(X) {
       M = dim(FunctionalSpace$mesh$nodes())[2]
       if(is.vector(X)) {
-        FunctionalSpace$mesh$eval(coeff, as.matrix(t(X)))
+        pde$eval(FunctionalSpace$mesh, coeff, matrix(X, nrow=1,ncol=M))
       } else {           
         if(dim(X)[2] != M) {
           stop(paste("matrix of evaluation points should be an N x", M, "matrix"))
         }
-        FunctionalSpace$mesh$eval(coeff, as.matrix(X))
+        pde$eval(FunctionalSpace$mesh, coeff, as.matrix(X))
       }
     }
   )
@@ -51,9 +52,9 @@ setMethod("plot", signature=c(x="FunctionObject"), function(x, ...){
   plot_data <- data.frame(X=x$FunctionalSpace$mesh$nodes()[,1], 
                           Y=x$FunctionalSpace$mesh$nodes()[,2],
                           coeff=x$coeff[1:nrow(x$FunctionalSpace$mesh$nodes())])
-  I=(x$FunctionalSpace$mesh$elements()[,1])
-  J=(x$FunctionalSpace$mesh$elements()[,2]) 
-  K=(x$FunctionalSpace$mesh$elements()[,3])
+  I=(x$FunctionalSpace$mesh$elements()[,1]-1)
+  J=(x$FunctionalSpace$mesh$elements()[,2]-1) 
+  K=(x$FunctionalSpace$mesh$elements()[,3]-1)
   plot_ly(plot_data, x=~X, y=~Y, z=~coeff,
           i = I, j = J, k = K,
           intensity=~coeff,color = ~coeff, type="mesh3d", ...) %>%
@@ -87,9 +88,9 @@ setMethod("contour", signature=c(x="FunctionObject"), function(x, ...){
   plot_data <- data.frame(X=x$FunctionalSpace$mesh$nodes()[,1], 
                           Y=x$FunctionalSpace$mesh$nodes()[,2],
                           coeff=x$coeff[1:nrow(x$FunctionalSpace$mesh$nodes())])
-  I=(x$FunctionalSpace$mesh$elements()[,1])
-  J=(x$FunctionalSpace$mesh$elements()[,2]) 
-  K=(x$FunctionalSpace$mesh$elements()[,3])
+  I=(x$FunctionalSpace$mesh$elements()[,1]-1)
+  J=(x$FunctionalSpace$mesh$elements()[,2]-1) 
+  K=(x$FunctionalSpace$mesh$elements()[,3]-1)
   fig <- plot_ly(plot_data, type="contour", x=~X, y=~Y, z=~coeff, 
                  i = I, j = J, k = K,
                  intensity=~coeff, color = ~coeff,

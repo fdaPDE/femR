@@ -7,13 +7,13 @@ pde <- function(L, u, dirichletBC) {
     pde_parameters <- NULL
     if ("diffusion" %in% names(L$params) & !is.matrix(L$params$diffusion)){
         ## specialized implementation for laplace operator
-        pde_type <- 1 
+        pde_type <- 1L 
         
         pde_parameters$diffusion <- 0.0
         
     } else {
         ## general diffusion-transport-reaction problem, constant coefficients
-        pde_type <- 2
+        pde_type <- 2L
         
         pde_parameters$diffusion <- matrix(0, nrow = 2, ncol = 2)
         
@@ -26,7 +26,7 @@ pde <- function(L, u, dirichletBC) {
       pde_parameters[[paste(L$tokens[i])]] <- L$params[[paste(L$tokens[i])]]
     }
     
-    fe_order <- D$fe_order()
+    fe_order <- L$f$FunctionalSpace$fe_order
     ## define Rcpp module
     pde_ <- NULL
     if (fe_order == 1) { ## linear finite elements
@@ -36,10 +36,12 @@ pde <- function(L, u, dirichletBC) {
         pde_ <- new(PDE_2D_ORDER_2, D, pde_type, pde_parameters, L$f)
     }
 
+    L$f$pde = pde_
+    
     ## evaluate forcing term on quadrature nodes
     quad_nodes <- as.matrix(pde_$get_quadrature_nodes())
     pde_$set_forcing(as.matrix(u(quad_nodes)))
-
+    
     ## initialize and return
     pde_$init()
     

@@ -13,14 +13,12 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 
-RcppExport SEXP _rcpp_module_boot_Mesh_2D_ORDER_1();
-RcppExport SEXP _rcpp_module_boot_Mesh_2D_ORDER_2();
+RcppExport SEXP _rcpp_module_boot_Mesh_2D();
 RcppExport SEXP _rcpp_module_boot_PDE_2D_ORDER_1();
 RcppExport SEXP _rcpp_module_boot_PDE_2D_ORDER_2();
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_rcpp_module_boot_Mesh_2D_ORDER_1", (DL_FUNC) &_rcpp_module_boot_Mesh_2D_ORDER_1, 0},
-    {"_rcpp_module_boot_Mesh_2D_ORDER_2", (DL_FUNC) &_rcpp_module_boot_Mesh_2D_ORDER_2, 0},
+    {"_rcpp_module_boot_Mesh_2D", (DL_FUNC) &_rcpp_module_boot_Mesh_2D, 0},
     {"_rcpp_module_boot_PDE_2D_ORDER_1", (DL_FUNC) &_rcpp_module_boot_PDE_2D_ORDER_1, 0},
     {"_rcpp_module_boot_PDE_2D_ORDER_2", (DL_FUNC) &_rcpp_module_boot_PDE_2D_ORDER_2, 0},
     {NULL, NULL, 0}

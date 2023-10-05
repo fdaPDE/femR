@@ -3,7 +3,7 @@
 // [[Rcpp::depends(RcppEigen)]]
 
 #include <fdaPDE/utils/symbols.h>
-#include <fdaPDE/mesh.h>
+#include "R_Mesh.h"
 #include <fdaPDE/pde.h>
 using fdapde::core::advection;
 using fdapde::core::diffusion;
@@ -16,21 +16,20 @@ using fdapde::core::Mesh;
 using fdapde::core::PDE;
 using fdapde::core::PDEBase;
 using fdapde::core::reaction;
-
-#include "R_Mesh.h"
+using fdapde::core::fem_order;
 
 // M : local dimension, N : embedding dimension, R : FEM order
-template <unsigned int M, unsigned int N, unsigned int R> class R_PDE {
+template <int M, int N, int R> class R_PDE {
    private:
-    typedef Mesh<M, N, R> DomainType;
-    typedef Integrator<DomainType::local_dimension, DomainType::order> QuadratureRule;
-    typedef LagrangianElement<DomainType::local_dimension, DomainType::order> FunctionSpace;
+    typedef Mesh<M, N> DomainType;
+    typedef Integrator<DomainType::local_dimension, R> QuadratureRule;
+    typedef LagrangianElement<DomainType::local_dimension, R> FunctionSpace;
     typedef FiniteElementBasis<FunctionSpace> FunctionBasis;
 
     // internal data
     DomainType domain_ {};
     QuadratureRule integrator_ {};
-    PDEBase* pde_ = nullptr;
+    PDEBase* pde_ = nullptr;                      
     int pde_type_;
     Rcpp::Nullable<Rcpp::List> pde_parameters_;   // eventual PDE coefficients
     DMatrix<double> u_;                           // discretized forcing term
@@ -43,7 +42,7 @@ template <unsigned int M, unsigned int N, unsigned int R> class R_PDE {
       Rcpp::Environment solution) :
         pde_type_(pde_type), pde_parameters_(pde_parameters), solution_(solution) {
         SEXP meshptr = mesh[".pointer"];
-        R_Mesh<M, N, R>* ptr = (R_Mesh<M, N, R>*)R_ExternalPtrAddr(meshptr);
+        R_Mesh<M, N>* ptr = (R_Mesh<M, N>*)R_ExternalPtrAddr(meshptr);
         domain_ = ptr->domain();   // assign domain (re-enumerate if R>1)
     }
 
@@ -52,7 +51,7 @@ template <unsigned int M, unsigned int N, unsigned int R> class R_PDE {
     void set_forcing(const DMatrix<double>& data) { u_ = data; }
     // getters
     DMatrix<double> get_quadrature_nodes() const { return integrator_.quadrature_nodes(domain_); };
-    DMatrix<double> get_dofs_coordinates() const { return domain_.dof_coords(); };
+    DMatrix<double> get_dofs_coordinates() const { return pde_->dof_coords(); };
     SpMatrix<double> R0() const { return pde_->R0(); }
     SpMatrix<double> R1() const { return pde_->R1(); }
     DMatrix<double> solution() const { return pde_->solution(); }
@@ -60,14 +59,14 @@ template <unsigned int M, unsigned int N, unsigned int R> class R_PDE {
     // init pde_ pointer
     void init() {
         switch (pde_type_) {
-        case 1: {   // L = Laplacian
+        case 1: {   // L = K*Laplacian + b*grad(f) + c*f 
             Rcpp::List pde_parameters(pde_parameters_);
             double K = Rcpp::as<double>(pde_parameters["diffusion"]);
             SVector<M> b = Rcpp::as<DMatrix<double>>(pde_parameters["transport"]);
             double c = Rcpp::as<double>(pde_parameters["reaction"]);
             // define bilinear form
             auto L = K*laplacian<FEM>() + advection<FEM>(b) + reaction<FEM>(c);
-            pde_ = new PDE<DomainType, decltype(L), DMatrix<double>, FEM>(domain_, L, u_);
+            pde_ = new PDE<DomainType, decltype(L), DMatrix<double>, FEM, fem_order<R>>(domain_, L, u_);
         } break;
         case 2: {   // L = div(K*grad(f)) + b*grad(f) + c*f
             if (pde_parameters_.isNotNull()) {
@@ -78,7 +77,7 @@ template <unsigned int M, unsigned int N, unsigned int R> class R_PDE {
                 double c = Rcpp::as<double>(pde_parameters["reaction"]);
                 // define bilinear form
                 auto L = diffusion<FEM>(K) + advection<FEM>(b) + reaction<FEM>(c);
-                pde_ = new PDE<DomainType, decltype(L), DMatrix<double>, FEM>(domain_, L, u_);
+                pde_ = new PDE<DomainType, decltype(L), DMatrix<double>, FEM, fem_order<R>>(domain_, L, u_);
             } else {
                 throw std::runtime_error("pde parameters not supplied.");
             }
@@ -97,7 +96,7 @@ template <unsigned int M, unsigned int N, unsigned int R> class R_PDE {
     // eval solution at point
     DMatrix<double> eval(Rcpp::Environment mesh, const DMatrix<double>& coeff, const DMatrix<double>& point) {
         SEXP meshptr = mesh[".pointer"];
-        R_Mesh<M, N, R>* ptr = (R_Mesh<M, N, R>*)R_ExternalPtrAddr(meshptr);
+        R_Mesh<M, N>* ptr = (R_Mesh<M, N>*)R_ExternalPtrAddr(meshptr);
         if (point.cols() != M) {
             throw std::runtime_error("evaluation point must be a " + std::to_string(M) + "-dimensional vector");
         }
@@ -112,7 +111,7 @@ template <unsigned int M, unsigned int N, unsigned int R> class R_PDE {
             double v = std::numeric_limits<double>::quiet_NaN();
             if (e != nullptr) {
                 v = 0;
-                for (std::size_t k = 0; k < DomainType::n_dof_per_element; ++k) {
+                for (std::size_t k = 0; k < FunctionSpace::n_basis; ++k) {
                     v += coeff(ptr->domain().elements()(e->ID(), k), 0) * basis_(*e, k)(p);
                 }
             }
