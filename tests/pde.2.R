@@ -9,7 +9,7 @@ plot(mesh)
 
 # create Functional Space
 fe_order = 2
-Vh <- FunctionalSpace(mesh, fe_order)
+Vh <- FunctionSpace(mesh, fe_order)
 
 exact_solution <- function(points){
   return( sin(2. * pi * points[,1]) * sin(2. * pi * points[,2]) )
@@ -45,7 +45,7 @@ f$eval_at(point)
 x <- seq(0, 1, length.out = 50)
 y <- x
 points <- expand.grid(x, y)
-f$eval_at(points)
+max(abs( f$eval_at(points) - as.matrix(exact_solution(points))))
 
 ## plot solution 
 options(warn=-1)

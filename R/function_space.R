@@ -1,5 +1,5 @@
-.FunctionalSpaceCtr <- setRefClass(
-  Class = "FunctionalSpaceObject",
+.FunctionSpaceCtr <- setRefClass(
+  Class = "FunctionSpaceObject",
   fields = c(
     mesh  = "ANY", 
     fe_order="integer"
@@ -7,13 +7,13 @@
 )
 
 # constructor
-setGeneric("FunctionalSpace", function(mesh,fe_order) standardGeneric("FunctionalSpace"))
-setMethod("FunctionalSpace", signature = c(mesh="ANY", fe_order="numeric"),
+setGeneric("FunctionSpace", function(mesh,fe_order) standardGeneric("FunctionSpace"))
+setMethod("FunctionSpace", signature = c(mesh="ANY", fe_order="numeric"),
           function(mesh,fe_order){
             if(fe_order == 1){
-              return(.FunctionalSpaceCtr(mesh=mesh, fe_order=1L))
+              return(.FunctionSpaceCtr(mesh=mesh, fe_order=1L))
             }else if(fe_order == 2){
-              return(.FunctionalSpaceCtr(mesh=mesh, fe_order=2L))
+              return(.FunctionSpaceCtr(mesh=mesh, fe_order=2L))
             }
                                                   
 })
@@ -22,38 +22,38 @@ setMethod("FunctionalSpace", signature = c(mesh="ANY", fe_order="numeric"),
 .FunctionCtr <- setRefClass(
   Class = "FunctionObject",
   fields = c(
-    FunctionalSpace  = "ANY", 
+    FunctionSpace  = "ANY", 
     coeff = "matrix",
     pde = "ANY"
   ),
   methods = list(
     eval_at = function(X) {
-      M = dim(FunctionalSpace$mesh$nodes())[2]
+      M = dim(FunctionSpace$mesh$nodes())[2]
       if(is.vector(X)) {
-        pde$eval(FunctionalSpace$mesh$data, coeff, matrix(X, nrow=1,ncol=M))
+        pde$eval(FunctionSpace$mesh$data, coeff, matrix(X, nrow=1,ncol=M))
       } else {           
         if(dim(X)[2] != M) {
           stop(paste("matrix of evaluation points should be an N x", M, "matrix"))
         }
-        pde$eval(FunctionalSpace$mesh$data, coeff, as.matrix(X))
+        pde$eval(FunctionSpace$mesh$data, coeff, as.matrix(X))
       }
     }
   )
 )
 ## constructor
-Function <- function(FunctionalSpace) {
+Function <- function(FunctionSpace) {
   coeff = matrix(ncol = 1, nrow = 0)
-  .FunctionCtr(coeff = coeff, FunctionalSpace = FunctionalSpace)
+  .FunctionCtr(coeff = coeff, FunctionSpace = FunctionSpace)
 }
 
 ## FunctionObject plot overload
 setMethod("plot", signature=c(x="FunctionObject"), function(x, ...){
-  plot_data <- data.frame(X=x$FunctionalSpace$mesh$nodes()[,1], 
-                          Y=x$FunctionalSpace$mesh$nodes()[,2],
-                          coeff=x$coeff[1:nrow(x$FunctionalSpace$mesh$nodes())])
-  I=x$FunctionalSpace$mesh$elements()[,1]
-  J=x$FunctionalSpace$mesh$elements()[,2]
-  K=x$FunctionalSpace$mesh$elements()[,3]
+  plot_data <- data.frame(X=x$FunctionSpace$mesh$nodes()[,1], 
+                          Y=x$FunctionSpace$mesh$nodes()[,2],
+                          coeff=x$coeff[1:nrow(x$FunctionSpace$mesh$nodes())])
+  I=x$FunctionSpace$mesh$elements()[,1]
+  J=x$FunctionSpace$mesh$elements()[,2]
+  K=x$FunctionSpace$mesh$elements()[,3]
   plot_ly(plot_data, x=~X, y=~Y, z=~coeff,
           i = I, j = J, k = K,
           intensity=~coeff,color = ~coeff, type="mesh3d", ...) %>%
@@ -84,12 +84,12 @@ setMethod("plot", signature=c(x="FunctionObject"), function(x, ...){
 
 ## FunctionObject contour overload
 setMethod("contour", signature=c(x="FunctionObject"), function(x, ...){
-  plot_data <- data.frame(X=x$FunctionalSpace$mesh$nodes()[,1], 
-                          Y=x$FunctionalSpace$mesh$nodes()[,2],
-                          coeff=x$coeff[1:nrow(x$FunctionalSpace$mesh$nodes())])
-  I=x$FunctionalSpace$mesh$elements()[,1]
-  J=x$FunctionalSpace$mesh$elements()[,2] 
-  K=x$FunctionalSpace$mesh$elements()[,3]
+  plot_data <- data.frame(X=x$FunctionSpace$mesh$nodes()[,1], 
+                          Y=x$FunctionSpace$mesh$nodes()[,2],
+                          coeff=x$coeff[1:nrow(x$FunctionSpace$mesh$nodes())])
+  I=x$FunctionSpace$mesh$elements()[,1]
+  J=x$FunctionSpace$mesh$elements()[,2] 
+  K=x$FunctionSpace$mesh$elements()[,3]
   fig <- plot_ly(plot_data, type="contour", x=~X, y=~Y, z=~coeff, 
                  i = I, j = J, k = K,
                  intensity=~coeff, color = ~coeff,

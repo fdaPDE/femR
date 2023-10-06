@@ -9,7 +9,7 @@ plot(mesh)
 
 # create Functional Space
 fe_order = 1
-Vh <- FunctionalSpace(mesh, fe_order)
+Vh <- FunctionSpace(mesh, fe_order)
 
 W_ <- 1.
 R_ <- 1.
@@ -59,7 +59,7 @@ x <- seq(0, 1, length.out = 50)
 y <- x
 points <- expand.grid(x, y)
 f$eval_at(points)
-
+max(abs( f$eval_at(points) - as.matrix(exact_solution(points))))
 # plot solution 
 options(warn=-1)
 

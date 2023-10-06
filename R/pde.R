@@ -1,6 +1,6 @@
 ## create pde object backed by Cpp_pde_module
 pde <- function(L, u, dirichletBC) {
-    D = L$f$FunctionalSpace$mesh$data ## domain object
+    D = L$f$FunctionSpace$mesh$data ## domain object
 
     ## set pde type
     pde_type <- 0
@@ -26,7 +26,7 @@ pde <- function(L, u, dirichletBC) {
       pde_parameters[[paste(L$tokens[i])]] <- L$params[[paste(L$tokens[i])]]
     }
     
-    fe_order <- L$f$FunctionalSpace$fe_order
+    fe_order <- L$f$FunctionSpace$fe_order
     ## define Rcpp module
     pde_ <- NULL
     if (fe_order == 1) { ## linear finite elements
