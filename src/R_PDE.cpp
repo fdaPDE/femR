@@ -29,7 +29,7 @@ template <int M, int N, int R> class R_PDE {
     // internal data
     DomainType domain_ {};
     QuadratureRule integrator_ {};
-    PDEBase* pde_ = nullptr;                      
+    std::unique_ptr<PDEBase> pde_;                      
     int pde_type_;
     Rcpp::Nullable<Rcpp::List> pde_parameters_;   // eventual PDE coefficients
     DMatrix<double> u_;                           // discretized forcing term
@@ -41,8 +41,11 @@ template <int M, int N, int R> class R_PDE {
       Rcpp::Environment mesh, int pde_type, const Rcpp::Nullable<Rcpp::List>& pde_parameters,
       Rcpp::Environment solution) :
         pde_type_(pde_type), pde_parameters_(pde_parameters), solution_(solution) {
+        std::cout<< "Constructor - begin" <<std::endl;
         SEXP meshptr = mesh[".pointer"];
+        std::cout<< "Constructor - 1 " <<std::endl;
         R_Mesh<M, N>* ptr = (R_Mesh<M, N>*)R_ExternalPtrAddr(meshptr);
+        std::cout<< "Constructor - 2 " <<std::endl;
         domain_ = ptr->domain();   // assign domain (re-enumerate if R>1)
     }
 
@@ -60,24 +63,30 @@ template <int M, int N, int R> class R_PDE {
     void init() {
         switch (pde_type_) {
         case 1: {   // L = K*Laplacian + b*grad(f) + c*f 
+            std::cout<< "Init1 - begin" <<std::endl;
             Rcpp::List pde_parameters(pde_parameters_);
             double K = Rcpp::as<double>(pde_parameters["diffusion"]);
             SVector<M> b = Rcpp::as<DMatrix<double>>(pde_parameters["transport"]);
             double c = Rcpp::as<double>(pde_parameters["reaction"]);
             // define bilinear form
             auto L = K*laplacian<FEM>() + advection<FEM>(b) + reaction<FEM>(c);
-            pde_ = new PDE<DomainType, decltype(L), DMatrix<double>, FEM, fem_order<R>>(domain_, L, u_);
+            std::cout<< "Init1 - new" <<std::endl;
+            pde_ = std::make_unique<PDE<DomainType, decltype(L), DMatrix<double>, FEM, fem_order<R>>>(domain_, L, u_); //PDE<DomainType, decltype(L), DMatrix<double>, FEM, fem_order<R>>(domain_, L, u_);
+            std::cout<< "Init1 - end" <<std::endl;
         } break;
         case 2: {   // L = div(K*grad(f)) + b*grad(f) + c*f
             if (pde_parameters_.isNotNull()) {
                 // extract parameters from pack
+                std::cout<< "Init2 - begin" <<std::endl;
                 Rcpp::List pde_parameters(pde_parameters_);
                 SMatrix<M> K = Rcpp::as<DMatrix<double>>(pde_parameters["diffusion"]);
                 SVector<M> b = Rcpp::as<DMatrix<double>>(pde_parameters["transport"]);
                 double c = Rcpp::as<double>(pde_parameters["reaction"]);
                 // define bilinear form
                 auto L = diffusion<FEM>(K) + advection<FEM>(b) + reaction<FEM>(c);
-                pde_ = new PDE<DomainType, decltype(L), DMatrix<double>, FEM, fem_order<R>>(domain_, L, u_);
+                std::cout<< "Init2 - new" <<std::endl;
+                pde_ = std::make_unique<PDE<DomainType, decltype(L), DMatrix<double>, FEM, fem_order<R>>>(domain_, L, u_);//new PDE<DomainType, decltype(L), DMatrix<double>, FEM, fem_order<R>>(domain_, L, u_);
+                std::cout<< "Init2 - end" <<std::endl;
             } else {
                 throw std::runtime_error("pde parameters not supplied.");
             }

@@ -10,7 +10,8 @@
 setGeneric("FunctionalSpace", function(domain,fe_order) standardGeneric("FunctionalSpace"))
 setMethod("FunctionalSpace", signature = c(domain="list", fe_order="numeric"),
           function(domain,fe_order){
-            
+            domain$elements <- domain$elements - 1
+            storage.mode(domain$elements) <- "integer" 
             if(fe_order == 1){
               return(.FunctionalSpaceCtr(mesh=new(Mesh_2D, domain), fe_order=1L))
             }else if(fe_order == 2){
@@ -52,9 +53,9 @@ setMethod("plot", signature=c(x="FunctionObject"), function(x, ...){
   plot_data <- data.frame(X=x$FunctionalSpace$mesh$nodes()[,1], 
                           Y=x$FunctionalSpace$mesh$nodes()[,2],
                           coeff=x$coeff[1:nrow(x$FunctionalSpace$mesh$nodes())])
-  I=(x$FunctionalSpace$mesh$elements()[,1]-1)
-  J=(x$FunctionalSpace$mesh$elements()[,2]-1) 
-  K=(x$FunctionalSpace$mesh$elements()[,3]-1)
+  I=x$FunctionalSpace$mesh$elements()[,1]
+  J=x$FunctionalSpace$mesh$elements()[,2]
+  K=x$FunctionalSpace$mesh$elements()[,3]
   plot_ly(plot_data, x=~X, y=~Y, z=~coeff,
           i = I, j = J, k = K,
           intensity=~coeff,color = ~coeff, type="mesh3d", ...) %>%
@@ -88,9 +89,9 @@ setMethod("contour", signature=c(x="FunctionObject"), function(x, ...){
   plot_data <- data.frame(X=x$FunctionalSpace$mesh$nodes()[,1], 
                           Y=x$FunctionalSpace$mesh$nodes()[,2],
                           coeff=x$coeff[1:nrow(x$FunctionalSpace$mesh$nodes())])
-  I=(x$FunctionalSpace$mesh$elements()[,1]-1)
-  J=(x$FunctionalSpace$mesh$elements()[,2]-1) 
-  K=(x$FunctionalSpace$mesh$elements()[,3]-1)
+  I=x$FunctionalSpace$mesh$elements()[,1]
+  J=x$FunctionalSpace$mesh$elements()[,2] 
+  K=x$FunctionalSpace$mesh$elements()[,3]
   fig <- plot_ly(plot_data, type="contour", x=~X, y=~Y, z=~coeff, 
                  i = I, j = J, k = K,
                  intensity=~coeff, color = ~coeff,

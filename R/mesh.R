@@ -3,9 +3,9 @@
 unroll_edges_aux <- function(mesh){
   edges <- matrix(nrow=3*nrow(mesh$elements()), ncol=2)
   for(i in 1:nrow(mesh$elements())){
-    edges[(3*(i-1) + 1),]   = mesh$elements()[i,c(1,2)] 
-    edges[(3*(i-1) + 2),] = mesh$elements()[i,c(2,3)] 
-    edges[(3*(i-1) + 3),] = mesh$elements()[i,c(3,1)] 
+    edges[(3*(i-1) + 1),]   = mesh$elements()[i,c(1,2)] + 1
+    edges[(3*(i-1) + 2),]   = mesh$elements()[i,c(2,3)] + 1
+    edges[(3*(i-1) + 3),]   = mesh$elements()[i,c(3,1)] + 1
   }
   edges
 }
