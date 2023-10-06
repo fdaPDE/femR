@@ -1,13 +1,15 @@
-## load domain data and generate mesh object
 library(femR)
 
-rm(list=ls())
-graphics.off()
-
+## load domain data and generate mesh object
 data("unit_square", package="femR")
+
+mesh = Mesh2D(unit_square)
+class(mesh)
+plot(mesh)
+
 # create Functional Space
-Vh <- FunctionalSpace(unit_square,fe_order = 1)
-plot(Vh$mesh)
+fe_order = 1
+Vh <- FunctionalSpace(mesh, fe_order)
 
 W_ <- 1.
 R_ <- 1.

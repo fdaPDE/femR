@@ -71,7 +71,6 @@ template <int M, int N, int R> class R_PDE {
         case 2: {   // L = div(K*grad(f)) + b*grad(f) + c*f
             if (pde_parameters_.isNotNull()) {
                 // extract parameters from pack
-                std::cout<< "Init2 - begin" <<std::endl;
                 Rcpp::List pde_parameters(pde_parameters_);
                 SMatrix<M> K = Rcpp::as<DMatrix<double>>(pde_parameters["diffusion"]);
                 SVector<M> b = Rcpp::as<DMatrix<double>>(pde_parameters["transport"]);

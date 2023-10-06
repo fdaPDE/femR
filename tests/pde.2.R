@@ -2,11 +2,14 @@ library(femR)
 
 ## load domain data and generate mesh object
 data("unit_square", package="femR")
-fe_order = 2
+
+mesh = Mesh2D(unit_square)
+class(mesh)
+plot(mesh)
 
 # create Functional Space
-Vh <- FunctionalSpace(unit_square, fe_order = 2)
-plot(Vh$mesh)
+fe_order = 2
+Vh <- FunctionalSpace(mesh, fe_order)
 
 exact_solution <- function(points){
   return( sin(2. * pi * points[,1]) * sin(2. * pi * points[,2]) )

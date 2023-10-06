@@ -1,6 +1,6 @@
 ## create pde object backed by Cpp_pde_module
 pde <- function(L, u, dirichletBC) {
-    D = L$f$FunctionalSpace$mesh ## domain object
+    D = L$f$FunctionalSpace$mesh$data ## domain object
 
     ## set pde type
     pde_type <- 0

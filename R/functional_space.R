@@ -7,15 +7,13 @@
 )
 
 # constructor
-setGeneric("FunctionalSpace", function(domain,fe_order) standardGeneric("FunctionalSpace"))
-setMethod("FunctionalSpace", signature = c(domain="list", fe_order="numeric"),
-          function(domain,fe_order){
-            domain$elements <- domain$elements - 1
-            storage.mode(domain$elements) <- "integer" 
+setGeneric("FunctionalSpace", function(mesh,fe_order) standardGeneric("FunctionalSpace"))
+setMethod("FunctionalSpace", signature = c(mesh="ANY", fe_order="numeric"),
+          function(mesh,fe_order){
             if(fe_order == 1){
-              return(.FunctionalSpaceCtr(mesh=new(Mesh_2D, domain), fe_order=1L))
+              return(.FunctionalSpaceCtr(mesh=mesh, fe_order=1L))
             }else if(fe_order == 2){
-              return(.FunctionalSpaceCtr(mesh=new(Mesh_2D, domain), fe_order=2L))
+              return(.FunctionalSpaceCtr(mesh=mesh, fe_order=2L))
             }
                                                   
 })
@@ -32,12 +30,12 @@ setMethod("FunctionalSpace", signature = c(domain="list", fe_order="numeric"),
     eval_at = function(X) {
       M = dim(FunctionalSpace$mesh$nodes())[2]
       if(is.vector(X)) {
-        pde$eval(FunctionalSpace$mesh, coeff, matrix(X, nrow=1,ncol=M))
+        pde$eval(FunctionalSpace$mesh$data, coeff, matrix(X, nrow=1,ncol=M))
       } else {           
         if(dim(X)[2] != M) {
           stop(paste("matrix of evaluation points should be an N x", M, "matrix"))
         }
-        pde$eval(FunctionalSpace$mesh, coeff, as.matrix(X))
+        pde$eval(FunctionalSpace$mesh$data, coeff, as.matrix(X))
       }
     }
   )
