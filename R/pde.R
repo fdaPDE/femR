@@ -1,6 +1,7 @@
 ## create pde object backed by Cpp_pde_module
-pde <- function(L, u, dirichletBC) {
-    D = L$f$FunctionSpace$mesh$data ## domain object
+pde <- function(L, u, dirichletBC, 
+                times = NULL, initialCondition = NULL) {
+    D = L$f$FunctionSpace$mesh$data ## C++ R_Mesh class
 
     ## set pde type
     pde_type <- 0
@@ -22,10 +23,20 @@ pde <- function(L, u, dirichletBC) {
     ## prepare pde_parameters list
     pde_parameters$transport <- matrix(0, nrow = 2, ncol = 1)
     pde_parameters$reaction  <- 0.0
+    pde_parameters$time <- 0L
     for(i in 1:length(L$tokens)) {
       pde_parameters[[paste(L$tokens[i])]] <- L$params[[paste(L$tokens[i])]]
     }
     
+    is_parabolic = FALSE
+    if(pde_parameters$time != 0){
+      is_parabolic = TRUE
+      if(pde_type == 1L){
+        pde_type = 3L
+      }else{
+        pde_type = 4L
+      }
+    }
     fe_order <- L$f$FunctionSpace$fe_order
     ## define Rcpp module
     pde_ <- NULL
@@ -38,15 +49,28 @@ pde <- function(L, u, dirichletBC) {
 
     L$f$pde = pde_
     
-    ## evaluate forcing term on quadrature nodes
     quad_nodes <- as.matrix(pde_$get_quadrature_nodes())
-    pde_$set_forcing(as.matrix(u(quad_nodes)))
+    if(!is_parabolic){
+      ## evaluate forcing term on quadrature nodes
+      pde_$set_forcing(as.matrix(u(quad_nodes)))
+    }else{
+      ## evaluate forcing term on quadrature nodes
+      pde_$set_forcing(u(quad_nodes,times))
+    }
     
     ## initialize and return
     pde_$init()
     
-    ## set Dirichlet boundary conditions
-    pde_$set_dirichlet_bc(as.matrix(dirichletBC(pde_$get_dofs_coordinates())))
+    if(!is_parabolic){
+      ## set Dirichlet boundary conditions
+      pde_$set_dirichlet_bc(as.matrix(dirichletBC(pde_$get_dofs_coordinates())))
+    }else{
     
+      ## set Dirichlet boundary conditions
+      pde_$set_dirichlet_bc(dirichletBC(pde_$get_dofs_coordinates(),times))
+      
+      ## set Initial condition
+      pde_$set_initial_condition(initialCondition(pde_$get_dofs_coordinates()))
+    }
     return(pde_)
 }

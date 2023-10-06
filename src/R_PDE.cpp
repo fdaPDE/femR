@@ -12,6 +12,7 @@ using fdapde::core::FiniteElementBasis;
 using fdapde::core::Integrator;
 using fdapde::core::LagrangianElement;
 using fdapde::core::laplacian;
+using fdapde::core::dt;
 using fdapde::core::Mesh;
 using fdapde::core::PDE;
 using fdapde::core::PDEBase;
@@ -35,6 +36,8 @@ template <int M, int N, int R> class R_PDE {
     DMatrix<double> u_;                           // discretized forcing term
     FunctionBasis basis_ {};                      // functional basis
     Rcpp::Environment solution_;
+    bool is_parabolic_ = false;
+
    public:
     // constructor
     R_PDE(
@@ -49,6 +52,11 @@ template <int M, int N, int R> class R_PDE {
     // setters
     void set_dirichlet_bc(const DMatrix<double>& data) { pde_->set_dirichlet_bc(data); }
     void set_forcing(const DMatrix<double>& data) { u_ = data; }
+    void set_initial_condition(const DVector<double>& data) {
+        if(!is_parabolic_) 
+            throw std::runtime_error("set initial condition for elliptic problem.");
+        pde_->set_initial_condition(data);}
+
     // getters
     DMatrix<double> get_quadrature_nodes() const { return integrator_.quadrature_nodes(domain_); };
     DMatrix<double> get_dofs_coordinates() const { return pde_->dof_coords(); };
@@ -78,7 +86,36 @@ template <int M, int N, int R> class R_PDE {
                 // define bilinear form
                 auto L = diffusion<FEM>(K) + advection<FEM>(b) + reaction<FEM>(c);
                 pde_ = std::make_unique<PDE<DomainType, decltype(L), DMatrix<double>, FEM, fem_order<R>>>(domain_, L, u_);
-            } else {
+            } 
+            
+            else {
+                throw std::runtime_error("pde parameters not supplied.");
+            }
+        } break;
+        case 3: {
+            Rcpp::List pde_parameters(pde_parameters_);
+            double K = Rcpp::as<double>(pde_parameters["diffusion"]);
+            SVector<M> b = Rcpp::as<DMatrix<double>>(pde_parameters["transport"]);
+            double c = Rcpp::as<double>(pde_parameters["reaction"]);
+            this-> is_parabolic_ = true;
+            // define bilinear form
+            auto L = dt<FEM>() + K*laplacian<FEM>() + advection<FEM>(b) + reaction<FEM>(c);
+            pde_ = std::make_unique<PDE<DomainType, decltype(L), DMatrix<double>, FEM, fem_order<R>>>(domain_, L, u_); 
+        } break;
+        case 4: {
+            if (pde_parameters_.isNotNull()) {
+                // extract parameters from pack
+                Rcpp::List pde_parameters(pde_parameters_);
+                SMatrix<M> K = Rcpp::as<DMatrix<double>>(pde_parameters["diffusion"]);
+                SVector<M> b = Rcpp::as<DMatrix<double>>(pde_parameters["transport"]);
+                double c = Rcpp::as<double>(pde_parameters["reaction"]);
+                this-> is_parabolic_ = true;
+                // define bilinear form
+                auto L = dt<FEM>() + diffusion<FEM>(K) + advection<FEM>(b) + reaction<FEM>(c);
+                pde_ = std::make_unique<PDE<DomainType, decltype(L), DMatrix<double>, FEM, fem_order<R>>>(domain_, L, u_);
+            } 
+            
+            else {
                 throw std::runtime_error("pde parameters not supplied.");
             }
         } break;
@@ -142,7 +179,8 @@ RCPP_MODULE(PDE_2D_ORDER_1) {
       .method("set_forcing", &PDE_2D_ORDER_1::set_forcing)
       // init and solve
       .method("init", &PDE_2D_ORDER_1::init)
-      .method("solve", &PDE_2D_ORDER_1::solve);
+      .method("solve", &PDE_2D_ORDER_1::solve)
+      .method("set_initial_condition", &PDE_2D_ORDER_1::set_initial_condition);
 }
 
 typedef R_PDE<2, 2, 2> PDE_2D_ORDER_2;
@@ -161,5 +199,6 @@ RCPP_MODULE(PDE_2D_ORDER_2) {
       .method("set_forcing", &PDE_2D_ORDER_2::set_forcing)
       // init and solve
       .method("init", &PDE_2D_ORDER_2::init)
-      .method("solve", &PDE_2D_ORDER_2::solve);
+      .method("solve", &PDE_2D_ORDER_2::solve)
+      .method("set_initial_condition", &PDE_2D_ORDER_2::set_initial_condition);
 }

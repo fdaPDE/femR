@@ -112,3 +112,29 @@ setMethod("dot", signature(op1 = "vector", op2 = "FunctionGradObject"),
         f = f
     )
 }
+
+.TimeDerivativeCtr <- setRefClass(
+  Class = "TimeDerivative",
+  contains ="DiffOpObject"
+)
+
+# setGeneric("partial_t", function(f) standardGeneric("partial_t"))
+# setMethod("partial_t", "FunctionObject", function(f){
+# 
+#   .TimeDerivativeCtr(
+#     tokens="time",
+#     params = list(time=1),
+#     f=f
+#   )
+# })
+
+# overloading stats::dt function
+setMethod("dt", signature = c(x="FunctionObject", df="missing", ncp="missing"), 
+          function(x,df,ncp){
+  
+  .TimeDerivativeCtr(
+    tokens="time",
+    params = list(time=1L),
+    f=f
+  )
+})
