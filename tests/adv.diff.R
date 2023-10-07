@@ -3,7 +3,7 @@ library(femR)
 ## load domain data and generate mesh object
 data("unit_square", package="femR")
 
-mesh = Mesh2D(unit_square)
+mesh = Mesh(unit_square)
 class(mesh)
 plot(mesh)
 
@@ -40,7 +40,7 @@ dirichletBC <- function(points){
   return(matrix(0,nrow=nrow(points), ncol=1))
 }
 ## create pde
-pde <- pde(L, u, dirichletBC)
+pde <- Pde(L, u, dirichletBC)
 
 ## solve problem
 pde$solve()

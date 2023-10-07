@@ -1,8 +1,11 @@
-## Mesh2D Class Definition
-.Mesh2DCtr <- setRefClass(
-  Class = "Mesh2DObject",
+## Mesh Class Definition
+.MeshCtr <- setRefClass(
+  Class = "MeshObject",
   fields = c(
-    data  = "ANY"
+    data  = "ANY",
+    m = "integer",   # local dim
+    n = "integer",   # embedding dim
+    times = "vector" # for parabolic problems
   ),
   methods = c(
     nodes = function(){
@@ -16,21 +19,39 @@
     },
     neighbors = function(){
       data$neighbors()
+    },
+    times = function(){
+      return(times)
     }
   )
 )
 
-setGeneric("Mesh2D", function(domain) standardGeneric("Mesh2D"))
-setMethod("Mesh2D", signature = c(domain="list"),
+setGeneric("Mesh", function(domain) standardGeneric("Mesh"))
+setMethod("Mesh", signature = c(domain="list"),
           function(domain){
             domain$elements <- domain$elements - 1
-            storage.mode(domain$elements) <- "integer" 
-            .Mesh2DCtr(data=new(Mesh_2D, domain))                                                  
+            storage.mode(domain$elements) <- "integer"
+            m <- ncol(domain$elements) - 1
+            n <- ncol(domain$nodes) 
+            if(m == 2 & n == 2)
+              .MeshCtr(data=new(Mesh_2D, domain), m=as.integer(m),n=as.integer(n), 
+                       times=vector(mode="double"))                                                  
+            else
+              stop("wrong input argument provided.")
+})
+
+setGeneric("%cartesian%", function(op1, op2) standardGeneric("%cartesian%"))
+setMethod("%cartesian%", signature=c(op1="MeshObject", op2="numeric"),
+          function(op1, op2){
+            if(op2[1] > op2[length(op2)])
+              stop("Error! First time instant is greater than last time instant.")
+            op1$times <- times
+            op1          
 })
 
 ## Mesh - auxiliary methods
-unroll_edges_aux <- function(Mesh2D){
-  mesh <- Mesh2D$data
+unroll_edges_aux <- function(Mesh){
+  mesh <- Mesh$data
   edges <- matrix(nrow=3*nrow(mesh$elements()), ncol=2)
   for(i in 1:nrow(mesh$elements())){
     edges[(3*(i-1) + 1),]   = mesh$elements()[i,c(1,2)] + 1
@@ -40,9 +61,9 @@ unroll_edges_aux <- function(Mesh2D){
   edges
 }
 
-setGeneric("unroll_edges", function(Mesh2D) standardGeneric("unroll_edges"))
-setMethod("unroll_edges", "Mesh2DObject", function(Mesh2D){
-  unroll_edges_aux(Mesh2D)
+setGeneric("unroll_edges", function(Mesh) standardGeneric("unroll_edges"))
+setMethod("unroll_edges", "MeshObject", function(Mesh){
+  unroll_edges_aux(Mesh)
 })
 
 plot_mesh_aux <- function(x, ...){
@@ -77,7 +98,7 @@ plot_mesh_aux <- function(x, ...){
       ))
 }
 
-setMethod("plot", "Mesh2DObject", function(x, ...){
+setMethod("plot", "MeshObject", function(x, ...){
   plot_mesh_aux(x, ...)  
 })
 

@@ -2,10 +2,10 @@ library(femR)
 
 ## 1. Defining domain
 data("unit_square", package="femR")
+mesh <- Mesh(unit_square)
 
 # Functional Space
-Vh <- FunctionalSpace(domain=unit_square, fe_order=2)
-plot(Vh$mesh)
+Vh <- FunctionSpace(mesh, fe_order=2)
 
 ## 2. Defining the solution of the PDE
 f <- Function(Vh)
@@ -21,7 +21,7 @@ dirichletBC <- function(points){
   return(matrix(0,nrow=nrow(points), ncol=1))
 }
 ## 5. Building the PDE object
-pde <- pde(L, u, dirichletBC)
+pde <- Pde(L, u, dirichletBC)
 ## 6. computing the discrete solution
 pde$solve()
 ## 7. Plots

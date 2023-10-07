@@ -3,19 +3,20 @@ library(femR)
 ## load domain data and generate mesh object
 data("unit_square", package="femR")
 
-mesh = Mesh2D(unit_square)
+t0 = 0.
+t_max = 1
+dT = 1e-2
+M = (t_max - t0)/dT + 1
+times = seq(t0,t_max,length=M)
+
+# Spatio-temporal domain
+mesh = Mesh(unit_square) %cartesian% times
 class(mesh)
 plot(mesh)
 
 # create Functional Space
 fe_order = 1
 Vh <- FunctionSpace(mesh, fe_order)
-
-t0 = 0.
-t_max = 1
-dT = 1e-2
-M = (t_max - t0)/dT + 1
-times = seq(t0,t_max,length=M)
 
 exact_solution <- function(points,t){
   res <- matrix(0, nrow=nrow(points), ncol=length(times))
@@ -50,7 +51,7 @@ initialCondition <- function(points){
 }
   
 ## create pde
-pde <- pde(L, u, dirichletBC, times, initialCondition)
+pde <- Pde(L, u, dirichletBC, initialCondition)
 
 ## solve problem
 pde$solve()
@@ -64,6 +65,18 @@ for( t in 1:length(times)){
   cat(paste0("L2 error at time ",times[t]," ", error.L2[t], "\n"))
 }
 
+# otherwise -------------------------------------------------------------------- 
+pde <- Pde(L, u)
+pde$set_dirichletBC(dirichletBC)
+pde$set_initialCondition(initialCondition)
+pde$solve()
+
+error.L2 <- matrix(0, nrow=length(times), ncol=1)
+for( t in 1:length(times)){
+  error.L2[t] <- sqrt(sum(pde$get_mass() %*% (u_ex[,t] - pde$solution()[,t])^2))
+  cat(paste0("L2 error at time ",times[t]," ", error.L2[t], "\n"))
+}
+# ------------------------------------------------------------------------------
 ## perform evaluation at single point
 # TO DO
 # point = c(0.2, 0.5)
