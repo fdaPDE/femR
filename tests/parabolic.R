@@ -89,8 +89,8 @@ for( t in 1:length(times)){
 # max(abs( f$eval_at(points) - as.matrix(exact_solution(points))))
 # 
 # ## plot solution 
-# options(warn=-1)
-# plot(f) %>% layout(scene=list(aspectmode="cube")) %>% hide_colorbar()
-# 
-# contour(f)
+options(warn=-1)
+plot(f) %>% hide_colorbar()
+ 
+contour(f)
 # 
