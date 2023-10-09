@@ -10,13 +10,12 @@ M = (t_max - t0)/dT + 1
 times = seq(t0,t_max,length=M)
 
 # Spatio-temporal domain
-mesh = Mesh(unit_square) %cartesian% times
+mesh = Mesh(unit_square) %X% times
 class(mesh)
 plot(mesh)
 
 # create Functional Space
-fe_order = 1
-Vh <- FunctionSpace(mesh, fe_order)
+Vh <- FunctionSpace(mesh)
 
 exact_solution <- function(points,t){
   res <- matrix(0, nrow=nrow(points), ncol=length(times))
@@ -30,7 +29,9 @@ exact_solution <- function(points,t){
 f <- Function(Vh)
 
 ## define differential operator in its strong formulation
-L <- dt(f) + (-1)*laplace(f) 
+#L <- dt(f) + (-1)*laplace(f) 
+
+L <- dt(f) - laplace(f)
 
 ## forcing term
 u <- function(points,times){

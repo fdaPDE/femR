@@ -40,8 +40,8 @@ setMethod("Mesh", signature = c(domain="list"),
               stop("wrong input argument provided.")
 })
 
-setGeneric("%cartesian%", function(op1, op2) standardGeneric("%cartesian%"))
-setMethod("%cartesian%", signature=c(op1="MeshObject", op2="numeric"),
+setGeneric("%X%", function(op1, op2) standardGeneric("%X%"))
+setMethod("%X%", signature=c(op1="MeshObject", op2="numeric"),
           function(op1, op2){
             if(op2[1] > op2[length(op2)])
               stop("Error! First time instant is greater than last time instant.")

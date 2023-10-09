@@ -1,15 +1,29 @@
+# gradient of Function
+.FunctionGradCtr <- setRefClass(
+  Class = "FunctionGradObject",
+  fields = c(
+    f = "FunctionObject", ## Function of which the gradient is taken
+    K = "ANY" ## set by product operator
+  )
+)
+
 ## take gradient of Function
 setGeneric("grad", function(f) standardGeneric("grad"))
 setMethod("grad", signature(f = "FunctionObject"), function(f) {
   .FunctionGradCtr(f = f)
 })
 
-## diffusion tensor - FunctionGrad product overload
-`*.FunctionGradObject` <- function(op1, op2) {
-  if (!is.matrix(op1) && !is.function(op1))
-    stop("bad diffusion tensor type")
-  .FunctionGradCtr(f = op2$f, K = op1)
-}
+setMethod("*", signature=c(e1="matrix", e2="FunctionGradObject"),
+          function(e1,e2){
+        .FunctionGradCtr(f = e2$f, K = e1)    
+})
+
+# ## diffusion tensor - FunctionGrad product overload
+# `*.FunctionGradObject` <- function(op1, op2) {
+#   if (!is.matrix(op1) && !is.function(op1))
+#     stop("bad diffusion tensor type")
+#   .FunctionGradCtr(f = op2$f, K = op1)
+# }
 
 ## base class for differential operators
 .DiffOpCtr <- setRefClass(
@@ -22,34 +36,60 @@ setMethod("grad", signature(f = "FunctionObject"), function(f) {
         f = "FunctionObject"
     )
 )
-## sum of differential operators
-`+.DiffOpObject` <- function(op1, op2) {
-    if (tracemem(op1$f) != tracemem(op2$f)) {
-        stop("operator arguments must be the same")
-    }
-    ## check for duplicated operator tokens
-    if (any(duplicated(c(op1$tokens, op2$tokens)))) {
-        stop("duplicated operator")
-    }
-    .DiffOpCtr(
-        tokens = c(op1$tokens, op2$tokens),
-        params = c(op1$params, op2$params),
-        f = op1$f
-    )
-}
 
-## differential operators minus (unary) operator
-`-.DiffOpObject` <- function(op) {
-  op$params[[1]] <- -op$params[[1]]
-  op
-}
+## sum of differential operators
+setMethod("+", signature = c(e1="DiffOpObject", e2="DiffOpObject"),
+          function(e1, e2) {
+            if (tracemem(e1$f) != tracemem(e2$f)) {
+              stop("operator arguments must be the same")
+            }
+            ## check for duplicated operator tokens
+            if (any(duplicated(c(e1$tokens, e2$tokens)))) {
+              stop("duplicated operator")
+            }
+            .DiffOpCtr(
+              tokens = c(e1$tokens, e2$tokens),
+              params = c(e1$params, e2$params),
+              f = e1$f
+            )
+          }
+)
+
+# difference of differential operators
+setMethod("-", signature = c(e1="DiffOpObject", e2="DiffOpObject"),
+          function(e1, e2) {
+            if (tracemem(e1$f) != tracemem(e2$f)) {
+              stop("operator arguments must be the same")
+            }
+            ## check for duplicated operator tokens
+            if (any(duplicated(c(e1$tokens, e2$tokens)))) {
+              stop("duplicated operator")
+            }
+            for(i in 1:length(e2$params)){
+              e2$params[[i]] = -e2$params[[i]] 
+            }
+            .DiffOpCtr(
+              tokens = c(e1$tokens, e2$tokens),
+              params = c(e1$params, e2$params),
+              f = e1$f
+            )
+})
+## minus (unary) operator for DiffOpObject
+setMethod("-", signature(e1 = "DiffOpObject", e2 = "missing"),
+          function(e1){
+            e1$params[[1]] <- -e1$params[[1]]
+            e1
+          }
+)
 
 ## differential operator product by scalar
-`*.DiffOpObject` <- function(op1, op2){
-    if (!is.numeric(op1)) stop("bad product")
-    op2$params[[1]] <- op1*op2$params[[1]]
-    op2
-}
+setMethod("*", signature=c(e1="numeric", e2="DiffOpObject"),
+          function(e1,e2){
+            #if (!is.numeric(e1)) stop("bad product")
+            e2$params[[1]] <- e1*e2$params[[1]]
+            e2
+            
+})
 
 ## diffusion term
 .DiffusionCtr <- setRefClass(
@@ -102,31 +142,20 @@ setMethod("dot", signature(op1 = "vector", op2 = "FunctionGradObject"),
     Class = "ReactionOperator",
     contains = "DiffOpObject"
 )
-`*.FunctionObject` <- function(c, f) {
-    if (!is.function(c) && !is.numeric(c)) {
-        stop("wrong argument type")
-    }
-    .ReactionCtr(
-        tokens = "reaction",
-        params = list(reaction = c),
-        f = f
-    )
-}
+
+setMethod("*", signature = c(e1="numeric", e2="FunctionObject"),
+          function(e1,e2){
+            .ReactionCtr(
+              tokens = "reaction",
+              params = list(reaction = e1),
+              f = e2
+            )
+})
 
 .TimeDerivativeCtr <- setRefClass(
   Class = "TimeDerivative",
   contains ="DiffOpObject"
 )
-
-# setGeneric("partial_t", function(f) standardGeneric("partial_t"))
-# setMethod("partial_t", "FunctionObject", function(f){
-# 
-#   .TimeDerivativeCtr(
-#     tokens="time",
-#     params = list(time=1),
-#     f=f
-#   )
-# })
 
 # overloading stats::dt function
 setMethod("dt", signature = c(x="FunctionObject", df="missing", ncp="missing"), 

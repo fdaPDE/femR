@@ -18,6 +18,11 @@ setMethod("FunctionSpace", signature = c(mesh="ANY", fe_order="numeric"),
                                                   
 })
 
+setMethod("FunctionSpace", signature = c(mesh="ANY", fe_order="missing"),
+          function(mesh){
+              return(.FunctionSpaceCtr(mesh=mesh, fe_order=1L))
+})
+
 ## finite element function
 .FunctionCtr <- setRefClass(
   Class = "FunctionObject",
@@ -145,13 +150,4 @@ setMethod("contour", signature=c(x="FunctionObject"), function(x, ...){
   }
   fig
 }
-)
-
-# gradient of Function
-.FunctionGradCtr <- setRefClass(
-  Class = "FunctionGradObject",
-  fields = c(
-    f = "FunctionObject", ## Function of which the gradient is taken
-    K = "ANY" ## set by product operator
-  )
 )
