@@ -36,5 +36,3 @@ x <- seq(0, 1, length.out = 50)
 y <- x
 points <- expand.grid(x, y)
 tmp <- f$eval_at(points)
-
-max(f$eval_at(points) - pde$eval(Vh$mesh, as.matrix(f$coeff), as.matrix(points)))

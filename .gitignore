@@ -40,3 +40,6 @@
 !DESCRIPTION
 !NAMESPACE
 inst/doc
+.Rproj.user
+/doc/
+/Meta/
