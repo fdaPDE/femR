@@ -43,4 +43,6 @@ inst/doc
 .Rproj.user
 /doc/
 /Meta/
-!.github
+!.github/
+!.github/workflows/
+!.github/workflows/*.yaml
