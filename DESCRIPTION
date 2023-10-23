@@ -13,7 +13,7 @@ Description: One paragraph description of what the package does as one
 License: GPL (>= 2)
 Imports: Rcpp (>= 1.0.7), RcppEigen
 LinkingTo: Rcpp, RcppEigen
-RoxygenNote: 7.2.2
+RoxygenNote: 7.2.3
 Encoding: UTF-8
 Suggests: 
     knitr,
