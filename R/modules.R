@@ -2,8 +2,10 @@
 #' @import methods Rcpp
 #' @import RcppEigen
 #' @importFrom Rcpp evalCpp
-#' @exportPattern "^[[:alpha:]]+"
 NULL
+
+# #' @exportPattern "^[[:alpha:]]+"
+
 
 ## load required modules
 Rcpp::loadModule("PDE_2D_ORDER_1", TRUE)

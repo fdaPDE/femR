@@ -59,8 +59,18 @@
   )
 )
 
-
+#' A PDEs object
+#'
+#' @param L a differential operator.
+#' @param u the forcing term of the PDE.
+#' @param dirichletBC the Dirichlet boundary conditions to be imposed on the boundary of the domain. If not provided, homogeneous Dirichlet boundary conditions will be imposed.
+#' @param initilaCondition the initial condition of a parabolic problem.
+#' @return A S4 object representing a PDE.
+#' @rdname pde
+#' @export 
 setGeneric("Pde", function(L,u,dirichletBC, initialCondition) standardGeneric("Pde"))
+
+#' @rdname pde
 setMethod("Pde", signature=c(L="DiffOpObject", u="ANY", dirichletBC="ANY", 
                              initialCondition="missing"),
           function(L,u,dirichletBC){
@@ -129,6 +139,7 @@ setMethod("Pde", signature=c(L="DiffOpObject", u="ANY", dirichletBC="ANY",
                     is_init=is_init)
           })
 
+#' @rdname pde
 setMethod("Pde", signature=c(L="DiffOpObject", u="ANY", dirichletBC="ANY", 
                              initialCondition="ANY"),
           function(L,u,dirichletBC, initialCondition){
@@ -201,6 +212,7 @@ setMethod("Pde", signature=c(L="DiffOpObject", u="ANY", dirichletBC="ANY",
                     is_init=is_init)
           })
 
+#' @rdname pde
 setMethod("Pde", signature=c(L="DiffOpObject", u="ANY", dirichletBC="missing", 
                              initialCondition="missing"),
           function(L,u,dirichletBC){

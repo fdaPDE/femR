@@ -8,11 +8,35 @@
 )
 
 ## take gradient of Function
+
+#' Take gradient of FunctionObject
+#'
+#' @param f a FunctionObject created by \code{Function}:
+#' @return An S4 object representing the gradient of the FunctionObject passed as parameter.
+#' @export 
+#' @rdname grad
+#' @examples
+#' \dontrun{
+#' library(femR)
+#' data("unit_square")
+#' mesh <- Mesh(unit_square)
+#' Vh <- FunctionSpace(mesh)
+#' f <- Function(Vh)
+#' grad_f <- grad(f)
+#' }
 setGeneric("grad", function(f) standardGeneric("grad"))
+
+#' @rdname grad
 setMethod("grad", signature(f = "FunctionObject"), function(f) {
   .FunctionGradCtr(f = f)
 })
 
+#' product overload for FunctionGradObejct
+#'
+#' @param e1 a numeric matrix.
+#' @param e2 a FunctionGradObject created by \code{grad} function.
+#' @return A FunctionGradObject.
+#' @export 
 setMethod("*", signature=c(e1="matrix", e2="FunctionGradObject"),
           function(e1,e2){
         .FunctionGradCtr(f = e2$f, K = e1)    
@@ -38,6 +62,13 @@ setMethod("*", signature=c(e1="matrix", e2="FunctionGradObject"),
 )
 
 ## sum of differential operators
+
+#' plus operator overload for DiffOpObject
+#'
+#' @param e1 a DiffOpObject.
+#' @param e2 a DiffOpObject.
+#' @return A S4 object representing the sum of two differential operators.
+#' @export 
 setMethod("+", signature = c(e1="DiffOpObject", e2="DiffOpObject"),
           function(e1, e2) {
             if (tracemem(e1$f) != tracemem(e2$f)) {
@@ -55,7 +86,13 @@ setMethod("+", signature = c(e1="DiffOpObject", e2="DiffOpObject"),
           }
 )
 
-# difference of differential operators
+#' difference of differential operators
+#'
+#' @param e1 a DiffOpObject.
+#' @param e2 a DiffOpObject.
+#' @return A S4 object representing the difference of two differential operators.
+#' @rdname minus-diff-op
+#' @export 
 setMethod("-", signature = c(e1="DiffOpObject", e2="DiffOpObject"),
           function(e1, e2) {
             if (tracemem(e1$f) != tracemem(e2$f)) {
@@ -74,7 +111,13 @@ setMethod("-", signature = c(e1="DiffOpObject", e2="DiffOpObject"),
               f = e1$f
             )
 })
-## minus (unary) operator for DiffOpObject
+
+#' minus (unary) operator for DiffOpObject
+#'
+#' @param e1 a DiffOpObject.
+#' @return A S4 object representing the sum of two differential operators.
+#' @rdname minus-diff-op
+#' @export 
 setMethod("-", signature(e1 = "DiffOpObject", e2 = "missing"),
           function(e1){
             e1$params[[1]] <- -e1$params[[1]]
@@ -82,7 +125,12 @@ setMethod("-", signature(e1 = "DiffOpObject", e2 = "missing"),
           }
 )
 
-## differential operator product by scalar
+#' product by scalar for differential operators
+#'
+#' @param e1 a numeric.
+#' @param e2 a DiffOpObject.
+#' @return A S4 object representing the product by scalar for a differential operator.
+#' @export 
 setMethod("*", signature=c(e1="numeric", e2="DiffOpObject"),
           function(e1,e2){
             #if (!is.numeric(e1)) stop("bad product")
@@ -96,8 +144,24 @@ setMethod("*", signature=c(e1="numeric", e2="DiffOpObject"),
     Class = "DiffusionOperator",
     contains = "DiffOpObject"
 )
+
 ## laplace() returns a special operator for the case of
 ## isotropic  and stationary diffusion
+
+#' laplace operator
+#'
+#' @param f a FunctionObject.
+#' @return A S4 object representing the laplace operator applied to the function passed as parameter.
+#' @export 
+#' @examples
+#' \dontrun{
+#' library(femR)
+#' data("unit_square")
+#' mesh <- Mesh(unit_square)
+#' Vh <- FunctionSpace(mesh)
+#' f <- Function(Vh)
+#' laplace_f <- laplace(f)
+#' }
 laplace <- function(f) {
     if (!is(f, "FunctionObject")) {
         stop("wrong argument type")
@@ -108,7 +172,24 @@ laplace <- function(f) {
         f = f
     )
 }
+
 ## the general non-isotrpic, non-stationary diffusion operator
+
+#' divergence operator
+#'
+#' @param f a FunctionObject.
+#' @return A S4 object representing the diffusion term of a second order linear differential operator.
+#' @export
+#' @examples
+#' \dontrun{
+#' library(femR)
+#' data("unit_square")
+#' mesh <- Mesh(unit_square)
+#' Vh <- FunctionSpace(mesh)
+#' f <- Function(Vh)
+#' K <- matrix(c(1,2,1,0),nrow=2,ncol=2)
+#' diffusion <- div(K*grad(f))
+#' } 
 div <- function(f) {
     if (is(f, "FunctionGradObject")) {
         if (!is.null(f$K)) {
@@ -127,7 +208,27 @@ div <- function(f) {
     Class = "TransportOperator",
     contains = "DiffOpObject"
 )
+
+#' dot product
+#'
+#' @param op1 a numeric vector.
+#' @param op2 a FunctionGradObject.
+#' @return A S4 object representing the advection term of a second order linear differential operator.
+#' @rdname dot-product
+#' @export
+#' @examples
+#' \dontrun{
+#' library(femR)
+#' data("unit_square")
+#' mesh <- Mesh(unit_square)
+#' Vh <- FunctionSpace(mesh)
+#' f <- Function(Vh)
+#' b <- c(1,1)
+#' advection <- dot(b,grad(f))
+#' } 
 setGeneric("dot", function(op1, op2) standardGeneric("dot"))
+
+#' @rdname dot-product
 setMethod("dot", signature(op1 = "vector", op2 = "FunctionGradObject"),
           function(op1, op2) {
               .TransportCtr(
@@ -143,6 +244,21 @@ setMethod("dot", signature(op1 = "vector", op2 = "FunctionGradObject"),
     contains = "DiffOpObject"
 )
 
+#' product overload for FunctionObejct
+#'
+#' @param e1 a numeric:
+#' @param e2 a FunctioObject created by \code{Function}.
+#' @return A S4 object representing the reaction term of a second order linear differential operator.
+#' @export 
+#' @examples
+#' \dontrun{
+#' library(femR)
+#' data("unit_square")
+#' mesh <- Mesh(unit_square)
+#' Vh <- FunctionSpace(mesh)
+#' f <- Function(Vh)
+#' reaction <- 2*f
+#' }
 setMethod("*", signature = c(e1="numeric", e2="FunctionObject"),
           function(e1,e2){
             .ReactionCtr(
@@ -158,6 +274,21 @@ setMethod("*", signature = c(e1="numeric", e2="FunctionObject"),
 )
 
 # overloading stats::dt function
+
+#' dt function overload for FunctionObejct
+#'
+#' @param x a FunctionObject:
+#' @return A S4 object representing the time derivative of a FunctionObject.
+#' @export 
+#' @examples
+#' \dontrun{
+#' library(femR)
+#' data("unit_square")
+#' mesh <- Mesh(unit_square)
+#' Vh <- FunctionSpace(mesh)
+#' f <- Function(Vh)
+#' dt(f)
+#' }
 setMethod("dt", signature = c(x="FunctionObject", df="missing", ncp="missing"), 
           function(x,df,ncp){
   

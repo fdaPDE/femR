@@ -1,4 +1,10 @@
 # Reads .mesh file (FreeFem++) 
+
+#' reads mesh file from FreeFem++ 
+#'
+#'@param filename path to a .mesh file created by FreeFem++.
+#'@returns a named list to be passed to \code{Mesh}.
+#'@export 
 read_mesh <-function(filename){
   
   # Reading file
