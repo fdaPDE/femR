@@ -14,7 +14,7 @@ Authors@R: c( person("Eleonora", "Arnone", role = "aut",
 Maintainer: Aldo Clemente <aldo.clemente@polimi.it>
 Depends: 
     R (>= 3.5.0),
-    plotly, methods
+    plotly, Matrix, methods
 Description: Solving partial differential equations relying on the Finite Element Method.
 License: GPL (>= 2)
 URL: https://github.com/fdaPDE/femR, https://fdapde.github.io/femR/

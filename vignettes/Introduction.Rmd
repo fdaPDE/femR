@@ -77,7 +77,7 @@ data("unit_square", package="femR")
 mesh <- Mesh(unit_square)
 ## 2. Defining the solution of the PDE
 Vh <- FunctionSpace(mesh, fe_order=2) 
-f <- f <- Function(Vh)
+f <- Function(Vh)
 ## 3. Defining the differential operator
 L <- -laplace(f) 
 ## 4. Defining the forcing term and the Dirichlet boundary conditions as standard R functions
