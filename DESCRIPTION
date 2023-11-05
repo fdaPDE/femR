@@ -3,14 +3,21 @@ Type: Package
 Title: Solving Partial Differential Equations in R
 Version: 1.0
 Date: 2022-09-18
-Author: Your Name
-Maintainer: Your Name <your@email.com>
+Authors@R: c( person("Eleonora", "Arnone", role = "aut",
+		                                     email = "eleonora.arnone@polimi.it"),
+		          person("Aldo", "Clemente", role = c("aut", "cre"),
+		                                      email = " aldo.clemente@polimi.it"),
+		          person("Alessandro", "Palummo", role = "aut",
+		                                      email = " alessandro.palummo@polimi.it"),
+	            person("Laura M.", "Sangalli", role = c("aut"),
+	                                        email = "laura.sangalli@polimi.it"))
+Maintainer: Aldo Clemente <aldo.clemente@polimi.it>
 Depends: 
     R (>= 3.5.0),
     plotly, methods
-Description: One paragraph description of what the package does as one
-        or more full sentences.
+Description: Solving partial differential equations relying on the Finite Element Method.
 License: GPL (>= 2)
+URL: https://github.com/fdaPDE/femR, https://fdapde.github.io/femR/
 Imports: Rcpp (>= 1.0.7), RcppEigen
 LinkingTo: Rcpp, RcppEigen
 RoxygenNote: 7.2.3

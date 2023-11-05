@@ -4,14 +4,14 @@ output: rmarkdown::html_vignette
 description: >
   This document explain the basic usage of femR to solve PDEs in R. 
 vignette: >
-  %\VignetteIndexEntry{Diffusion}
+  %\VignetteIndexEntry{Introduction}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, fig.width= 7., 
-                                   fig.height= 4., 
+                                   fig.height= 5., 
                                    fig.align= "center",
                                    collapse = TRUE,
                                    comment = "#>")
