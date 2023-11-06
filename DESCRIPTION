@@ -3,13 +3,15 @@ Type: Package
 Title: Solving Partial Differential Equations in R
 Version: 1.0
 Date: 2022-09-18
-Authors@R: c( person("Eleonora", "Arnone", role = "aut",
-		                                     email = "eleonora.arnone@polimi.it"),
-		          person("Aldo", "Clemente", role = c("aut", "cre"),
-		                                      email = " aldo.clemente@polimi.it"),
+Authors@R: c( person("Aldo", "Clemente", role = c("aut", "cre"),
+		                                      email = "aldo.clemente@polimi.it"),
 		          person("Alessandro", "Palummo", role = "aut",
-		                                      email = " alessandro.palummo@polimi.it"),
-	            person("Laura M.", "Sangalli", role = c("aut"),
+		                                      email = "alessandro.palummo@polimi.it"),
+	            person("Eleonora", "Arnone", role = "aut",
+		                                     email = "eleonora.arnone@polimi.it"),
+		          person("Luca", "Formaggia", role = "aut",
+		                                     email = "luca.formaggia@polimi.it"),
+	            person("Laura M.", "Sangalli", role = "aut",
 	                                        email = "laura.sangalli@polimi.it"))
 Maintainer: Aldo Clemente <aldo.clemente@polimi.it>
 Depends: 
@@ -24,5 +26,6 @@ RoxygenNote: 7.2.3
 Encoding: UTF-8
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    RTriangle
 VignetteBuilder: knitr

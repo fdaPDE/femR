@@ -2,6 +2,8 @@
 #' @import methods Rcpp
 #' @import RcppEigen
 #' @importFrom Rcpp evalCpp
+#' @import plotly
+#' @import Matrix
 NULL
 
 # #' @exportPattern "^[[:alpha:]]+"

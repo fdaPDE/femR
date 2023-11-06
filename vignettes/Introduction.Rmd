@@ -10,17 +10,16 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.width= 7., 
-                                   fig.height= 5., 
-                                   fig.align= "center",
+knitr::opts_chunk$set(echo = TRUE, fig.align= "center",
                                    collapse = TRUE,
-                                   comment = "#>")
-
+                                   comment = "#>", 
+                                   fig.width= 5,fig.height= 3.5)
+                                   
 library(femR)
 options(warn = -1)
 ```
 
-`femR` is an R package that solves PDEs on R relying on the Finite Element Method (FEM). Let $\Omega \subset \mathbb{R}^d$ be the domain of our interest, `femR` package solves advection-reaction-diffusion problem of the following form:
+`femR` is an R package that solves PDEs on R relying on the Finite Element Method (FEM). Let $\Omega \subset \mathbb{R}^2$ be the domain of our interest, `femR` package solves advection-reaction-diffusion problem of the following form:
 
 $$
 \begin{cases}
@@ -45,7 +44,9 @@ $$
 where $u(x,y) = 8\pi^2 \sin( 2\pi x)\sin(2\pi y)$ is the forcing term and $\partial \Omega$ is the boundary of $\Omega$ where we have prescribed homogeneous Dirichelet boundary condition.
 The exact solution of the previous problem is $u_{ex}(x,y) = \sin(2\pi x) \sin(2 \pi y)$. The following figure shows the exact solution of the problem, on the left hand side, and the triangulation of the unit square domain, on the right hand side.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, fig.height=3.5, fig.width=8} 
+    #  fig.show="hold", out.height="50%"
+    # fig.height=3, fig.width=8} fig.height = fig.width/2 - 1/2
 exact_solution <- function(points){
     return( sin(2.*pi*points[,1])*sin(2.*pi*points[,2]))
 }
@@ -97,9 +98,10 @@ pde$solve()
 plot(f)
 ```
 
-```{r}
+```{r, fig.height=3.5, fig.width=8}
 fig_h <- contour(f)
-subplot(fig_exact %>%hide_colorbar(), fig_h, margin = 0.05) %>%layout(annotations = list(
+subplot(fig_exact %>%hide_colorbar(), fig_h, 
+        margin = 0.05) %>%layout(annotations = list(
             list(x=0.155, y=1.05, text = "exact solution",    showarrow = F, 
                  xref='paper', yref='paper'),
             list(x=0.875,  y=1.05, text = "discrete solution", showarrow = F, 
@@ -109,7 +111,7 @@ subplot(fig_exact %>%hide_colorbar(), fig_h, margin = 0.05) %>%layout(annotation
 The following sections explain more in detail the previous chunk of code.
 
 ## Defining the domain
-First, we create a proper domain object exploiting the function `create_mesh` which takes a R named list as parameter.
+First, we create a proper domain object exploiting the function `Mesh` which takes a R named list as parameter.
 Such named list should contain geometrical information of the domain:
 
 * `nodes`, a 2-columns matrix containing the coordinates of the nodes of the mesh. 
@@ -120,11 +122,30 @@ Such named list should contain geometrical information of the domain:
 
 `femR` contains the `unit_square` named list that can be used to perform some tests.
 
-```{r Creating mesh, fig.width=4, fig.height=4}
+```{r Creating mesh, fig.width=3.5, fig.height=3.5}
 data("unit_square", package="femR")
 unit_square <- Mesh(unit_square)
 plot(unit_square)
 ```
+`femR` package can read also triangulation provided by `RTriangle` package, as the following chunk shows:
+
+```{r, fig.width=3.5, fig.height=3.5}
+library(RTriangle)
+
+## create an object with a concavity 
+pslg <- pslg(P=rbind(c(0, 0), c(0, 1), c(0.5, 0.5), c(1, 1), c(1, 0)),
+          S=rbind(c(1, 2), c(2, 3), c(3, 4), c(4, 5), c(5, 1)))
+
+## triangulate it using RTriangle 
+domain <- triangulate(pslg, a=0.01, q=20)
+
+## create mesh object
+mesh <- Mesh(domain)
+plot(mesh)
+```
+
+
+
 Moreover, `femR` package provides an utility that reads files storing such geometrical information and provided by third-party software such as `FreeFem++`. Indeed, `read_mesh(filename)` reads a .mesh file from `FreeFem++` and returns a named list that can be passed to `create_mesh` function. The following chunk, that is not executed, shows how `read_mesh` works.
 ```{r FreeFem++, eval=FALSE}
 filename <- "path/to/domain.mesh" #domain.mesh stored by the FreeFem++ utility savemesh() 
@@ -158,7 +179,7 @@ Note that, according to the well-known identity $div(\nabla f) = \Delta f$, we c
 Although, the interface let the user define a generic second-order linear differential operator: `-div(K*grad(f)) + ...`, at this stage the package has been tested only in the isotropic case, i.e `K=I`, where `I` is the two-dimensional identy matrix.
 
 ## Building the PDE object
-We define the forcing term of the differential problem and the Dirichlet boundary condition as a simple R `function`s. Such functions will be provided as parameters to the object which encapsulates the concept of PDEs.
+We define the forcing term of the differential problem and the Dirichlet boundary condition as simple R `function`s. Such functions will be provided as parameters to the object which encapsulates the concept of PDEs.
 ```{r}
 ## forcing term
 u <- function(points){
@@ -199,7 +220,7 @@ The R package `plotly` is exploited to plot the computed solution.
 plot(f)
 ```
 
-```{r Contour, fig.width=5}
+```{r Contour}
 # contour 
 contour(f)
 ```

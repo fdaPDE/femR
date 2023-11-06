@@ -64,7 +64,7 @@
 #' @param L a differential operator.
 #' @param u the forcing term of the PDE.
 #' @param dirichletBC the Dirichlet boundary conditions to be imposed on the boundary of the domain. If not provided, homogeneous Dirichlet boundary conditions will be imposed.
-#' @param initilaCondition the initial condition of a parabolic problem.
+#' @param initialCondition the initial condition of a parabolic problem.
 #' @return A S4 object representing a PDE.
 #' @rdname pde
 #' @export 

@@ -9,7 +9,7 @@
 
 ## take gradient of Function
 
-#' Take gradient of FunctionObject
+#' compute gradient of FunctionObject
 #'
 #' @param f a FunctionObject created by \code{Function}:
 #' @return An S4 object representing the gradient of the FunctionObject passed as parameter.
@@ -91,7 +91,7 @@ setMethod("+", signature = c(e1="DiffOpObject", e2="DiffOpObject"),
 #' @param e1 a DiffOpObject.
 #' @param e2 a DiffOpObject.
 #' @return A S4 object representing the difference of two differential operators.
-#' @rdname minus-diff-op
+#' @rdname minus_DiffOb_op
 #' @export 
 setMethod("-", signature = c(e1="DiffOpObject", e2="DiffOpObject"),
           function(e1, e2) {
@@ -112,13 +112,15 @@ setMethod("-", signature = c(e1="DiffOpObject", e2="DiffOpObject"),
             )
 })
 
-#' minus (unary) operator for DiffOpObject
-#'
-#' @param e1 a DiffOpObject.
-#' @return A S4 object representing the sum of two differential operators.
-#' @rdname minus-diff-op
-#' @export 
-setMethod("-", signature(e1 = "DiffOpObject", e2 = "missing"),
+ 
+# minus (unary) operator for DiffOpObject
+# 
+# @param e1 a DiffOpObject.
+# @return A S4 object differential operator whose paramter has changed sign.
+# @export
+
+#' @rdname minus_DiffOb_op
+setMethod("-", signature =c(e1 = "DiffOpObject", e2 = "missing"),
           function(e1){
             e1$params[[1]] <- -e1$params[[1]]
             e1
@@ -148,7 +150,7 @@ setMethod("*", signature=c(e1="numeric", e2="DiffOpObject"),
 ## laplace() returns a special operator for the case of
 ## isotropic  and stationary diffusion
 
-#' laplace operator
+#' laplace operator for FunctionObject
 #'
 #' @param f a FunctionObject.
 #' @return A S4 object representing the laplace operator applied to the function passed as parameter.
@@ -175,7 +177,7 @@ laplace <- function(f) {
 
 ## the general non-isotrpic, non-stationary diffusion operator
 
-#' divergence operator
+#' divergence operator FunctionGradObject
 #'
 #' @param f a FunctionObject.
 #' @return A S4 object representing the diffusion term of a second order linear differential operator.
@@ -209,12 +211,12 @@ div <- function(f) {
     contains = "DiffOpObject"
 )
 
-#' dot product
+#' dot product between vector and FunctionGradObject
 #'
 #' @param op1 a numeric vector.
 #' @param op2 a FunctionGradObject.
 #' @return A S4 object representing the advection term of a second order linear differential operator.
-#' @rdname dot-product
+#' @rdname dot_product
 #' @export
 #' @examples
 #' \dontrun{
@@ -228,7 +230,7 @@ div <- function(f) {
 #' } 
 setGeneric("dot", function(op1, op2) standardGeneric("dot"))
 
-#' @rdname dot-product
+#' @rdname dot_product
 setMethod("dot", signature(op1 = "vector", op2 = "FunctionGradObject"),
           function(op1, op2) {
               .TransportCtr(
@@ -244,9 +246,9 @@ setMethod("dot", signature(op1 = "vector", op2 = "FunctionGradObject"),
     contains = "DiffOpObject"
 )
 
-#' product overload for FunctionObejct
+#' product by scalar for FunctionObejct
 #'
-#' @param e1 a numeric:
+#' @param e1 a numeric.
 #' @param e2 a FunctioObject created by \code{Function}.
 #' @return A S4 object representing the reaction term of a second order linear differential operator.
 #' @export 
@@ -275,9 +277,11 @@ setMethod("*", signature = c(e1="numeric", e2="FunctionObject"),
 
 # overloading stats::dt function
 
-#' dt function overload for FunctionObejct
+#' time derivate of FunctionObejct
 #'
-#' @param x a FunctionObject:
+#' @param x a FunctionObject.
+#' @param df missing.
+#' @param ncp missing.
 #' @return A S4 object representing the time derivative of a FunctionObject.
 #' @export 
 #' @examples

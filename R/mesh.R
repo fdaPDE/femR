@@ -55,7 +55,31 @@ setMethod("Mesh", signature = c(domain="list"),
               stop("wrong input argument provided.")
 })
 
-#' Spatio-temporal domain
+#' @rdname MeshObject
+setMethod("Mesh", signature=c(domain="triangulation"),
+          function(domain){
+            elements <- domain$T - 1
+            nodes <- domain$P
+            boundary <- matrix(0, nrow=nrow(nodes), ncol=1)
+            boundary[as.vector(domain$E[domain$EB == 1,]),] = 1
+            
+            storage.mode(elements) <- "integer"
+            storage.mode(nodes) <- "numeric"
+            storage.mode(boundary) <- "integer"
+            
+            m <- ncol(elements) - 1
+            n <- ncol(nodes)
+            
+            domain <- list(elements = elements, nodes = nodes, boundary = boundary)
+            if(m == 2 & n == 2)
+              .MeshCtr(data=new(Mesh_2D, domain), m=as.integer(m),n=as.integer(n), 
+                       times=vector(mode="double"))                                                  
+            else
+              stop("wrong input argument provided.")
+            
+})
+
+#' create spatio-temporal domain
 #'
 #' @param op1 A mesh object created by \code{Mesh}.
 #' @param op2 A numeric vector.
