@@ -13,7 +13,7 @@ vignette: >
 knitr::opts_chunk$set(echo = TRUE, fig.align= "center",
                                    collapse = TRUE,
                                    comment = "#>", 
-                                   fig.width= 5,fig.height= 3.5)
+                                   fig.width= 6,fig.height= 4.5)
                                    
 library(femR)
 options(warn = -1)
@@ -23,11 +23,11 @@ options(warn = -1)
 
 $$
 \begin{cases}
--\mu \Delta f + \boldsymbol{b} \cdot \nabla f + c f = u \qquad & in \ \Omega \\
- BC \ conditions \ (Dirichlet \ or \ Neumann) \qquad         & on \ \partial \Omega,
+-\mu \Delta f + \boldsymbol{b} \cdot \nabla f + a f = u \qquad & in \ \Omega \\
+ boundary \ conditions \ (Dirichlet \ or \ Neumann) \qquad         & on \ \partial \Omega,
 \end{cases}
 $$
-where $\mu \in \mathbb{R}$, $\boldsymbol{b} \in \mathbb{R}^d$, $c \in \mathbb{R}$ are the diffusion coefficient, the transport coefficient and the reaction coefficient, respectively. 
+where $\mu \in \mathbb{R}$, $\boldsymbol{b} \in \mathbb{R}^2$, $c \in \mathbb{R}$ are the diffusion coefficient, the transport coefficient and the reaction coefficient, respectively. 
 This vignette illustrates how to use `femR` to solve a partial differential equation. In particular, the following section explains step by step the solution of a simple Poisson problem.
 
 # Solving a Poisson problem 
@@ -44,7 +44,7 @@ $$
 where $u(x,y) = 8\pi^2 \sin( 2\pi x)\sin(2\pi y)$ is the forcing term and $\partial \Omega$ is the boundary of $\Omega$ where we have prescribed homogeneous Dirichelet boundary condition.
 The exact solution of the previous problem is $u_{ex}(x,y) = \sin(2\pi x) \sin(2 \pi y)$. The following figure shows the exact solution of the problem, on the left hand side, and the triangulation of the unit square domain, on the right hand side.
 
-```{r, echo=FALSE, fig.height=3.5, fig.width=8} 
+```{r, echo=FALSE, fig.height=4.5, fig.width=10} 
     #  fig.show="hold", out.height="50%"
     # fig.height=3, fig.width=8} fig.height = fig.width/2 - 1/2
 exact_solution <- function(points){
@@ -81,7 +81,8 @@ Vh <- FunctionSpace(mesh, fe_order=2)
 f <- Function(Vh)
 ## 3. Defining the differential operator
 L <- -laplace(f) 
-## 4. Defining the forcing term and the Dirichlet boundary conditions as standard R functions
+## 4. Defining the forcing term and the Dirichlet boundary conditions 
+##    as standard R functions
 # forcing term
 u <- function(points){
     return(8.*pi^2* sin(2.*pi*points[,1])*sin(2.*pi*points[,2])) 
@@ -98,7 +99,7 @@ pde$solve()
 plot(f)
 ```
 
-```{r, fig.height=3.5, fig.width=8}
+```{r, fig.height=4.5, fig.width=10}
 fig_h <- contour(f)
 subplot(fig_exact %>%hide_colorbar(), fig_h, 
         margin = 0.05) %>%layout(annotations = list(
@@ -122,12 +123,12 @@ Such named list should contain geometrical information of the domain:
 
 `femR` contains the `unit_square` named list that can be used to perform some tests.
 
-```{r Creating mesh, fig.width=3.5, fig.height=3.5}
+```{r Creating mesh, fig.width=4.5, fig.height=4.5}
 data("unit_square", package="femR")
 unit_square <- Mesh(unit_square)
 plot(unit_square)
 ```
-`femR` package can read also triangulation provided by `RTriangle` package, as the following chunk shows:
+`femR` package can read also triangulations provided by `RTriangle` package, as the following chunk shows:
 
 ```{r, fig.width=3.5, fig.height=3.5}
 library(RTriangle)
@@ -146,9 +147,10 @@ plot(mesh)
 
 
 
-Moreover, `femR` package provides an utility that reads files storing such geometrical information and provided by third-party software such as `FreeFem++`. Indeed, `read_mesh(filename)` reads a .mesh file from `FreeFem++` and returns a named list that can be passed to `create_mesh` function. The following chunk, that is not executed, shows how `read_mesh` works.
+Moreover, `femR` package provides an utility that reads files storing meshes provided by third-party software such as `FreeFem++`. Indeed, `read_mesh(filename)` reads a .mesh file from `FreeFem++` and returns a named list that can be passed to `Mesh` function. The following chunk, that is not executed, shows how `read_mesh` works.
 ```{r FreeFem++, eval=FALSE}
-filename <- "path/to/domain.mesh" #domain.mesh stored by the FreeFem++ utility savemesh() 
+filename <- "path/to/domain.mesh" # domain.mesh stored by the FreeFem++ 
+                                  # utility savemesh() 
 domain <- read_mesh(filename)
 mesh <- Mesh(domain)
 ```
@@ -166,17 +168,17 @@ Then, we define the differential operator in its strong formulation.
 ```{r Differentail Operator}
 L <- -laplace(f) # L <- -div(I*grad(f))
                  # In general:
-                 # L <- (-mu)*laplace(f) + dot(b,grad(f)) + c*f
+                 # L <- -mu*laplace(f) + dot(b,grad(f)) + a*f
 ```
 Note that, according to the well-known identity $div(\nabla f) = \Delta f$, we could have written `L<--div(I*grad(f))`, where `I` is the 2-dimensional identity matrix. Indeed, `femR` package let you define every term of a generic second-order linear differential operator $Lf= -div(K\nabla f) + \mathbf{b}\cdot \nabla f + a f$ as follows:
 
-  * Diffusion: `-div(K*grad(f))` or `(-mu)*laplacian(f)`, where either `K` or `mu` represents the diffusion matrix in an anisotropic problem or the diffusion coefficient in a isotropic problem, implements the first term of the differential operator according to the problem at hand. 
+  * Diffusion: `-div(K*grad(f))` or `-mu*laplacian(f)`, where either `K` or `mu` represents the diffusion matrix in an anisotropic problem or the diffusion coefficient in a isotropic problem, implements the first term of the differential operator according to the problem at hand. 
   
   * Advection: `dot(b,grad(f))`, where `b` is a two-dimensional vector, implements the second term of differential operator.
   
-  * Reaction: `c*f`, where `c` is a scalar, implements the last term of the differential operator.
+  * Reaction: `a*f`, where `c` is a scalar, implements the last term of the differential operator.
 
-Although, the interface let the user define a generic second-order linear differential operator: `-div(K*grad(f)) + ...`, at this stage the package has been tested only in the isotropic case, i.e `K=I`, where `I` is the two-dimensional identy matrix.
+Although, the interface let the user define a generic second-order linear differential operator: `-div(K*grad(f)) + ...`, at this stage the package has been tested only in the isotropic case, i.e `K=I`, where `I` is the two-dimensional identity matrix.
 
 ## Building the PDE object
 We define the forcing term of the differential problem and the Dirichlet boundary condition as simple R `function`s. Such functions will be provided as parameters to the object which encapsulates the concept of PDEs.
