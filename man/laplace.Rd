@@ -2,7 +2,7 @@
 % Please edit documentation in R/operators.R
 \name{laplace}
 \alias{laplace}
-\title{laplace operator}
+\title{laplace operator for FunctionObject}
 \usage{
 laplace(f)
 }
@@ -13,7 +13,7 @@ laplace(f)
 A S4 object representing the laplace operator applied to the function passed as parameter.
 }
 \description{
-laplace operator
+laplace operator for FunctionObject
 }
 \examples{
 \dontrun{

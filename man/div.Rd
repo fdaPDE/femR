@@ -2,7 +2,7 @@
 % Please edit documentation in R/operators.R
 \name{div}
 \alias{div}
-\title{divergence operator}
+\title{divergence operator FunctionGradObject}
 \usage{
 div(f)
 }
@@ -13,7 +13,7 @@ div(f)
 A S4 object representing the diffusion term of a second order linear differential operator.
 }
 \description{
-divergence operator
+divergence operator FunctionGradObject
 }
 \examples{
 \dontrun{

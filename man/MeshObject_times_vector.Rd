@@ -3,7 +3,7 @@
 \name{\%X\%}
 \alias{\%X\%}
 \alias{\%X\%,MeshObject,numeric-method}
-\title{Spatio-temporal domain}
+\title{create spatio-temporal domain}
 \usage{
 op1 \%X\% op2
 
@@ -18,5 +18,5 @@ op1 \%X\% op2
 An S4 object representing a spatio-temporal domain.
 }
 \description{
-Spatio-temporal domain
+create spatio-temporal domain
 }

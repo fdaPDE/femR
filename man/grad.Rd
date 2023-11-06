@@ -3,7 +3,7 @@
 \name{grad}
 \alias{grad}
 \alias{grad,FunctionObject-method}
-\title{Take gradient of FunctionObject}
+\title{compute gradient of FunctionObject}
 \usage{
 grad(f)
 
@@ -16,7 +16,7 @@ grad(f)
 An S4 object representing the gradient of the FunctionObject passed as parameter.
 }
 \description{
-Take gradient of FunctionObject
+compute gradient of FunctionObject
 }
 \examples{
 \dontrun{

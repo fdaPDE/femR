@@ -2,18 +2,22 @@
 % Please edit documentation in R/operators.R
 \name{dt,FunctionObject,missing,missing-method}
 \alias{dt,FunctionObject,missing,missing-method}
-\title{dt function overload for FunctionObejct}
+\title{time derivate of FunctionObejct}
 \usage{
 \S4method{dt}{FunctionObject,missing,missing}(x, df, ncp)
 }
 \arguments{
-\item{x}{a FunctionObject:}
+\item{x}{a FunctionObject.}
+
+\item{df}{missing.}
+
+\item{ncp}{missing.}
 }
 \value{
 A S4 object representing the time derivative of a FunctionObject.
 }
 \description{
-dt function overload for FunctionObejct
+time derivate of FunctionObejct
 }
 \examples{
 \dontrun{

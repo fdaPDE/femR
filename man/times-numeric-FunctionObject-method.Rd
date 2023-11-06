@@ -2,12 +2,12 @@
 % Please edit documentation in R/operators.R
 \name{*,numeric,FunctionObject-method}
 \alias{*,numeric,FunctionObject-method}
-\title{product overload for FunctionObejct}
+\title{product by scalar for FunctionObejct}
 \usage{
 \S4method{*}{numeric,FunctionObject}(e1, e2)
 }
 \arguments{
-\item{e1}{a numeric:}
+\item{e1}{a numeric.}
 
 \item{e2}{a FunctioObject created by \code{Function}.}
 }
@@ -15,7 +15,7 @@
 A S4 object representing the reaction term of a second order linear differential operator.
 }
 \description{
-product overload for FunctionObejct
+product by scalar for FunctionObejct
 }
 \examples{
 \dontrun{

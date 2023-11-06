@@ -3,11 +3,14 @@
 \name{Mesh}
 \alias{Mesh}
 \alias{Mesh,list-method}
+\alias{Mesh,triangulation-method}
 \title{Create mesh object}
 \usage{
 Mesh(domain)
 
 \S4method{Mesh}{list}(domain)
+
+\S4method{Mesh}{triangulation}(domain)
 }
 \arguments{
 \item{domain}{A named list containing must contain:

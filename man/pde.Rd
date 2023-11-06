@@ -22,7 +22,7 @@ Pde(L, u, dirichletBC, initialCondition)
 
 \item{dirichletBC}{the Dirichlet boundary conditions to be imposed on the boundary of the domain. If not provided, homogeneous Dirichlet boundary conditions will be imposed.}
 
-\item{initilaCondition}{the initial condition of a parabolic problem.}
+\item{initialCondition}{the initial condition of a parabolic problem.}
 }
 \value{
 A S4 object representing a PDE.
