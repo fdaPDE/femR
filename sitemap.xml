@@ -43,13 +43,10 @@
     <loc>https://fdapde.github.io/femR/reference/div.html</loc>
   </url>
   <url>
-    <loc>https://fdapde.github.io/femR/reference/dot-product.html</loc>
+    <loc>https://fdapde.github.io/femR/reference/dot_product.html</loc>
   </url>
   <url>
     <loc>https://fdapde.github.io/femR/reference/dt-FunctionObject-missing-missing-method.html</loc>
-  </url>
-  <url>
-    <loc>https://fdapde.github.io/femR/reference/femR-package.html</loc>
   </url>
   <url>
     <loc>https://fdapde.github.io/femR/reference/grad.html</loc>
@@ -61,7 +58,7 @@
     <loc>https://fdapde.github.io/femR/reference/laplace.html</loc>
   </url>
   <url>
-    <loc>https://fdapde.github.io/femR/reference/minus-diff-op.html</loc>
+    <loc>https://fdapde.github.io/femR/reference/minus_DiffOb_op.html</loc>
   </url>
   <url>
     <loc>https://fdapde.github.io/femR/reference/pde.html</loc>
@@ -86,5 +83,8 @@
   </url>
   <url>
     <loc>https://fdapde.github.io/femR/reference/times-numeric-FunctionObject-method.html</loc>
+  </url>
+  <url>
+    <loc>https://fdapde.github.io/femR/reference/unit_square.html</loc>
   </url>
 </urlset>
