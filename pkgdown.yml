@@ -4,7 +4,7 @@ pkgdown_sha: ~
 articles:
   Introduction: Introduction.html
   Parabolic: Parabolic.html
-last_built: 2023-11-07T16:37Z
+last_built: 2023-11-09T12:16Z
 urls:
   reference: https://fdapde.github.io/femR/reference
   article: https://fdapde.github.io/femR/articles
