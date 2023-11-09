@@ -162,4 +162,3 @@ plot_mesh_aux <- function(x, ...){
 setMethod("plot", "MeshObject", function(x, ...){
   plot_mesh_aux(x, ...)  
 })
-

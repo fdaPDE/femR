@@ -65,6 +65,9 @@ setMethod("FunctionSpace", signature = c(mesh="ANY", fe_order="missing"),
         }
         pde$eval(FunctionSpace$mesh$data, coeff, as.matrix(X))
       }
+    },
+    set_coeff = function(coefficients){
+      coeff <<- coefficients
     }
   )
 )
@@ -168,30 +171,41 @@ setMethod("contour", signature=c(x="FunctionObject"), function(x, ...){
   if(length(times)!=0) is_parabolic <- TRUE
   
   if(!is_parabolic){
-  plot_data <- data.frame(X=x$FunctionSpace$mesh$nodes()[,1], 
-                          Y=x$FunctionSpace$mesh$nodes()[,2],
-                          coeff=x$coeff[1:nrow(x$FunctionSpace$mesh$nodes())])
-  I=x$FunctionSpace$mesh$elements()[,1]
-  J=x$FunctionSpace$mesh$elements()[,2] 
-  K=x$FunctionSpace$mesh$elements()[,3]
-  fig <- plot_ly(plot_data, type="contour", x=~X, y=~Y, z=~coeff, 
-                 i = I, j = J, k = K,
-                 intensity=~coeff, color = ~coeff,
+  # plot_data <- data.frame(X=x$FunctionSpace$mesh$nodes()[,1], 
+  #                         Y=x$FunctionSpace$mesh$nodes()[,2],
+  #                         coeff=x$coeff[1:nrow(x$FunctionSpace$mesh$nodes())])
+  
+  xrange <- range(x$FunctionSpace$mesh$nodes()[,1])
+  yrange <- range(x$FunctionSpace$mesh$nodes()[,2])
+  Nx <- 40
+  Ny <- 40
+  eval_x <- seq(from=xrange[1], to=xrange[2], length.out=Nx)
+  eval_y <- seq(from=yrange[1], to=yrange[2], length.out=Ny)
+  eval_points <- expand.grid(eval_x, eval_y)
+  Z <- matrix(x$eval_at(eval_points), nrow=Nx,ncol=Ny)
+  fig <- plot_ly(type="contour", x=eval_x, y=eval_y, z=Z, 
+                 intensity=Z, color = Z,
                  contours=list(showlabels = TRUE),
                  colorbar=list(title=""), ...) %>%
     layout(xaxis = list(title = "", showgrid=F, zeroline=F, ticks="", showticklabels=F),
            yaxis = list(title = "", showgrid=F, zeroline=F, ticks="", showticklabels=F))
   }else{
-    plot_data <- data.frame(X=rep(x$FunctionSpace$mesh$nodes()[,1], times=length(times)), 
-                            Y=rep(x$FunctionSpace$mesh$nodes()[,2], times=length(times)),
-                            coeff=as.vector(x$coeff[1:nrow(x$FunctionSpace$mesh$nodes()),]),
-                            times = rep(times, each=nrow(x$FunctionSpace$mesh$nodes())))
+    
+    xrange <- range(x$FunctionSpace$mesh$nodes()[,1])
+    yrange <- range(x$FunctionSpace$mesh$nodes()[,2])
+    Nx <- 40
+    Ny <- 40
+    eval_x <- seq(from=xrange[1], to=xrange[2], length.out=Nx)
+    eval_y <- seq(from=yrange[1], to=yrange[2], length.out=Ny)
+    eval_points <- expand.grid(eval_x, eval_y)
+    
+    plot_data <- data.frame(X=rep(eval_points[,1], times=length(times)), 
+                            Y=rep(eval_points[,2], times=length(times)),
+                            coeff=as.vector(x$eval_at(eval_points,times)),
+                            times = rep(times, each=nrow(eval_points)))
     limits = c(min(x$coeff), max(x$coeff))
-    I=x$FunctionSpace$mesh$elements()[,1]
-    J=x$FunctionSpace$mesh$elements()[,2] 
-    K=x$FunctionSpace$mesh$elements()[,3]
     fig <- plot_ly(plot_data, type="contour", x=~X, y=~Y, z=~coeff, frame=~times, 
-                   i = I, j = J, k = K, zmin=limits[1], zmax=limits[2],
+                   zmin=limits[1], zmax=limits[2],
                    intensity=~coeff, color = ~coeff,
                    contours=list(showlabels = TRUE),
                    colorbar=list(title=""), ...) %>%

@@ -121,7 +121,7 @@ setMethod("-", signature = c(e1="DiffOpObject", e2="DiffOpObject"),
 
 #' @rdname minus_DiffOb_op
 setMethod("-", signature =c(e1 = "DiffOpObject", e2 = "missing"),
-          function(e1){
+          function(e1, e2){
             e1$params[[1]] <- -e1$params[[1]]
             e1
           }
@@ -299,6 +299,6 @@ setMethod("dt", signature = c(x="FunctionObject", df="missing", ncp="missing"),
   .TimeDerivativeCtr(
     tokens="time",
     params = list(time=1L),
-    f=f
+    f=x
   )
 })

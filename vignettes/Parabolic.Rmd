@@ -25,14 +25,14 @@ Consider the following problem  defined over $\Omega \times [0,T]$:
 
 $$
 \begin{cases}
-\frac{\partial f}{\partial t}-\Delta f  = u  &in \ \Omega \times [0,T] \\
-      \quad f = f_0  &in \ \Omega, \ t=0 \\ 
-      \quad f = 0     &on \ \partial \ \Omega,\  t>0
+\frac{\partial u}{\partial t}-\Delta u  = f  &in \ \Omega \times [0,T] \\
+      \quad u = u_0  &in \ \Omega, \ t=0 \\ 
+      \quad u = 0     &on \ \partial \ \Omega,\  t>0
 \end{cases}
 $$
 
 
-where $f_0 = \sin( 2\pi x)\sin(2\pi y)$ is the initial condition, $u(x,y) = 8\pi^2 \sin( 2\pi x)\sin(2\pi y) e^{-t}$ is the forcing term and $\partial \Omega$ is the boundary of $\Omega$ where we have prescribed homogeneous Dirichelet boundary condition for all $t$ grater than $0$.
+where $u_0 = \sin( 2\pi x)\sin(2\pi y)$ is the initial condition, $f(x,y) = 8\pi^2 \sin( 2\pi x)\sin(2\pi y) e^{-t}$ is the forcing term and $\partial \Omega$ is the boundary of $\Omega$ where we have prescribed homogeneous Dirichelet boundary condition for all $t$ grater than $0$.
 The exact solution of the previous problem is $u_{ex}(x,y) = \sin(2\pi x) \sin(2 \pi y) e^{-t}$ whose trend is shown in the following.
 
 <!-- ```{r, echo=FALSE} -->
@@ -74,7 +74,6 @@ The exact solution of the previous problem is $u_{ex}(x,y) = \sin(2\pi x) \sin(2
 <!-- fig_exact -->
 <!-- ``` -->
 
-
 ```{r}
 ## load domain data
 data("unit_square", package="femR")
@@ -93,13 +92,13 @@ domain = Mesh(unit_square) %X% times
 Vh <- FunctionSpace(domain)
 
 ## define differential operator in its strong formulation
-f <- Function(Vh)
+u <- Function(Vh)
 
 ## define differential operator in its strong formulation
-L <- dt(f) - laplace(f)
+Lu <- dt(u) -laplace(u)
 
 ## forcing term
-u <- function(points,times){
+f <- function(points,times){
   res <- matrix(0, nrow=nrow(points), ncol=length(times))
   for( t in 1:length(times)){
     res[,t] = (8*pi^2 -1) * sin( 2.* pi * points[,1]) * sin(2.*pi* points[,2]) * exp(-times[t])
@@ -117,12 +116,16 @@ initialCondition <- function(points){
 }
   
 ## create pde
-pde <- Pde(L, u, dirichletBC, initialCondition)
+pde <- Pde(Lu, f)
+
+# set initial condition and dirichlet BC
+pde$set_initialCondition(initialCondition)
+pde$set_dirichletBC(dirichletBC)
 
 ## solve problem
 pde$solve()
 
 ## plot solution
-fig <- contour(f)
+#fig <- contour(f)
 #fig
 ```

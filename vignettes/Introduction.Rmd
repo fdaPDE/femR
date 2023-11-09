@@ -23,11 +23,11 @@ options(warn = -1)
 
 $$
 \begin{cases}
--\mu \Delta f + \boldsymbol{b} \cdot \nabla f + a f = u \qquad & in \ \Omega \\
+-\mu \Delta u + \boldsymbol{b} \cdot \nabla u + a  u= f \qquad & in \ \Omega \\
  boundary \ conditions \ (Dirichlet \ or \ Neumann) \qquad         & on \ \partial \Omega,
 \end{cases}
 $$
-where $\mu \in \mathbb{R}$, $\boldsymbol{b} \in \mathbb{R}^2$, $c \in \mathbb{R}$ are the diffusion coefficient, the transport coefficient and the reaction coefficient, respectively. 
+where $\mu \in \mathbb{R}$, $\boldsymbol{b} \in \mathbb{R}^2$, $a \in \mathbb{R}$ are the diffusion coefficient, the transport coefficient and the reaction coefficient, respectively. 
 This vignette illustrates how to use `femR` to solve a partial differential equation. In particular, the following section explains step by step the solution of a simple Poisson problem.
 
 # Solving a Poisson problem 
@@ -36,28 +36,37 @@ Consider the following problem  defined over $\Omega$:
 
 $$
 \begin{cases}
--\Delta f = u  &in \ \Omega \\
-      \quad f = 0  &on \ \partial \Omega
+-\Delta u = f  &in \ \Omega \\
+      \quad u = 0  &on \ \partial \Omega
 \end{cases}
 $$
 
-where $u(x,y) = 8\pi^2 \sin( 2\pi x)\sin(2\pi y)$ is the forcing term and $\partial \Omega$ is the boundary of $\Omega$ where we have prescribed homogeneous Dirichelet boundary condition.
+where $f(x,y) = 8\pi^2 \sin( 2\pi x)\sin(2\pi y)$ is the forcing term and $\partial \Omega$ is the boundary of $\Omega$ where we have prescribed homogeneous Dirichelet boundary condition.
 The exact solution of the previous problem is $u_{ex}(x,y) = \sin(2\pi x) \sin(2 \pi y)$. The following figure shows the exact solution of the problem, on the left hand side, and the triangulation of the unit square domain, on the right hand side.
 
 ```{r, echo=FALSE, fig.height=4.5, fig.width=10} 
     #  fig.show="hold", out.height="50%"
     # fig.height=3, fig.width=8} fig.height = fig.width/2 - 1/2
+library(RTriangle)
 exact_solution <- function(points){
     return( sin(2.*pi*points[,1])*sin(2.*pi*points[,2]))
 }
-data("unit_square", package = "femR")
+#data("unit_square", package = "femR")
+p <- pslg(P=rbind(c(0, 0), c(1, 0), c(1, 1), c(0, 1)),
+          S=rbind(c(1, 2), c(2, 3), c(3, 4), c(4,1)))
+unit_square <- triangulate(p, a = 0.00125, q=30)
 domain <- Mesh(unit_square)
-eval_points <- unit_square$nodes
-data_plot <- data.frame(X=eval_points[,1], Y=eval_points[,2],
-                        Z=exact_solution(eval_points), coeff=exact_solution(eval_points))
-I=(domain$elements()[,1]); J=(domain$elements()[,2]); K=(domain$elements()[,3])  
-fig_exact <- plot_ly(data_plot, type="contour", x=~X, y=~Y, z=~Z, intensity=~Z,color = ~Z,
-                 i = I, j = J, k = K,
+xrange <- range(domain$nodes()[,1])
+yrange <- range(domain$nodes()[,2])
+Nx <- 40
+Ny <- 40
+eval_x <- seq(from=xrange[1], to=xrange[2], length.out=Nx)
+eval_y <- seq(from=yrange[1], to=yrange[2], length.out=Ny)
+eval_points <- expand.grid(eval_x, eval_y)
+Z <- matrix(exact_solution(eval_points), nrow=Nx,ncol=Ny)
+#Z[sample(Nx*Ny, floor(sqrt(Nx*Ny)))] = NA
+#I=(domain$elements()[,1]); J=(domain$elements()[,2]); K=(domain$elements()[,3])  
+fig_exact <- plot_ly(type="contour", x=eval_x, y=eval_y, z=Z, color = Z, intensity = Z,
           contours=list(showlabels = TRUE),
           colorbar=list(title="")) %>%
    layout(xaxis = list(title = "", showgrid=F, zeroline=F, ticks="", showticklabels=F),
@@ -73,34 +82,39 @@ subplot(fig_exact %>% hide_colorbar(), fig2, margin=0.05) %>%
 The following window wraps all the steps needed to solve the problem.
 
 ```{r code block}
-## 1. Defining domain
-data("unit_square", package="femR")
+## 1. Defining domain relying on RTriangle
+pslg <- pslg(P=rbind(c(0, 0), c(1, 0), c(1, 1), c(0, 1)),
+          S=rbind(c(1, 2), c(2, 3), c(3, 4), c(4,1)))
+unit_square <- triangulate(p, a = 0.00125, q=30)
 mesh <- Mesh(unit_square)
 ## 2. Defining the solution of the PDE
-Vh <- FunctionSpace(mesh, fe_order=2) 
-f <- Function(Vh)
+Vh <- FunctionSpace(mesh, fe_order=1) 
+u <- Function(Vh)
 ## 3. Defining the differential operator
-L <- -laplace(f) 
-## 4. Defining the forcing term and the Dirichlet boundary conditions 
+Lu <- -laplace(u) 
+## 4. Defining the forcing term and Dirichlet boundary conditions
 ##    as standard R functions
 # forcing term
-u <- function(points){
+f <- function(points){
     return(8.*pi^2* sin(2.*pi*points[,1])*sin(2.*pi*points[,2])) 
 }
-# Dirichlet BC
+# Dirichlet boundary conditions
 dirichletBC <- function(points){
   return(matrix(0,nrow=nrow(points), ncol=1))
 }
 ## 5. Building the PDE object
-pde <- Pde(L, u, dirichletBC)
-## 6. computing the discrete solution
+pde <- Pde(Lu, f)
+# setting boundary conditions
+pde$set_dirichletBC(dirichletBC)
+## 7. computing the discrete solution
 pde$solve()
-## 7. Plots
-plot(f)
+
+## 8. Plots
+plot(u)
 ```
 
 ```{r, fig.height=4.5, fig.width=10}
-fig_h <- contour(f)
+fig_h <- contour(u)
 subplot(fig_exact %>%hide_colorbar(), fig_h, 
         margin = 0.05) %>%layout(annotations = list(
             list(x=0.155, y=1.05, text = "exact solution",    showarrow = F, 
@@ -123,25 +137,27 @@ Such named list should contain geometrical information of the domain:
 
 `femR` contains the `unit_square` named list that can be used to perform some tests.
 
-```{r Creating mesh, fig.width=4.5, fig.height=4.5}
+```{r Creating mesh, fig.width=4, fig.height=4}
 data("unit_square", package="femR")
-unit_square <- Mesh(unit_square)
-plot(unit_square)
+mesh <- Mesh(unit_square)
+plot(mesh)
 ```
-`femR` package can read also triangulations provided by `RTriangle` package, as the following chunk shows:
+`femR` package can read also Delaunay triangulations provided by `RTriangle` package, as the following chunk shows:
 
-```{r, fig.width=3.5, fig.height=3.5}
+```{r, fig.width=4, fig.height=4}
 library(RTriangle)
 
-## create an object with a concavity 
-pslg <- pslg(P=rbind(c(0, 0), c(0, 1), c(0.5, 0.5), c(1, 1), c(1, 0)),
-          S=rbind(c(1, 2), c(2, 3), c(3, 4), c(4, 5), c(5, 1)))
+## create a Planar Straigh Line Graph object (RTriangle)  
+pslg <- pslg(P=rbind(c(0, 0), c(1, 0), c(1, 1), c(0, 1)),
+          S=rbind(c(1, 2), c(2, 3), c(3, 4), c(4,1)))
 
 ## triangulate it using RTriangle 
-domain <- triangulate(pslg, a=0.01, q=20)
+# a = maximum triangle area 
+# q = minimum triangle angle in degrees
+unit_square <- triangulate(pslg, a=0.00125, q=30)
 
 ## create mesh object
-mesh <- Mesh(domain)
+mesh <- Mesh(unit_square)
 plot(mesh)
 ```
 
@@ -161,43 +177,73 @@ First order finite element is the default parameter.
 Then, we define a `Function`, solution of the PDEs, belonging to the function space `Vh`.  
 ```{r Defining Differential Operator}
 ## solution of the PDE
-Vh <- FunctionSpace(unit_square, fe_order=2)
-f <- Function(Vh)
+Vh <- FunctionSpace(mesh, fe_order=1)
+u <- Function(Vh)
 ```
+The following figure shows a basis function of the space `Vh`, i.e. the space of functions which are globally continuous and are polynomials of degree 1 once restricted to each element of the triangulation.
+
+```{r, echo=FALSE}
+pp <- RTriangle::pslg(P=rbind(c(0, 0), c(1, 0), c(1, 1), c(0, 1)),
+          S=rbind(c(1, 2), c(2, 3), c(3, 4), c(4,1)),
+          SB = matrix(c(1,2,3,4), nrow=4))
+tpp <- RTriangle::triangulate(pp, a = 0.05, q=30)
+
+mesh_aux <- Mesh(tpp)
+
+Vh_aux <- FunctionSpace(mesh_aux)
+hat_function <- Function(Vh_aux)
+
+coeff_aux <- rep(0, times=nrow(mesh$nodes()))
+coeff_aux[5] = 1
+
+hat_function$set_coeff(as.matrix(coeff_aux))
+
+scene = list(camera = list(eye = list(x = 0, y = 0, z = 1.25)),
+             yaxis = list(autorange="reversed"),
+             projection=list(type="orthographic"))
+
+plot_hat <- plot(hat_function) %>% layout(scene=scene,aspectmode="cube") %>%hide_colorbar()
+
+plot_hat
+```
+
 Then, we define the differential operator in its strong formulation.
 ```{r Differentail Operator}
-L <- -laplace(f) # L <- -div(I*grad(f))
-                 # In general:
-                 # L <- -mu*laplace(f) + dot(b,grad(f)) + a*f
+Lu <- -laplace(u) # L <- -div(I*grad(u))
+                  # In general:
+                  # L <- -mu*laplace(u) + dot(b,grad(u)) + a*u
 ```
-Note that, according to the well-known identity $div(\nabla f) = \Delta f$, we could have written `L<--div(I*grad(f))`, where `I` is the 2-dimensional identity matrix. Indeed, `femR` package let you define every term of a generic second-order linear differential operator $Lf= -div(K\nabla f) + \mathbf{b}\cdot \nabla f + a f$ as follows:
+Note that, according to the well-known identity $div(\nabla u) = \Delta f$, we could have written `L<--div(I*grad(u))`, where `I` is the 2-dimensional identity matrix. Indeed, `femR` package let you define every term of a generic second-order linear differential operator $Lu= -div(K\nabla u) + \mathbf{b}\cdot \nabla u + a u$ as follows:
 
-  * Diffusion: `-div(K*grad(f))` or `-mu*laplacian(f)`, where either `K` or `mu` represents the diffusion matrix in an anisotropic problem or the diffusion coefficient in a isotropic problem, implements the first term of the differential operator according to the problem at hand. 
+  * Diffusion: `-div(K*grad(u))` or `-mu*laplacian(u)`, where either `K` or `mu` represents the diffusion matrix in an anisotropic problem or the diffusion coefficient in a isotropic problem, implements the first term of the differential operator according to the problem at hand. 
   
-  * Advection: `dot(b,grad(f))`, where `b` is a two-dimensional vector, implements the second term of differential operator.
+  * Advection: `dot(b,grad(u))`, where `b` is a two-dimensional vector, implements the second term of differential operator.
   
-  * Reaction: `a*f`, where `c` is a scalar, implements the last term of the differential operator.
+  * Reaction: `a*u`, where `a` is a scalar, implements the last term of the differential operator.
 
-Although, the interface let the user define a generic second-order linear differential operator: `-div(K*grad(f)) + ...`, at this stage the package has been tested only in the isotropic case, i.e `K=I`, where `I` is the two-dimensional identity matrix.
+Although, the interface let the user define a generic second-order linear differential operator: `-div(K*grad(u)) + ...`, at this stage the package has been tested only in the isotropic case, i.e `K=I`, where `I` is the two-dimensional identity matrix.
 
 ## Building the PDE object
-We define the forcing term of the differential problem and the Dirichlet boundary condition as simple R `function`s. Such functions will be provided as parameters to the object which encapsulates the concept of PDEs.
+We define the forcing term of the differential problem and the Dirichlet boundary condition as simple R `function`s. The forcing term will be provided as parameter to the object which encapsulates the concept of PDEs. 
 ```{r}
 ## forcing term
-u <- function(points){
+f <- function(points){
     return(8.*pi^2* sin(2.*pi*points[,1])*sin(2.*pi*points[,2])) 
 }
 
-## Dirichlet BC
+## dirichletBC
 dirichletBC <- function(points){
   return(matrix(0,nrow=nrow(points), ncol=1))
 }
 ```
 ## Computing the FE solution
-Finally, we build a `pde` object passing the differential operator `L`, as first parameter, the forcing term `u`, as second parameter, the Dirichlet boundary condition `dirichletBC`, as third parameter:
+Finally, we build a `pde` object passing the differential operator `L`, as first parameter and the forcing term `u`, as second parameter:
 ```{r Defining PDE object}
 ## create pde
-pde <- Pde(L, u, dirichletBC)
+pde <- Pde(Lu, f)
+
+## set Dirichlet boundary conditions
+pde$set_dirichletBC(dirichletBC)
 ```
 We can compute the discrete solution of the Poisson problem calling the `solve` method:
 ```{r Solving the problem}
@@ -219,18 +265,18 @@ cat("L2 error = ", error.L2, "\n")
 The R package `plotly` is exploited to plot the computed solution. 
 ```{r Plots}
 ## plot solution 
-plot(f)
+plot(u)
 ```
 
 ```{r Contour}
 # contour 
-contour(f)
+contour(u)
 ```
 
 Note that, the `base::plot` function and `graphics::contour`function have both been overloaded and return a `plotly` object that can be modified as one wishes.
 \textit{If you can dream it, you can do it. Walt Disney}
 ```{r Using Plotly}
-plot(f, colorscale="Jet") %>% layout(scene=list(aspectmode="cube"))
+plot(u, colorscale="Jet") %>% layout(scene=list(aspectmode="cube"))
 ```
 
 

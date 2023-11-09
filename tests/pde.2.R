@@ -52,8 +52,10 @@ y <- x
 points <- expand.grid(x, y)
 max(abs( f$eval_at(points) - as.matrix(exact_solution(points))))
 
+evaluations <- max(abs(f$eval_at(mesh$nodes()) - exact_solution(mesh$nodes())))
 ## plot solution 
 options(warn=-1)
 plot(f) %>% layout(scene=list(aspectmode="cube")) %>% hide_colorbar()
 
+plot(f)
 contour(f)

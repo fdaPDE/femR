@@ -26,15 +26,15 @@ exact_solution <- function(points,t){
 }
 
 ## define differential operator in its strong formulation
-f <- Function(Vh)
+u <- Function(Vh)
 
 ## define differential operator in its strong formulation
 #L <- dt(f) + (-1)*laplace(f) 
 
-L <- dt(f) - laplace(f)
+L <- dt(u) - laplace(u)
 
 ## forcing term
-u <- function(points,times){
+f <- function(points,times){
   res <- matrix(0, nrow=nrow(points), ncol=length(times))
   for( t in 1:length(times)){
     res[,t] = (8*pi^2 -1) * sin( 2.* pi * points[,1]) * sin(2.*pi* points[,2]) * exp(-times[t])
@@ -52,26 +52,29 @@ initialCondition <- function(points){
 }
   
 ## create pde
-pde <- Pde(L, u, dirichletBC, initialCondition)
-
-## solve problem
-pde$solve()
+# pde <- Pde(L, u, dirichletBC, initialCondition)
+# 
+# ## solve problem
+# pde$solve()
 
 ## compute L2 norm of the error
-u_ex <- exact_solution(pde$get_dofs_coordinates(), times)
-
-error.L2 <- matrix(0, nrow=length(times), ncol=1)
-for( t in 1:length(times)){
-  error.L2[t] <- sqrt(sum(pde$get_mass() %*% (u_ex[,t] - pde$solution()[,t])^2))
-  cat(paste0("L2 error at time ",times[t]," ", error.L2[t], "\n"))
-}
+# u_ex <- exact_solution(pde$get_dofs_coordinates(), times)
+# 
+# error.L2 <- matrix(0, nrow=length(times), ncol=1)
+# for( t in 1:length(times)){
+#   error.L2[t] <- sqrt(sum(pde$get_mass() %*% (u_ex[,t] - pde$solution()[,t])^2))
+#   cat(paste0("L2 error at time ",times[t]," ", error.L2[t], "\n"))
+# }
 
 # otherwise -------------------------------------------------------------------- 
-pde <- Pde(L, u)
+pde <- Pde(L, f)
 pde$set_dirichletBC(dirichletBC)
 pde$set_initialCondition(initialCondition)
 pde$solve()
 
+## compute L2 norm of the error
+u_ex <- exact_solution(pde$get_dofs_coordinates(), times)
+ 
 error.L2 <- matrix(0, nrow=length(times), ncol=1)
 for( t in 1:length(times)){
   error.L2[t] <- sqrt(sum(pde$get_mass() %*% (u_ex[,t] - pde$solution()[,t])^2))
@@ -90,8 +93,8 @@ for( t in 1:length(times)){
 # max(abs( f$eval_at(points) - as.matrix(exact_solution(points))))
 # 
 # ## plot solution 
-options(warn=-1)
-plot(f) %>% hide_colorbar()
- 
-contour(f)
+# options(warn=-1)
+# plot(f) %>% hide_colorbar()
+#  
+# contour(f)
 # 
