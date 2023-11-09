@@ -7,7 +7,7 @@
 \usage{
 \S4method{-}{DiffOpObject,DiffOpObject}(e1, e2)
 
-\S4method{-}{DiffOpObject,missing}(e1)
+\S4method{-}{DiffOpObject,missing}(e1, e2)
 }
 \arguments{
 \item{e1}{a DiffOpObject.}
