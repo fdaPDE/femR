@@ -83,7 +83,7 @@ The following window wraps all the steps needed to solve the problem.
 
 ```{r code block}
 ## 1. Defining domain relying on RTriangle
-pslg <- pslg(P=rbind(c(0, 0), c(1, 0), c(1, 1), c(0, 1)),
+p <- pslg(P=rbind(c(0, 0), c(1, 0), c(1, 1), c(0, 1)),
           S=rbind(c(1, 2), c(2, 3), c(3, 4), c(4,1)))
 unit_square <- triangulate(p, a = 0.00125, q=30)
 mesh <- Mesh(unit_square)
@@ -198,11 +198,21 @@ coeff_aux[5] = 1
 
 hat_function$set_coeff(as.matrix(coeff_aux))
 
-scene = list(camera = list(eye = list(x = 0, y = 0, z = 1.25)),
-             yaxis = list(autorange="reversed"),
-             projection=list(type="orthographic"))
+# scene = list(camera = list(eye = list(x = 0, y = 0, z = 1.25)),
+#              yaxis = list(autorange="reversed"),
+#              projection=list(type="orthographic"))
+# 
+# plot_hat <- plot(hat_function) %>% layout(scene=scene,aspectmode="cube",
+#                                           dragmode=FALSE) %>%hide_colorbar() %>% config(displayModeBar =FALSE, scrollZoom = FALSE)
 
-plot_hat <- plot(hat_function) %>% layout(scene=scene,aspectmode="cube") %>%hide_colorbar()
+scene = list(camera = list(eye = list(x = 0, y = 0, z = 1.25)),
+             xaxis = list(autorange="reversed"),
+             yaxis = list(autorange="reversed"))
+
+plot_hat <- plot(hat_function) %>% 
+            layout(dragmode=FALSE, scene=scene,aspectmode="cube") %>%
+            hide_colorbar() %>% 
+            config(displayModeBar =FALSE)
 
 plot_hat
 ```
@@ -213,7 +223,7 @@ Lu <- -laplace(u) # L <- -div(I*grad(u))
                   # In general:
                   # L <- -mu*laplace(u) + dot(b,grad(u)) + a*u
 ```
-Note that, according to the well-known identity $div(\nabla u) = \Delta f$, we could have written `L<--div(I*grad(u))`, where `I` is the 2-dimensional identity matrix. Indeed, `femR` package let you define every term of a generic second-order linear differential operator $Lu= -div(K\nabla u) + \mathbf{b}\cdot \nabla u + a u$ as follows:
+Note that, according to the well-known identity $div(\nabla u) = \Delta u$, we could have written `L<--div(I*grad(u))`, where `I` is the 2-dimensional identity matrix. Indeed, `femR` package let you define every term of a generic second-order linear differential operator $Lu= -div(K\nabla u) + \mathbf{b}\cdot \nabla u + a u$ as follows:
 
   * Diffusion: `-div(K*grad(u))` or `-mu*laplacian(u)`, where either `K` or `mu` represents the diffusion matrix in an anisotropic problem or the diffusion coefficient in a isotropic problem, implements the first term of the differential operator according to the problem at hand. 
   

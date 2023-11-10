@@ -94,7 +94,18 @@ for( t in 1:length(times)){
 # 
 # ## plot solution 
 # options(warn=-1)
-# plot(f) %>% hide_colorbar()
-#  
-# contour(f)
+plot(u) %>% hide_colorbar()
+
+# scene = list(camera = list(eye = list(x = 0, y = 0, z = 1.25)),
+#              xaxis = list(autorange="reversed"),
+#              yaxis = list(autorange="reversed"))
+# 
+# plot_tmp <- plot(u) %>% 
+#   layout(dragmode=FALSE, scene=scene,aspectmode="cube") %>%
+#   hide_colorbar() %>% 
+#   config(displayModeBar =FALSE)
+# 
+# plot_tmp
+# TO DO  
+# contour(u)
 # 
