@@ -13,7 +13,7 @@ Mesh(domain)
 \S4method{Mesh}{triangulation}(domain)
 }
 \arguments{
-\item{domain}{A named list containing must contain:
+\item{domain}{could be a \code{triangulation} returned by \code{\link[RTriangle]{triangulate}} or a named list containing:
 \itemize{
    \item{\code{nodes}, a #nodes-by-2 matrix containing the x and y coordinates of the mesh nodes;}
    \item{\code{elements}, a #elements-by-3 matrix specifiying the triangles giving the row's indices in \code{nodes} of the triangles' vertices;}
@@ -26,4 +26,14 @@ An S4 object representing a Mesh.
 }
 \description{
 Create mesh object
+}
+\examples{
+\dontrun{
+library(RTriangle)
+library(femR)
+p <- pslg(P=rbind(c(0, 0), c(1, 0), c(1, 1), c(0, 1)),
+S=rbind(c(1, 2), c(2, 3), c(3, 4), c(4,1)))
+unit_square <- triangulate(p, a = 0.00125, q=30)
+mesh <- Mesh(unit_square)
+}
 }
