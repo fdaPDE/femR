@@ -13,7 +13,6 @@
   methods = c(
     solve = function(){
       if(!is_dirichletBC_set){
-        warning("dirichletBC not setted. Assuming homogeneus boudary condition.")
         if(!is_parabolic){
           dirichletBC_ = as.matrix(rep(0,times=nrow(pde_$get_dofs_coordinates())))
         }else 

@@ -44,7 +44,9 @@ dirichletBC <- function(points){
   return(matrix(0,nrow=nrow(points), ncol=1))
 }
 ## create pde
-pde <- Pde(L, u, dirichletBC)
+pde <- Pde(L, u)
+
+pde$set_dirichletBC(dirichletBC)
 
 ## solve problem
 pde$solve()

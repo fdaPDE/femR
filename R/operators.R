@@ -277,13 +277,35 @@ setMethod("*", signature = c(e1="numeric", e2="FunctionObject"),
 
 # overloading stats::dt function
 
+# time derivate of FunctionObejct
+#
+# @param x a FunctionObject.
+# @return A S4 object representing the time derivative of a FunctionObject.
+# @export
+# @examples
+# \dontrun{
+# library(femR)
+# data("unit_square")
+# mesh <- Mesh(unit_square)
+# Vh <- FunctionSpace(mesh)
+# f <- Function(Vh)
+# dt(f)
+# }
+# dt.FunctionObject <- function(x){
+#   .TimeDerivativeCtr(
+#     tokens="time",
+#     params = list(time=1L),
+#     f=x
+#   )
+# }
+
 #' time derivate of FunctionObejct
 #'
 #' @param x a FunctionObject.
 #' @param df missing.
 #' @param ncp missing.
 #' @return A S4 object representing the time derivative of a FunctionObject.
-#' @export 
+#' @export
 #' @examples
 #' \dontrun{
 #' library(femR)
@@ -293,12 +315,11 @@ setMethod("*", signature = c(e1="numeric", e2="FunctionObject"),
 #' f <- Function(Vh)
 #' dt(f)
 #' }
-setMethod("dt", signature = c(x="FunctionObject", df="missing", ncp="missing"), 
-          function(x,df,ncp){
-  
-  .TimeDerivativeCtr(
-    tokens="time",
-    params = list(time=1L),
-    f=x
-  )
+setMethod("dt", signature = c(x="FunctionObject", df="missing", ncp="missing"),
+           function(x,df,ncp){
+             .TimeDerivativeCtr(
+               tokens="time",
+               params = list(time=1L),
+              f=x
+            )
 })

@@ -27,7 +27,7 @@ $$
 \begin{cases}
 \frac{\partial u}{\partial t}-\Delta u  = f  &in \ \Omega \times [0,T] \\
       \quad u = u_0  &in \ \Omega, \ t=0 \\ 
-      \quad u = 0     &on \ \partial \ \Omega,\  t>0
+      \quad u = 0     &on \ \partial \Omega,\  t>0
 \end{cases}
 $$
 
@@ -126,6 +126,5 @@ pde$set_dirichletBC(dirichletBC)
 pde$solve()
 
 ## plot solution
-#fig <- contour(f)
-#fig
+contour(u)
 ```
