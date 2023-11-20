@@ -2,27 +2,17 @@
 % Please edit documentation in R/pde.R
 \name{Pde}
 \alias{Pde}
-\alias{Pde,DiffOpObject,ANY,ANY,missing-method}
-\alias{Pde,DiffOpObject,ANY,ANY,ANY-method}
-\alias{Pde,DiffOpObject,ANY,missing,missing-method}
+\alias{Pde,DiffOpObject-method}
 \title{A PDEs object}
 \usage{
-Pde(L, u, dirichletBC, initialCondition)
+Pde(L, u)
 
-\S4method{Pde}{DiffOpObject,ANY,ANY,missing}(L, u, dirichletBC)
-
-\S4method{Pde}{DiffOpObject,ANY,ANY,ANY}(L, u, dirichletBC, initialCondition)
-
-\S4method{Pde}{DiffOpObject,ANY,missing,missing}(L, u, dirichletBC)
+\S4method{Pde}{DiffOpObject}(L, u)
 }
 \arguments{
 \item{L}{a differential operator.}
 
-\item{u}{the forcing term of the PDE.}
-
-\item{dirichletBC}{the Dirichlet boundary conditions to be imposed on the boundary of the domain. If not provided, homogeneous Dirichlet boundary conditions will be imposed.}
-
-\item{initialCondition}{the initial condition of a parabolic problem.}
+\item{u}{a standard R function representing the forcing term of the PDE.}
 }
 \value{
 A S4 object representing a PDE.
