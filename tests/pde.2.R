@@ -27,7 +27,8 @@ dirichletBC <- function(points){
   return(rep(0, times=nrow(points)))
 }
 ## Pde constructor
-pde <- Pde(L,u,dirichletBC)
+pde <- Pde(L,u)
+pde$set_dirichletBC(dirichletBC)
 
 ## solve problem
 pde$solve()
@@ -37,11 +38,6 @@ u_ex <- as.matrix(exact_solution(pde$get_dofs_coordinates()))
 error.L2 <- sqrt(sum(pde$get_mass() %*% (u_ex - pde$solution())^2))
 cat("L2 error = ", error.L2, "\n")
 
-# otherwises -------------------------------------------------------------------
-# pde <- Pde(L,u)
-# pde$set_dirichletBC(dirichletBC)
-# pde$solve()
-# ------------------------------------------------------------------------------
 ## perform evaluation at single point
 point = c(0.2, 0.5)
 f$eval_at(point)

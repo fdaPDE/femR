@@ -47,3 +47,4 @@ inst/doc
 !.github/workflows/
 !.github/workflows/*.yaml
 docs
+!.Rbuildignore

@@ -1,0 +1,16 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+[.]so$
+[.]o$
+^tests$
+^_pkgdown\.yml$
+^docs$
+^doc$
+^pkgdown$
+^\.github$
+^src/core/\.git$
+^src/core/\.github$
+^src/core/\.gitignore$
+^src/\.clang-format$
+^src/core/\.clang-format$
+^src/core/test$

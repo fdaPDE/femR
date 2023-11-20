@@ -98,9 +98,10 @@ template <int M, int N, int R> class R_PDE {
             SVector<M> b = Rcpp::as<DMatrix<double>>(pde_parameters["transport"]);
             double c = Rcpp::as<double>(pde_parameters["reaction"]);
             this-> is_parabolic_ = true;
+	    DVector<double> time = Rcpp::as<DVector<double>>(pde_parameters["time"]);
             // define bilinear form
             auto L = dt<FEM>() + K*laplacian<FEM>() + advection<FEM>(b) + reaction<FEM>(c);
-            pde_ = std::make_unique<PDE<DomainType, decltype(L), DMatrix<double>, FEM, fem_order<R>>>(domain_, L, u_); 
+            pde_ = std::make_unique<PDE<DomainType, decltype(L), DMatrix<double>, FEM, fem_order<R>>>(domain_, time, L, u_); 
         } break;
         case 4: {
             if (pde_parameters_.isNotNull()) {
@@ -110,9 +111,10 @@ template <int M, int N, int R> class R_PDE {
                 SVector<M> b = Rcpp::as<DMatrix<double>>(pde_parameters["transport"]);
                 double c = Rcpp::as<double>(pde_parameters["reaction"]);
                 this-> is_parabolic_ = true;
+                DVector<double> time = Rcpp::as<DVector<double>>(pde_parameters["time"]);
                 // define bilinear form
                 auto L = dt<FEM>() + diffusion<FEM>(K) + advection<FEM>(b) + reaction<FEM>(c);
-                pde_ = std::make_unique<PDE<DomainType, decltype(L), DMatrix<double>, FEM, fem_order<R>>>(domain_, L, u_);
+                pde_ = std::make_unique<PDE<DomainType, decltype(L), DMatrix<double>, FEM, fem_order<R>>>(domain_, time, L, u_);
             } 
             
             else {

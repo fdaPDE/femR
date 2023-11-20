@@ -5,7 +5,7 @@ data("unit_square", package="femR")
 
 t0 = 0.
 t_max = 1
-dT = 1e-2
+dT = 0.05
 M = (t_max - t0)/dT + 1
 times = seq(t0,t_max,length=M)
 
@@ -52,21 +52,6 @@ initialCondition <- function(points){
 }
   
 ## create pde
-# pde <- Pde(L, u, dirichletBC, initialCondition)
-# 
-# ## solve problem
-# pde$solve()
-
-## compute L2 norm of the error
-# u_ex <- exact_solution(pde$get_dofs_coordinates(), times)
-# 
-# error.L2 <- matrix(0, nrow=length(times), ncol=1)
-# for( t in 1:length(times)){
-#   error.L2[t] <- sqrt(sum(pde$get_mass() %*% (u_ex[,t] - pde$solution()[,t])^2))
-#   cat(paste0("L2 error at time ",times[t]," ", error.L2[t], "\n"))
-# }
-
-# otherwise -------------------------------------------------------------------- 
 pde <- Pde(L, f)
 pde$set_dirichletBC(dirichletBC)
 pde$set_initialCondition(initialCondition)
@@ -109,37 +94,3 @@ plot(u) %>% hide_colorbar()
 
 # contour
 contour(u)
- 
-# x <- u
-# 
-# xrange <- range(x$FunctionSpace$mesh$nodes()[,1])
-# yrange <- range(x$FunctionSpace$mesh$nodes()[,2])
-# Nx <- 40
-# Ny <- 40
-# eval_x <- seq(from=xrange[1], to=xrange[2], length.out=Nx)
-# eval_y <- seq(from=yrange[1], to=yrange[2], length.out=Ny)
-# eval_points <- expand.grid(eval_x, eval_y)
-# X <- rep(eval_points[,1], times=length(times))
-# Y <- rep(eval_points[,2], times=length(times))
-# coeff <- matrix(nrow= nrow(eval_points), ncol=length(times))
-# for(i in 1:length(times)){
-#   coeff[,i] <- x$pde$eval(x$FunctionSpace$mesh$data, 
-#                                as.matrix(x$coeff[,i]), 
-#                                as.matrix(eval_points))  
-# }
-# 
-# plot_data <- data.frame(X=X, Y=Y,
-#                         coeff=as.vector(coeff),
-#                         times = rep(times, each=nrow(eval_points)))
-# limits = c(min(x$coeff), max(x$coeff))
-# fig <- plot_ly(plot_data, type="contour", 
-#                x=~X, y=~Y, z=~coeff, frame=~times, 
-#                zmin=limits[1], zmax=limits[2],
-#                intensity=~coeff, color = ~coeff,
-#                contours=list(showlabels = TRUE),
-#                colorbar=list(title="")) %>% #, ...) %>%
-#   layout(xaxis = list(title = "", showgrid=F, zeroline=F, ticks="", showticklabels=F),
-#          yaxis = list(title = "", showgrid=F, zeroline=F, ticks="", showticklabels=F)) %>%
-#   animation_opts(frame=5) %>% 
-#   animation_slider(currentvalue = list(prefix ="t = "))
-# fig
