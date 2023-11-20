@@ -64,10 +64,10 @@
     <loc>https://fdapde.github.io/femR/reference/pde.html</loc>
   </url>
   <url>
-    <loc>https://fdapde.github.io/femR/reference/plot-FunctionObject-method.html</loc>
+    <loc>https://fdapde.github.io/femR/reference/plot.FunctionObject.html</loc>
   </url>
   <url>
-    <loc>https://fdapde.github.io/femR/reference/plot-MeshObject-method.html</loc>
+    <loc>https://fdapde.github.io/femR/reference/plot.MeshObject.html</loc>
   </url>
   <url>
     <loc>https://fdapde.github.io/femR/reference/plus-DiffOpObject-DiffOpObject-method.html</loc>

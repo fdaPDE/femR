@@ -55,16 +55,10 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Pde</span><span class="op">(</span><span class="va">L</span>, <span class="va">u</span>, <span class="va">dirichletBC</span>, <span class="va">initialCondition</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Pde</span><span class="op">(</span><span class="va">L</span>, <span class="va">u</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S4 method for DiffOpObject,ANY,ANY,missing</span></span>
-<span><span class="fu">Pde</span><span class="op">(</span><span class="va">L</span>, <span class="va">u</span>, <span class="va">dirichletBC</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S4 method for DiffOpObject,ANY,ANY,ANY</span></span>
-<span><span class="fu">Pde</span><span class="op">(</span><span class="va">L</span>, <span class="va">u</span>, <span class="va">dirichletBC</span>, <span class="va">initialCondition</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S4 method for DiffOpObject,ANY,missing,missing</span></span>
-<span><span class="fu">Pde</span><span class="op">(</span><span class="va">L</span>, <span class="va">u</span>, <span class="va">dirichletBC</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># S4 method for DiffOpObject</span></span>
+<span><span class="fu">Pde</span><span class="op">(</span><span class="va">L</span>, <span class="va">u</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -74,15 +68,7 @@
 
 
 <dt>u</dt>
-<dd><p>the forcing term of the PDE.</p></dd>
-
-
-<dt>dirichletBC</dt>
-<dd><p>the Dirichlet boundary conditions to be imposed on the boundary of the domain. If not provided, homogeneous Dirichlet boundary conditions will be imposed.</p></dd>
-
-
-<dt>initialCondition</dt>
-<dd><p>the initial condition of a parabolic problem.</p></dd>
+<dd><p>a standard R function representing the forcing term of the PDE.</p></dd>
 
 </dl></div>
     <div class="section level2">
