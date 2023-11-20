@@ -61,15 +61,15 @@
 #' A PDEs object
 #'
 #' @param L a differential operator.
-#' @param f the forcing term of the PDE.
+#' @param u a standard R function representing the forcing term of the PDE.
 #' @return A S4 object representing a PDE.
 #' @rdname pde
 #' @export 
-setGeneric("Pde", function(L,f) standardGeneric("Pde"))
+setGeneric("Pde", function(L,u) standardGeneric("Pde"))
 
 #' @rdname pde
-setMethod("Pde", signature=c(L="DiffOpObject", f="ANY"),
-          function(L,f){
+setMethod("Pde", signature=c(L="DiffOpObject", u="ANY"),
+          function(L,u){
             D = L$f$FunctionSpace$mesh$data ## C++ R_Mesh class
             
             is_parabolic = FALSE
@@ -126,9 +126,9 @@ setMethod("Pde", signature=c(L="DiffOpObject", f="ANY"),
             quad_nodes <- as.matrix(pde_$get_quadrature_nodes())
             ## evaluate forcing term on quadrature nodes
             if(!is_parabolic){
-              pde_$set_forcing(as.matrix(f(quad_nodes)))
+              pde_$set_forcing(as.matrix(u(quad_nodes)))
             }else{
-              pde_$set_forcing(f(quad_nodes, times))
+              pde_$set_forcing(u(quad_nodes, times))
             }
             ## initialize solver 
             pde_$init()
