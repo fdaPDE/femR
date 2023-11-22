@@ -1,28 +1,35 @@
 
 ## Mesh Class Definition
 .MeshCtr <- setRefClass(
-  Class = "MeshObject",
+  Class = "MeshObject", contains = "DomainObject",
   fields = c(
     data  = "ANY",
     m = "integer",   # local dim
     n = "integer",   # embedding dim
-    times = "vector" # for parabolic problems
+    times = "numeric",
+    deltaT = "numeric" # for parabolic problems
   ),
   methods = c(
-    nodes = function(){
+    get_nodes = function(){
       data$nodes()
     },
-    elements = function(){
+    get_elements = function(){
       data$elements()
     },
-    boundary = function(){
+    get_boundary = function(){
       data$boundary()
     },
-    neighbors = function(){
+    get_neighbors = function(){
       data$neighbors()
     },
-    times = function(){
+    get_times = function(){
       return(times)
+    },
+    set_deltaT = function(deltaT){
+      if(length(time_interval)==0)
+        stop("Error!")
+      deltaT <<- deltaT
+      times <<- seq(time_interval[1], time_interval[2], by=deltaT)
     }
   )
 )
@@ -92,23 +99,23 @@ setMethod("Mesh", signature=c(domain="triangulation"),
             
 })
 
-#' create spatio-temporal domain
-#'
-#' @param op1 A mesh object created by \code{Mesh}.
-#' @param op2 A numeric vector.
-#' @return An S4 object representing a spatio-temporal domain.
-#' @rdname MeshObject_times_vector
-#' @export 
-setGeneric("%X%", function(op1, op2) standardGeneric("%X%"))
+# create spatio-temporal domain
+#
+# @param op1 A mesh object created by \code{Mesh}.
+# @param op2 A numeric vector.
+# @return An S4 object representing a spatio-temporal domain.
+# @rdname DomainObject_times_vector
+# @export 
+#setGeneric("%X%", function(op1, op2) standardGeneric("%X%"))
 
-#' @rdname MeshObject_times_vector
-setMethod("%X%", signature=c(op1="MeshObject", op2="numeric"),
-          function(op1, op2){
-            if(op2[1] > op2[length(op2)])
-              stop("Error! First time instant is greater than last time instant.")
-            op1$times <- times
-            op1          
-})
+# @rdname MeshObject_times_vector
+# setMethod("%X%", signature=c(op1="MeshObject", op2="numeric"),
+#           function(op1, op2){
+#             if(op2[1] > op2[length(op2)])
+#               stop("Error! First time instant is greater than last time instant.")
+#             op1$times <- times
+#             op1          
+# })
 
 ## Mesh - auxiliary methods
 unroll_edges_aux <- function(Mesh){

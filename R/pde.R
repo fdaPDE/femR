@@ -73,8 +73,11 @@ setMethod("Pde", signature=c(L="DiffOpObject", u="ANY"),
             D = L$f$FunctionSpace$mesh$data ## C++ R_Mesh class
             
             is_parabolic = FALSE
-            if( length(L$f$FunctionSpace$mesh$times) != 0 ) is_parabolic = TRUE
-            times <- L$f$FunctionSpace$mesh$times
+            times <- vector(mode="numeric", length=0L)
+            if( length(L$f$FunctionSpace$mesh$times) != 0 ){ 
+              is_parabolic = TRUE
+              times <- L$f$FunctionSpace$mesh$times
+            }
             
             ## set pde type
             pde_type <- 0

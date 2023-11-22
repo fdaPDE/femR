@@ -9,8 +9,10 @@ dT = 0.05
 M = (t_max - t0)/dT + 1
 times = seq(t0,t_max,length=M)
 
-# Spatio-temporal domain
-mesh = Mesh(unit_square) %X% times
+# Spatio-temporal domain ( Mesh inherits from DOMAIN :)  )
+mesh = Mesh(unit_square) %X% c(t0, t_max)  #times
+
+mesh$set_deltaT(dT) # NUOVO
 class(mesh)
 plot(mesh)
 
