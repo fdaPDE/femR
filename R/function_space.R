@@ -117,9 +117,9 @@ plot.FunctionObject <- function(x, ...){
   plot_data <- data.frame(X=x$FunctionSpace$mesh$get_nodes()[,1], 
                           Y=x$FunctionSpace$mesh$get_nodes()[,2],
                           coeff=x$coeff[1:nrow(x$FunctionSpace$mesh$get_nodes())])
-  I=x$FunctionSpace$mesh$get_elements()[,1]
-  J=x$FunctionSpace$mesh$get_elements()[,2]
-  K=x$FunctionSpace$mesh$get_elements()[,3]
+  I=x$FunctionSpace$mesh$get_elements()[,1]-1
+  J=x$FunctionSpace$mesh$get_elements()[,2]-1
+  K=x$FunctionSpace$mesh$get_elements()[,3]-1
   fig<- plot_ly(plot_data, x=~X, y=~Y, z=~coeff,
           i = I, j = J, k = K,
           intensity=~coeff,color = ~coeff, type="mesh3d", 
@@ -141,9 +141,9 @@ plot.FunctionObject <- function(x, ...){
                             coeff=as.vector(x$coeff[1:nrow(x$FunctionSpace$mesh$get_nodes()),]),
                             times = rep(times, each=nrow(x$FunctionSpace$mesh$get_nodes())))
     limits = c(min(x$coeff), max(x$coeff))
-    I=x$FunctionSpace$mesh$get_elements()[,1]
-    J=x$FunctionSpace$mesh$get_elements()[,2] 
-    K=x$FunctionSpace$mesh$get_elements()[,3]
+    I=x$FunctionSpace$mesh$get_elements()[,1]-1
+    J=x$FunctionSpace$mesh$get_elements()[,2]-1
+    K=x$FunctionSpace$mesh$get_elements()[,3]-1
     fig<- plot_ly(plot_data, x=~X, y=~Y, z=~coeff, frame=~times,
                   i = I, j = J, k = K, cmin = limits[1], cmax=limits[2],
                   intensity=~coeff,color = ~coeff, type="mesh3d",

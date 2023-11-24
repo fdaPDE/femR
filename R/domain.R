@@ -3,12 +3,12 @@
                             geometry = "ANY",
                             time_interval = "numeric",
                             crs ="ANY"
-                          ),
-                          methods=c(
-                            set_crs = function(crs){
-                              crs <<- crs
-                            }
-                          )
+                           )#,
+                          # methods=c(
+                          #    set_crs = function(crs){
+                          #      crs <<- crs
+                          #    }
+                          # )
                           
 )
 
@@ -20,17 +20,23 @@
 #'    \item{\code{nodes}, a #nodes-by-2 matrix containing the x and y coordinates of the boundary nodes;}
 #' }
 #' @rdname DomainObject
+#' @importFrom sf NA_crs_
+#' @importFrom sf st_crs
 #' @export 
 setGeneric("Domain", function(x) standardGeneric("Domain"))
 
 #' @rdname DomainObject
 setMethod("Domain", signature = "list", function(x){
-  geometry <- list(nodes=x$nodes, nodes_group=rep(1, times=nrow(x$nodes)),
-                   edges=x$edges, edges_group=rep(1, times=nrow(x$edges))) 
   
-  crs = NA
-  if(!is.null(x$crs)) crs <- x$crs
-  .DomainCtr(geometry = geometry, time_interval = vector(mode="numeric", length = 0), crs =crs)
+  if(is.null(x$nodes_group)) x$nodes_group <- rep(1, times=nrow(x$nodes))
+  if(is.null(x$edges_group)) x$edges_group <- rep(1, times=nrow(x$edges))
+  
+  geometry <- list(nodes=x$nodes, nodes_group=x$nodes_group,
+                   edges=x$edges, edges_group=x$edges_group) 
+  
+  crs = NA_crs_
+  if(!is.null(x$crs)) crs <- st_crs(x$crs)
+  .DomainCtr(geometry = geometry, time_interval = vector(mode="numeric", length = 0), crs = crs)
 })
 
 #' @rdname DomainObject
@@ -41,7 +47,7 @@ setMethod("Domain", signature = "pslg", function(x){
   edges_group <- as.integer(x$SB)
   geometry <- list(nodes = nodes, edges = edges,
                    nodes_group = nodes_group, edges_group = edges_group)
-  .DomainCtr(geometry = geometry, time_interval = vector(mode="numeric", length = 0), crs = NA)
+  .DomainCtr(geometry = geometry, time_interval = vector(mode="numeric", length = 0), crs = NA_crs_)
 })
 
 #' @rdname DomainObject
@@ -55,8 +61,8 @@ setMethod("Domain", signature = "sfc", function(x){
   edges_group <- rep(1, times=nrow(edges))
   geometry <- list(nodes = nodes, edges = edges,
                    nodes_group = nodes_group, edges_group = edges_group)
-  crs <- NA
-  if(!is.na(st_crs(x))) crs <- st_crs(x)$input
+  crs <- NA_crs_
+  if(!is.na(st_crs(x))) crs <- st_crs(x)
   .DomainCtr(geometry = geometry, time_interval = vector(mode="numeric", length = 0), crs = crs)
 })
 
@@ -65,20 +71,39 @@ setMethod("Domain", signature = "sfc", function(x){
 #' @param Domain 
 #' @param maximum_area maximum triangle area
 #' @param minumum_angle minimum triangle angle in degrees
-#' @rdname Triangulate
+#' @rdname build_mesh
+#' @importFrom RTriangle pslg
+#' @importFrom RTriangle triangulate
+#' @importFrom sf NA_crs_
+#' @importFrom sf 
 #' @export
-setGeneric("Triangulate", function(Domain, maximum_area, minimum_angle) standardGeneric("Triangulate"))
+setGeneric("build_mesh", function(domain, maximum_area, minimum_angle) standardGeneric("build_mesh"))
 
-#' @rdname Triangulate
-setMethod("Triangulate", signature=c("DomainObject","numeric", "numeric"), 
-          function(Domain, maximum_area, minimum_angle){
-            pslg <- RTriangle::pslg(P = Domain$geometry$nodes, PB = Domain$geometry$nodes_group,
-                                    S = Domain$geometry$edges, SB = Domain$geometry$edges_group) 
-            triangulation <- RTriangle::triangulate(p = pslg, a = maximum_area, q = minimum_angle)
+#' @rdname build_mesh
+setMethod("build_mesh", signature=c("DomainObject","numeric", "numeric"), 
+          function(domain, maximum_area, minimum_angle){
+            groups_id <- unique(domain$geometry$edges_group)
+            holes_id <- groups_id[ groups_id < 0 ]
+            num_holes <- length(holes_id)
+            holes <- matrix(0, nrow=num_holes, ncol=2)
+            if(num_holes > 0){
+              for(i in 1:num_holes){
+                path  <- t(domain$geometry$edges[domain$geometry$edges_group==holes_id[i],])[1,]
+                path  <- c(path,path[1]) 
+                nodes <- domain$geometry$nodes[path,]
+                holes[i,] <- st_point_on_surface(st_polygon(list(nodes)))
+              }
+            }else{
+              holes <- NA
+            }
+            pslg <- pslg(P = domain$geometry$nodes, PB = domain$geometry$nodes_group,
+                         S = domain$geometry$edges, SB = domain$geometry$edges_group,
+                         H = holes) 
+            triangulation <- triangulate(p = pslg, a = maximum_area, q = minimum_angle)
             res <- Mesh(triangulation)
-            res$geometry <- Domain$geometry
-            res$time_interval <- Domain$time_interval
-            res$set_crs(Domain$crs)
+            res$geometry <- domain$geometry
+            res$time_interval <- domain$time_interval
+            res$crs <- domain$crs
             return(res)
 })
 

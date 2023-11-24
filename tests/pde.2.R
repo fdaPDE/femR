@@ -8,7 +8,7 @@ class(mesh)
 plot(mesh)
 
 # create Functional Space
-fe_order = 2
+fe_order = 1
 Vh <- FunctionSpace(mesh, fe_order)
 
 exact_solution <- function(points){
@@ -48,7 +48,7 @@ y <- x
 points <- expand.grid(x, y)
 max(abs( f$eval_at(points) - as.matrix(exact_solution(points))))
 
-evaluations <- max(abs(f$eval_at(mesh$nodes()) - exact_solution(mesh$nodes())))
+evaluations <- max(abs(f$eval_at(mesh$get_nodes()) - exact_solution(mesh$get_nodes())))
 ## plot solution 
 options(warn=-1)
 plot(f) %>% layout(scene=list(aspectmode="cube")) %>% hide_colorbar()

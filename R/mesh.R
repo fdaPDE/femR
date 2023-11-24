@@ -14,7 +14,7 @@
       data$nodes()
     },
     get_elements = function(){
-      data$elements()
+      data$elements()+1
     },
     get_boundary = function(){
       data$boundary()
@@ -81,7 +81,9 @@ setMethod("Mesh", signature=c(domain="triangulation"),
             elements <- domain$T - 1
             nodes <- domain$P
             boundary <- matrix(0, nrow=nrow(nodes), ncol=1)
-            boundary[as.vector(domain$E[domain$EB == 1,]),] = 1
+            # 1   exterior boundary edges
+            # < 0 interior boundary edges (holes)
+            boundary[as.vector(domain$E[(domain$EB == 1 | domain$EB < 0),]),] = 1
             
             storage.mode(elements) <- "integer"
             storage.mode(nodes) <- "numeric"
@@ -99,23 +101,24 @@ setMethod("Mesh", signature=c(domain="triangulation"),
             
 })
 
-# create spatio-temporal domain
-#
+# create spatio-temporal mesh
+# 
 # @param op1 A mesh object created by \code{Mesh}.
 # @param op2 A numeric vector.
 # @return An S4 object representing a spatio-temporal domain.
 # @rdname DomainObject_times_vector
-# @export 
+# @export
 #setGeneric("%X%", function(op1, op2) standardGeneric("%X%"))
 
-# @rdname MeshObject_times_vector
-# setMethod("%X%", signature=c(op1="MeshObject", op2="numeric"),
-#           function(op1, op2){
-#             if(op2[1] > op2[length(op2)])
-#               stop("Error! First time instant is greater than last time instant.")
-#             op1$times <- times
-#             op1          
-# })
+#' @rdname DomainObject_times_vector
+setMethod("%X%", signature=c(op1="MeshObject", op2="numeric"),
+          function(op1, op2){
+            if(op2[1] > op2[length(op2)])
+              stop("Error! First time instant is greater than last time instant.")
+            op1$times <- times
+            op1$time_interval <- c(times[1], times[length(times)])
+            op1
+})
 
 ## Mesh - auxiliary methods
 unroll_edges_aux <- function(Mesh){
