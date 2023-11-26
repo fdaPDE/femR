@@ -3,11 +3,7 @@
 #' \code{\link[sf]{sf}} methods for \code{\link{DomainObject}} and \code{\link{MeshObject}} objects.
 #'
 #' @param x An object of class \code{\link{DomainObject}} or \code{\link{MeshObject}}.
-#'
-#' @param y An object of class of \code{\link[sf:st]{sfg}}.
-#' 
 #' @param ... Arguments passed on the corresponding \code{sf} function.
-#'
 #' @param value The value to be assigned. See the documentation of the
 #' corresponding sf function for details.
 #'
@@ -20,17 +16,40 @@
 #' @importFrom sf st_sfc
 #' @export
 st_as_sf.DomainObject <- function(x, ...){
-  groups_id <- unique(x$geometry$edges_group)
-  n_physical_lines <- length(groups_id)
-  path_list = vector(mode="list", length=n_physical_lines)
-  for(i in 1:n_physical_lines){
-    path  <- t(x$geometry$edges[x$geometry$edges_group==groups_id[i],])[1,]
-    path  <- c(path,path[1]) 
-    nodes <- x$geometry$nodes[path,]
-    path_list[[i]] <- nodes
+  polygon_list <- list(mode="list", length=length(x$geometry))
+  for(sub_id in 1:length(x$geometry)){
+    groups_id <- unique(x$geometry[[sub_id]]$edges_group)
+    n_physical_lines <- length(groups_id)
+    path_list = vector(mode="list", length=n_physical_lines)
+    for(i in 1:n_physical_lines){
+      path  <- t(x$geometry[[sub_id]]$edges[x$geometry[[sub_id]]$edges_group==groups_id[i],])[1,]
+      path  <- c(path,path[1]) 
+      nodes <- as.matrix(x$coords[path,1:2]) #x$geometry[[sub_id]]$nodes[path,]
+      path_list[[i]] <- nodes
+    }
+    polygon_list[[sub_id]] <- st_cast(st_polygon(path_list),
+                                      to="MULTIPOLYGON")
   }
-  st_sfc( st_polygon(path_list) )
+  if(length(x$geometry)==1){
+    result <- st_sfc(polygon_list[[1]], crs=st_crs(x))
+  }else{
+    result <- st_sfc(polygon_list, crs=st_crs(x))
+  }
+  return(result)
 }
+
+# st_as_sf.DomainObject <- function(x, ...){
+#   groups_id <- unique(x$geometry$edges_group)
+#   n_physical_lines <- length(groups_id)
+#   path_list = vector(mode="list", length=n_physical_lines)
+#   for(i in 1:n_physical_lines){
+#     path  <- t(x$geometry$edges[x$geometry$edges_group==groups_id[i],])[1,]
+#     path  <- c(path,path[1]) 
+#     nodes <- x$geometry$nodes[path,]
+#     path_list[[i]] <- nodes
+#   }
+#   st_sfc( st_polygon(path_list) )
+# }
 
 #' @importFrom sf st_as_sf
 #' @importFrom sf st_polygon
