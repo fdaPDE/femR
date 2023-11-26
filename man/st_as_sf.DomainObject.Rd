@@ -11,8 +11,6 @@ st_as_sf.DomainObject(x, ...)
 
 \item{...}{Arguments passed on the corresponding \code{sf} function.}
 
-\item{y}{An object of class of \code{\link[sf:st]{sfg}}.}
-
 \item{value}{The value to be assigned. See the documentation of the
 corresponding sf function for details.}
 }
