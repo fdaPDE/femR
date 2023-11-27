@@ -10,41 +10,29 @@ p <- pslg(P=rbind(c(0, 0),  # first node
                   c(2, 3),  # ...   physical edge
                   c(3, 4),  # ...   physical edge
                   c(4,1)),  # ...   physical edge
-          SB = cbind(c(1,2,3,4))) # use SB to specify "physical boundaries"
-# 1 bottom, 2 right, 3 up, 4 left 
-unit_square <- triangulate(p, a = 0.00125, q=30)
+          SB = cbind(c(1,1,1,1)), 
+          PB = cbind(c(1,1,1,1))) 
 
-plot(p)
-points(unit_square$P[unit_square$PB==1,],pch=16,col="red") # dirichlet
-points(unit_square$P[unit_square$PB==2,],pch=16, col="blue")
-points(unit_square$P[unit_square$PB==3,],pch=16, col="green3")
-points(unit_square$P[unit_square$PB==4,],pch=16, col="black")
-points(unit_square$P[1,1],unit_square$P[1,2],
-       pch=8,col="black") # dirichlet
-points(unit_square$P[4,1],unit_square$P[4,2],
-       pch=8,col="black") # dirichlet
+domain <- Domain(p)
+plot(st_as_sfc(domain))
+domain_sf <- st_as_sf(domain)
+plot(domain_sf)
 
-# select nodes which do not belong to 1 and 4 physical edges
-mask <- unit_square$PB != 4  
+domain_sf %>% filter(label=="edge") %>%
+  select(local_id)
 
-# Homogeneous Neumann BC will be imposed on nodes belonging to 1,2,3
-unit_square$PB[mask,] = 0 
+plot(domain_sf %>% filter(label=="edge") %>%
+       select(local_id), lwd=3)
 
-# Dirichlet BC will be imposed on nodes belonging to 4
-unit_square$PB[!mask,] = 1
-unit_square$PB[1,] = 1 # basso a sx
-unit_square$PB[4,] = 1 # alto  a sx
+domain$set_boundary_type(on = list(edges_id=c(4)), 
+                         type = "dirichlet")
+domain_sf <- st_as_sf(domain)
+plot(domain_sf)
 
-plot(unit_square)
-points(unit_square$P[unit_square$PB==1,],pch=16,col="black") # dirichlet
-
-# create list to be passed to Mesh()
-domain <- list( elements = unit_square$T, 
-                nodes = unit_square$P, boundary = unit_square$PB)
-
-times <- seq(0,3,by=0.05)
 ## 1. building mesh
-mesh <- Mesh(domain) %X% times
+times <- seq(0,3,by=0.05)
+mesh <- build_mesh(domain, maximum_area = 0.00125, minimum_angle = 20)
+mesh <- mesh %X% times
 plot(mesh)
 
 ## 2. Defining the solution of the PDE
@@ -61,7 +49,7 @@ f <- function(points, times){
 Q <- 10
 dirichlet_id <- which(mesh$get_boundary()==1)
 
-plot(st_as_sf(mesh))
+plot(st_as_sfc(mesh))
 points(mesh$get_nodes()[dirichlet_id,], pch=16)
 
 # Dirichlet boundary conditions 

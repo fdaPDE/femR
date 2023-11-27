@@ -2,6 +2,13 @@
 
 S3method(plot,FunctionObject)
 S3method(plot,MeshObject)
+<<<<<<< Updated upstream
+=======
+S3method(st_as_sf,DomainObject)
+S3method(st_as_sfc,DomainObject)
+S3method(st_as_sfc,MeshObject)
+S3method(st_crs,DomainObject)
+>>>>>>> Stashed changes
 export("%X%")
 export("st_crs<-.DomainObject")
 export(Domain)
@@ -35,7 +42,10 @@ importFrom(graphics,plot)
 importFrom(sf,"st_crs<-")
 importFrom(sf,NA_crs_)
 importFrom(sf,st_as_sf)
+importFrom(sf,st_as_sfc)
 importFrom(sf,st_crs)
+importFrom(sf,st_linestring)
+importFrom(sf,st_point)
 importFrom(sf,st_polygon)
 importFrom(sf,st_sfc)
 useDynLib(femR)

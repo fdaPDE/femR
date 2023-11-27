@@ -79,16 +79,16 @@ setMethod("Mesh", signature = c(domain="list"),
 setMethod("Mesh", signature=c(domain="triangulation"),
           function(domain){
             nodes <- domain$P
-            nodes_group <- as.integer(domain$PB)
-            edges <- domain$S
-            edges_group <- as.integer(domain$SB)
-            geometry <- list(nodes = nodes, edges = edges,
-                             nodes_group = nodes_group, edges_group = edges_group)
+            #nodes_group <- as.integer(domain$PB)
+            #edges <- domain$S
+            #edges_group <- as.integer(domain$SB)
+            #geometry <- list(nodes = nodes, edges = edges,
+            #                 nodes_group = nodes_group, edges_group = edges_group)
             elements <- domain$T - 1
-            boundary <- matrix(0, nrow=nrow(nodes), ncol=1)
-            # 1   exterior boundary edges
-            # < 0 interior boundary edges (holes)
-            boundary[as.vector(domain$E[(domain$EB == 1 | domain$EB < 0),]),] = 1
+            boundary <- domain$PB
+            ## 1   exterior boundary edges
+            ## < 0 interior boundary edges (holes)
+            #boundary[as.vector(domain$E[(domain$EB == 1 | domain$EB < 0),]),] = 1
             
             storage.mode(elements) <- "integer"
             storage.mode(nodes) <- "numeric"
@@ -100,7 +100,7 @@ setMethod("Mesh", signature=c(domain="triangulation"),
             domain <- list(elements = elements, nodes = nodes, boundary = boundary)
             if(m == 2 & n == 2)
               .MeshCtr(data=new(Mesh_2D, domain), m=as.integer(m),n=as.integer(n), 
-                       times=vector(mode="double"), geometry=geometry,
+                       times=vector(mode="double"), geometry=domain$geometry,
                        time_interval = vector(mode="numeric", length = 0), crs = NA_crs_)                                                  
             else
               stop("wrong input argument provided.")
