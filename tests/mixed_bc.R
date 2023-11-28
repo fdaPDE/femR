@@ -15,23 +15,33 @@ p <- pslg(P=rbind(c(0, 0),  # first node
 
 domain <- Domain(p)
 plot(st_as_sfc(domain))
-domain_sf <- st_as_sf(domain)
+domain_sf <- st_as_sfc(domain)
 plot(domain_sf)
 
-domain_sf %>% filter(label=="edge") %>%
-  select(local_id)
+triangulation <- triangulate(pslg, a = 0.0025, q=20)
+plot(triangulation)
 
-plot(domain_sf %>% filter(label=="edge") %>%
-       select(local_id), lwd=3)
+num_bd_nodes <- sum(triangulation$PB==1)
+bd_id <- which(triangulation$PB==1)
+pts_list <- list()
+for(i in 1:num_bd_nodes){
+  pts_list[[i]] <- st_point( t(as.matrix(triangulation$P[bd_id[i],1:2])))
+}
+ 
+triangulation$PB <- matrix(0, nrow=nrow(triangulation$P),ncol=1) 
+edge <- st_linestring(as.matrix(triangulation$P[pslg$S[4,],1:2]))
+dirichlet_nodes <- st_intersects(edge, 
+                                 st_sfc(pts_list),sparse = FALSE)
+dirichlet_id <- which(dirichlet_nodes[1,] == T)
+triangulation$PB[ bd_id[dirichlet_id] ] = 1
 
-domain$set_boundary_type(on = list(edges_id=c(4)), 
-                         type = "dirichlet")
-domain_sf <- st_as_sf(domain)
-plot(domain_sf)
+plot(triangulation)
+points(triangulation$P[triangulation$PB==1,], pch=16, col="red")
 
 ## 1. building mesh
 times <- seq(0,3,by=0.05)
-mesh <- build_mesh(domain, maximum_area = 0.00125, minimum_angle = 20)
+nodes <- triangulation$P; edges <- triangulation$T; boundary  <- triangulation$PB
+mesh <- Mesh(domain=list(nodes=nodes, elements=edges, boundary=boundary))
 mesh <- mesh %X% times
 plot(mesh)
 

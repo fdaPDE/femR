@@ -11,15 +11,16 @@
 #' @importFrom sf st_as_sf
 #' @importFrom sf st_polygon
 #' @importFrom sf st_as_sfc
+#' @name sf
 #' @export
 st_as_sfc.DomainObject <- function(x, ...){
   polygon_list <- list(mode="list", length=length(x$geometry))
   for(sub_id in 1:length(x$geometry)){
-    groups_id <- unique(x$geometry[[sub_id]]$edges_group)
+    groups_id <- unique(x$geometry[[sub_id]]$edges_ring)
     n_physical_lines <- length(groups_id)
     path_list = vector(mode="list", length=n_physical_lines)
     for(i in 1:n_physical_lines){
-      path  <- t(x$geometry[[sub_id]]$edges[x$geometry[[sub_id]]$edges_group==groups_id[i],])[1,]
+      path  <- t(x$geometry[[sub_id]]$edges[x$geometry[[sub_id]]$edges_ring==groups_id[i],])[1,]
       path  <- c(path,path[1]) 
       nodes <- as.matrix(x$coords[path,1:2]) #x$geometry[[sub_id]]$nodes[path,]
       path_list[[i]] <- nodes
@@ -57,12 +58,12 @@ st_as_sf.DomainObject <- function(x, ...){
     pts_list = vector(mode="list")
     
     geometry <- x$geometry[[sub_id]]
-    path_id <- unique(geometry$edges_group)
+    path_id <- unique(geometry$edges_ring)
     n_physical_lines <- length(path_id)
     
     path_list_sub = vector(mode="list", length=n_physical_lines)
     for(i in 1:n_physical_lines){
-      path  <- t(geometry$edges[geometry$edges_group==path_id[i],][,1]) # )[1,]
+      path  <- t(geometry$edges[geometry$edges_ring==path_id[i],][,1]) # )[1,]
       path  <- c(path,path[1]) 
       nodes <- as.matrix(x$coords[path,1:2]) #geometry$nodes[path,]
       path_list_sub[[i]] <- st_linestring(nodes)
@@ -88,10 +89,7 @@ st_as_sf.DomainObject <- function(x, ...){
     group = append(group, c(path_id , geometry$edges_group, geometry$nodes_group))
     local_id = append(local_id, 
                       c(1:n_physical_lines,1:nrow(geometry$edges), 1:nrow(geometry$nodes)))
-    bc = append(bc, 
-                c(rep(NA, times = n_physical_lines), geometry$BC, rep(NA, times=nrow(geometry$nodes))))
-    # sub = append(sub, rep(sub_id, 
-    #                       times=(n_physical_lines + nrow(geometry$edges) + nrow(geometry$nodes))))  
+    
     path_list = append(path_list, path_list_sub) 
     edge_list = append(edge_list, edge_list_sub)
     pts_list  = append(pts_list, pts_list_sub)
@@ -99,8 +97,7 @@ st_as_sf.DomainObject <- function(x, ...){
     group <- as.factor(group)
     geom_sfc <- st_sfc( append(append(path_list, edge_list), pts_list))
     geom_sf[[sub_id]] <- st_as_sf(data.frame(label= label,
-                                             group = group, local_id=local_id,
-                                             bc=bc),
+                                             group = group, local_id=local_id),
                                   geometry = geom_sfc)
     
   }
@@ -108,11 +105,11 @@ st_as_sf.DomainObject <- function(x, ...){
   return(geom_sf)
 }
 # st_as_sf.DomainObject <- function(x, ...){
-#   groups_id <- unique(x$geometry$edges_group)
+#   groups_id <- unique(x$geometry$edges_ring)
 #   n_physical_lines <- length(groups_id)
 #   path_list = vector(mode="list", length=n_physical_lines)
 #   for(i in 1:n_physical_lines){
-#     path  <- t(x$geometry$edges[x$geometry$edges_group==groups_id[i],])[1,]
+#     path  <- t(x$geometry$edges[x$geometry$edges_ring==groups_id[i],])[1,]
 #     path  <- c(path,path[1]) 
 #     nodes <- x$geometry$nodes[path,]
 #     path_list[[i]] <- nodes
@@ -149,6 +146,6 @@ st_crs.DomainObject <- function(x, ...){
 #' @importFrom sf st_crs<- st_crs
 #' @export
 `st_crs<-.DomainObject` = function(x, value) {
-  st_crs(x) <- value
+  st_crs(x$crs) <- value
 }
 

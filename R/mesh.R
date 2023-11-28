@@ -100,7 +100,7 @@ setMethod("Mesh", signature=c(domain="triangulation"),
             domain <- list(elements = elements, nodes = nodes, boundary = boundary)
             if(m == 2 & n == 2)
               .MeshCtr(data=new(Mesh_2D, domain), m=as.integer(m),n=as.integer(n), 
-                       times=vector(mode="double"), geometry=domain$geometry,
+                       times=vector(mode="double"),
                        time_interval = vector(mode="numeric", length = 0), crs = NA_crs_)                                                  
             else
               stop("wrong input argument provided.")
