@@ -28,10 +28,13 @@ st_as_sfc.DomainObject <- function(x, ...){
     polygon_list[[sub_id]] <- st_cast(st_polygon(path_list),
                                       to="MULTIPOLYGON")
   }
+  crs <- x$crs
+  if(is.na(crs)) crs <- NA_crs_
+  
   if(length(x$geometry)==1){
-    result <- st_sfc(polygon_list[[1]], crs=st_crs(x))
+    result <- st_sfc(polygon_list[[1]], crs=crs)
   }else{
-    result <- st_sfc(polygon_list, crs=st_crs(x))
+    result <- st_sfc(polygon_list, crs=crs)
   }
   return(result)
 }
@@ -95,7 +98,9 @@ st_as_sf.DomainObject <- function(x, ...){
     pts_list  = append(pts_list, pts_list_sub)
     
     group <- as.factor(group)
-    geom_sfc <- st_sfc( append(append(path_list, edge_list), pts_list))
+    crs <- x$crs
+    if(is.na(crs)) crs <- NA_crs_
+    geom_sfc <- st_sfc( append(append(path_list, edge_list), pts_list), crs=crs)
     geom_sf[[sub_id]] <- st_as_sf(data.frame(label= label,
                                              group = group, local_id=local_id),
                                   geometry = geom_sfc)
@@ -130,8 +135,9 @@ st_as_sfc.MeshObject <- function(x, ...){
     polygon_list[[e]]  <- element_sf
     
   }
-  
-  mesh_sf <- st_sfc(polygon_list, crs = st_crs(x))
+  crs <- x$crs
+  if(is.na(crs)) crs <- NA_crs_
+  mesh_sf <- st_sfc(polygon_list, crs = crs)
   mesh_sf
 }
 
@@ -139,13 +145,17 @@ st_as_sfc.MeshObject <- function(x, ...){
 #' @importFrom sf st_crs
 #' @export
 st_crs.DomainObject <- function(x, ...){
-  st_crs(x$crs, ...)
+  #st_crs(x$crs, ...)
+  st_crs(st_as_sfc(x), ...)
 }
 
 #' @name sf
 #' @importFrom sf st_crs<- st_crs
 #' @export
 `st_crs<-.DomainObject` = function(x, value) {
-  st_crs(x$crs) <- value
+  #st_crs(x$crs) = value
+  sfc <- st_as_sfc(x)
+  st_crs(sfc) <- value
+  crs <- st_crs(sfc)$input
 }
 

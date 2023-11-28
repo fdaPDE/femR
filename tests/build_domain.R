@@ -77,6 +77,7 @@ library(mapview)
 data("franconia",package = "mapview")
 class(franconia)
 franconia_bd <- st_geometry(franconia)
+plot(franconia_bd)
 domain <- Domain(franconia_bd)
 
 domain_sfc <- st_as_sfc(domain)

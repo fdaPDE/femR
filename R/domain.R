@@ -49,8 +49,8 @@ setMethod("Domain", signature = "list", function(x){
                           edges_ring = x$edges_ring) 
     
     coords <- data.frame(x=x$nodes[,1], y=x$nodes[,2], boundary=x$nodes_boundary)
-  crs = NA_crs_
-  if(!is.null(x$crs)) crs <- st_crs(x$crs)
+  crs = NA
+  #if(!is.null(x$crs)) crs <- st_crs(x$crs)
   .DomainCtr(geometry = geometry, time_interval = vector(mode="numeric", length = 0), 
              coords=coords, crs = crs)
 })
@@ -80,7 +80,7 @@ setMethod("Domain", signature = "pslg", function(x){
   coords <- data.frame(x=nodes[,1], y=nodes[,2], boundary=nodes_boundary)
   
   .DomainCtr(geometry = geometry, time_interval = vector(mode="numeric", length = 0),
-             coords=coords, crs = NA_crs_)
+             coords=coords, crs = NA)
 })
 
 #' @rdname DomainObject
@@ -210,8 +210,8 @@ setMethod("Domain", signature="sfc", function(x){
   NODES <- as.data.frame(NODES)
   storage.mode(NODES$boundary) <- "integer"
   
-  crs <- NA_crs_
-  if(!is.na(st_crs(x))) crs <- st_crs(x)
+  crs <- NA
+  if(!is.na(st_crs(x))) crs <- st_crs(x)$input
       .DomainCtr(geometry = geometry, time_interval = vector(mode="numeric", length = 0), 
                 coords=NODES, crs = crs)
 })
