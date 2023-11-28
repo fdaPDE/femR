@@ -121,7 +121,24 @@ st_as_sf(domain)
 tmp <- st_as_sf(domain)
 mesh <- build_mesh(domain, maximum_area = 0.0025, minimum_angle = 20)
 plot(st_as_sfc(mesh))
-points(mesh$get_nodes()[mesh$get_boundary()==1,], pch=16, col="red") # da sistemare ?
+points(mesh$get_nodes()[mesh$get_boundary()==1,], pch=16, col="red") 
+
+st_intersection(st_centroid(st_linestring(nodes[c(5,6),])), geom_sfc)
+
+st_contains(st_geometry(geom_sfc), st_centroid(st_linestring(nodes[c(5,6),])),sparse = F)
+
+st_within(st_centroid(st_linestring(nodes[c(5,6),])), 
+          st_union(st_geometry(geom_sfc)), 
+          sparse=F)
+
+st_within(st_centroid(st_linestring(nodes[c(1,2),])), 
+          st_union(st_geometry(geom_sfc)), 
+          sparse=F)
+
+plot(st_intersection(geom_sfc, st_linestring(nodes[c(5,6),])), col="red")
+plot(st_difference(geom_sfc, st_linestring(nodes[c(5,6),])), col="red")
+st_intersection(st_difference(geom_sfc, st_linestring(nodes[c(5,6),])),
+                st_linestring(nodes[c(5,6),]))
 # ------------------------------------------------------------------------------
 
 # reading pslg object ----------------------------------------------------------

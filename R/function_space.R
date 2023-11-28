@@ -122,7 +122,7 @@ plot.FunctionObject <- function(x, ...){
   K=x$FunctionSpace$mesh$get_elements()[,3]-1
   fig<- plot_ly(plot_data, x=~X, y=~Y, z=~coeff,
           i = I, j = J, k = K,
-          intensity=~coeff,color = ~coeff, type="mesh3d", 
+          intensity=~coeff, color=~coeff, type="mesh3d", 
           colorbar=list(title=""), ...) %>%
       layout(scene = list(
         aspectmode = "data", 
@@ -138,15 +138,16 @@ plot.FunctionObject <- function(x, ...){
   }else{
     plot_data <- data.frame(X=rep(x$FunctionSpace$mesh$get_nodes()[,1], times=length(times)), 
                             Y=rep(x$FunctionSpace$mesh$get_nodes()[,2], times=length(times)),
+                            Z=rep(0, times=length(times)),
                             coeff=as.vector(x$coeff[1:nrow(x$FunctionSpace$mesh$get_nodes()),]),
-                            times = rep(times, each=nrow(x$FunctionSpace$mesh$get_nodes())))
+                            times = round(rep(times, each=nrow(x$FunctionSpace$mesh$get_nodes())),3))
     limits = c(min(x$coeff), max(x$coeff))
     I=x$FunctionSpace$mesh$get_elements()[,1]-1
     J=x$FunctionSpace$mesh$get_elements()[,2]-1
     K=x$FunctionSpace$mesh$get_elements()[,3]-1
-    fig<- plot_ly(plot_data, x=~X, y=~Y, z=~coeff, frame=~times,
+    fig<- plot_ly(plot_data, x=~X, y=~Y, z=~Z, frame=~times,
                   i = I, j = J, k = K, cmin = limits[1], cmax=limits[2],
-                  intensity=~coeff,color = ~coeff, type="mesh3d",
+                  intensity=~coeff, color=~coeff, type="mesh3d",
                   colorbar=list(title=""), ...) %>%
         layout(scene = list(
           aspectmode = "data", 
@@ -155,12 +156,12 @@ plot.FunctionObject <- function(x, ...){
           yaxis = list(
             title = '', showgrid = F, zeroline = F, showticklabels = F),
           zaxis = list(
-            title = '', showgrid = F, zeroline = F, showticklabels = F)),
+            title = '', showgrid = F, zeroline = F, showticklabels = F),
           camera = list(
-            eye = list(x = 1.25, y = -1.25, z = 1.25))) %>%
+            eye = list(x = 0, y = -0.01,  z = 1.25))), dragmode="zoom") %>%
         colorbar(len = 1, title="") %>%
-        animation_opts(frame=5) %>% 
         animation_slider(currentvalue = list(prefix ="t = "))
+        #animation_opts(frame=5) %>% 
   }
   fig 
 }
@@ -220,8 +221,8 @@ setMethod("contour", signature=c(x="FunctionObject"), function(x, ...){
                    colorbar=list(title=""), ...) %>%
       layout(xaxis = list(title = "", showgrid=F, zeroline=F, ticks="", showticklabels=F),
              yaxis = list(title = "", showgrid=F, zeroline=F, ticks="", showticklabels=F)) %>%
-      animation_opts(frame=5) %>% 
-      animation_slider(currentvalue = list(prefix ="t = "))
+      animation_slider(currentvalue = list(prefix ="t = ")) #animation_opts(frame=5) %>% 
+    
   }
   fig
 }

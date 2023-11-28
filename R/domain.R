@@ -176,7 +176,13 @@ setMethod("Domain", signature="sfc", function(x){
         node_group_i <-matrix(0, nrow(nodes[id_edge_sub,]),ncol=1)
         for(e in 1:nrow(edge_sub_i)){
           if( nodes_ring[edge_sub_i[e,1],ncol(coords)] & nodes_ring[edge_sub_i[e,2],ncol(coords)] ){ # sono entrambi sul bordo
-            edge_bd_i[e] <- 1
+            if(!st_within( st_centroid(st_linestring(as.matrix(rbind(nodes_ring[edge_sub_i[e,1],1:2], # controllo che il punto medio 
+                                                         nodes_ring[edge_sub_i[e,2],1:2])))),         # del lato NON giaccia all'interno -> nodi di bordo che collegano due lati
+                          st_union(st_geometry(x)),                                                   # NB. sembra rallentare
+                          sparse=F)){
+              edge_bd_i[e] <- 1 
+              
+            } 
             edge_group_i[e] <- sub_id
             #edge_BC_i[e] <- "neumann"
             node_group_i[edge_sub_i[e,1]] <- e

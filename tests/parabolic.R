@@ -80,19 +80,13 @@ dim( u$eval_at(points) )
 max(abs( u$eval_at(points) - as.matrix(exact_solution(points))))
 # 
 # ## plot solution 
-# options(warn=-1)
-plot(u) %>% hide_colorbar()
+options(warn=-1)
+plot(u) 
 
-# scene = list(camera = list(eye = list(x = 0, y = 0, z = 1.25)),
-#              xaxis = list(autorange="reversed"),
-#              yaxis = list(autorange="reversed"))
-# 
-# plot_tmp <- plot(u) %>% 
-#   layout(dragmode=FALSE, scene=scene,aspectmode="cube") %>%
-#   hide_colorbar() %>% 
-#   config(displayModeBar =FALSE)
-# 
-# plot_tmp
+plot(u) %>% layout(scene =list(camera=list(eye=list(z=1))))
+plot(u, showscale=FALSE) # no color bar :)
+
+plot(u)
 
 # contour
 contour(u)

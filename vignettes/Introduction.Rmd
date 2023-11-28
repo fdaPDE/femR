@@ -56,8 +56,8 @@ p <- pslg(P=rbind(c(0, 0), c(1, 0), c(1, 1), c(0, 1)),
           S=rbind(c(1, 2), c(2, 3), c(3, 4), c(4,1)))
 unit_square <- triangulate(p, a = 0.00125, q=30)
 domain <- Mesh(unit_square)
-xrange <- range(domain$nodes()[,1])
-yrange <- range(domain$nodes()[,2])
+xrange <- range(domain$get_nodes()[,1])
+yrange <- range(domain$get_nodes()[,2])
 Nx <- 40
 Ny <- 40
 eval_x <- seq(from=xrange[1], to=xrange[2], length.out=Nx)
@@ -193,7 +193,7 @@ mesh_aux <- Mesh(tpp)
 Vh_aux <- FunctionSpace(mesh_aux)
 hat_function <- Function(Vh_aux)
 
-coeff_aux <- rep(0, times=nrow(mesh$nodes()))
+coeff_aux <- rep(0, times=nrow(mesh$get_nodes()))
 coeff_aux[5] = 1
 
 hat_function$set_coeff(as.matrix(coeff_aux))

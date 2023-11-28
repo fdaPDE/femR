@@ -33,7 +33,7 @@ $$
 
 
 where $u_0 = \sin( 2\pi x)\sin(2\pi y)$ is the initial condition, $f(x,y) = 8\pi^2 \sin( 2\pi x)\sin(2\pi y) e^{-t}$ is the forcing term and $\partial \Omega$ is the boundary of $\Omega$ where we have prescribed homogeneous Dirichelet boundary condition for all $t$ grater than $0$.
-The exact solution of the previous problem is $u_{ex}(x,y) = \sin(2\pi x) \sin(2 \pi y) e^{-t}$ whose trend is shown in the following.
+The exact solution of the previous problem is $u_{ex}(x,y) = \sin(2\pi x) \sin(2 \pi y) e^{-t}$. The following window wraps all the steps needed to solve the problem.
 
 <!-- ```{r, echo=FALSE} -->
 <!-- exact_solution <- function(points,t){ -->
@@ -126,5 +126,5 @@ pde$set_dirichletBC(dirichletBC)
 pde$solve()
 
 ## plot solution
-contour(u)
+plot(u)
 ```
