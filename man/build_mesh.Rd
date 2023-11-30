@@ -2,19 +2,19 @@
 % Please edit documentation in R/domain.R
 \name{build_mesh}
 \alias{build_mesh}
-\alias{build_mesh,DomainObject,numeric,numeric-method}
+\alias{build_mesh,Domain,numeric,numeric-method}
 \title{Delaunay triangulation of the spatial domain}
 \usage{
 build_mesh(domain, maximum_area, minimum_angle)
 
-\S4method{build_mesh}{DomainObject,numeric,numeric}(domain, maximum_area, minimum_angle)
+\S4method{build_mesh}{Domain,numeric,numeric}(domain, maximum_area, minimum_angle)
 }
 \arguments{
-\item{maximum_area}{maximum triangle area}
+\item{domain}{a domain object returned by \code{Domain}.}
 
-\item{Domain}{}
+\item{maximum_area}{maximum triangle area.}
 
-\item{minumum_angle}{minimum triangle angle in degrees}
+\item{minimum_angle}{minimum triangle angle in degrees.}
 }
 \description{
 Delaunay triangulation of the spatial domain

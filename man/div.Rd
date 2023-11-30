@@ -2,18 +2,18 @@
 % Please edit documentation in R/operators.R
 \name{div}
 \alias{div}
-\title{divergence operator FunctionGradObject}
+\title{divergence operator FunctionGrad}
 \usage{
 div(f)
 }
 \arguments{
-\item{f}{a FunctionObject.}
+\item{f}{a Function.}
 }
 \value{
 A S4 object representing the diffusion term of a second order linear differential operator.
 }
 \description{
-divergence operator FunctionGradObject
+divergence operator FunctionGrad
 }
 \examples{
 \dontrun{

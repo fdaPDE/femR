@@ -2,18 +2,18 @@
 % Please edit documentation in R/operators.R
 \name{laplace}
 \alias{laplace}
-\title{laplace operator for FunctionObject}
+\title{laplace operator for Function}
 \usage{
 laplace(f)
 }
 \arguments{
-\item{f}{a FunctionObject.}
+\item{f}{a Function.}
 }
 \value{
 A S4 object representing the laplace operator applied to the function passed as parameter.
 }
 \description{
-laplace operator for FunctionObject
+laplace operator for Function
 }
 \examples{
 \dontrun{

@@ -2,21 +2,21 @@
 % Please edit documentation in R/operators.R
 \name{grad}
 \alias{grad}
-\alias{grad,FunctionObject-method}
-\title{compute gradient of FunctionObject}
+\alias{grad,Function-method}
+\title{compute gradient of Function}
 \usage{
 grad(f)
 
-\S4method{grad}{FunctionObject}(f)
+\S4method{grad}{Function}(f)
 }
 \arguments{
-\item{f}{a FunctionObject created by \code{Function}:}
+\item{f}{a Function created by \code{Function}:}
 }
 \value{
-An S4 object representing the gradient of the FunctionObject passed as parameter.
+An S4 object representing the gradient of the Function passed as parameter.
 }
 \description{
-compute gradient of FunctionObject
+compute gradient of Function
 }
 \examples{
 \dontrun{
