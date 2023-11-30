@@ -44,19 +44,19 @@ f <- function(points,times){
   return(res) 
 }
 ## Dirichlet BC
-dirichletBC <- function(points, times){
+g <- function(points, times){
   return(matrix(0, nrow=nrow(points), ncol=length(times)))
 }
 
 # initial condition 
-initialCondition <- function(points){
+u0 <- function(points){
  return(sin( 2.* pi * points[,1]) * sin(2.*pi* points[,2]))
 }
   
 ## create pde
 pde <- Pde(L, f)
-pde$set_dirichletBC(dirichletBC)
-pde$set_initialCondition(initialCondition)
+pde$set_boundary_condition(g)
+pde$set_initialCondition(u0)
 pde$solve()
 
 ## compute L2 norm of the error
@@ -64,7 +64,7 @@ u_ex <- exact_solution(pde$get_dofs_coordinates(), times)
  
 error.L2 <- matrix(0, nrow=length(times), ncol=1)
 for( t in 1:length(times)){
-  error.L2[t] <- sqrt(sum(pde$get_mass() %*% (u_ex[,t] - pde$solution()[,t])^2))
+  error.L2[t] <- sqrt(sum(pde$get_mass() %*% (u_ex[,t] - pde$get_solution()[,t])^2))
   cat(paste0("L2 error at time ",times[t]," ", error.L2[t], "\n"))
 }
 # ------------------------------------------------------------------------------

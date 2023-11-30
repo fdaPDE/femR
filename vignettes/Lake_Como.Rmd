@@ -1,0 +1,162 @@
+---
+title: 'Concentration of pollutant spreading in Lake Como'
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Concentration of pollutant spreading in Lake Como}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,fig.width= 7., 
+                                   fig.height= 5., 
+                                   fig.align= "center",
+                                   collapse = TRUE,
+                                   comment = "#>")
+
+options(warn = -1)
+```
+
+```{r}
+library(sf, quietly = T)
+library(RTriangle, quietly = T)
+library(mapview, quietly = T)
+library(femR, quietly = T)
+
+lake_shp <- sf::read_sf("/home/aldo/Documents/como_lake_boundaries/deims_sites_boundariesPolygon.shp")
+st_crs(lake_shp) <- 4326
+mapview(lake_shp, col.regions = "white", lwd = 2)
+```
+
+```{r}
+lake_boundary <- st_geometry(lake_shp)
+nodes <- unique(st_coordinates(lake_boundary))
+edges <- cbind( 1:nrow(nodes),c(2:nrow(nodes),1))
+pslg <- pslg(P=nodes[,1:2], S = edges)
+triangulation <- triangulate(pslg, a = 1e-5, q=20)
+mesh <- Mesh(triangulation)
+
+poly_list <- list()
+for(e in 1:nrow(mesh$get_elements())){
+  element_sf <- st_polygon(list(rbind(mesh$get_nodes()[mesh$get_elements()[e,]+1,],
+                                      mesh$get_nodes()[mesh$get_elements()[e,1]+1,])))
+  poly_list[[e]]  <- element_sf
+  
+}
+poly_list <- st_sfc(poly_list, crs=4326)
+plot(poly_list)
+mesh_sf <- data.frame(elem_id=rep(NA,times=nrow(mesh$get_elements())))
+mesh_sf <- st_sf(mesh_sf, geometry = poly_list)
+
+map.type <- "Esri.WorldTopoMap"
+mapview(mesh_sf, col.region="white",alpha.regions=0.2,legend=F,map.type=map.type) + 
+  mapview(lake_shp, col.regions = "white", alpha.regions=0.2, lwd = 2, legend=F)
+```
+
+
+```{r}
+set.seed(0)
+num_stations <- 20
+boundary_points <- which(mesh$boundary() == 1)
+boundary_id <- sample(x = 1:length(boundary_points),size = num_stations)
+boundary_id
+
+sources <- list()
+for(i in 1:length(boundary_id))
+  sources[[i]] <- st_point(x=mesh$get_nodes()[boundary_id[i],])
+
+sources <- st_sfc(sources, crs=4326)
+
+```
+```{r}
+initialCondition <- function(points){
+  initialCoeff
+}
+
+dirichletBC <- function(points, times){
+  res <- matrix(nrow=nrow(points), ncol=length(times))
+  res[,1] <- initialCoeff
+  for(t in 2:length(times)){
+    res[,t] <- initialCoeff*(1-times[t])
+  }
+  return(res)
+}
+
+f <- function(points, times){
+  res <- matrix(nrow=nrow(points), ncol=length(times))
+  for(t in 2:length(times)){
+    res[,t] <- exp(sqrt(points[,1]-x0)^2 + (sqrt(points[,1]-x0)^2)^2)*exp(-times[t])
+  }
+  return(res)
+}
+
+
+# PDEs Solution
+Vh <- FunctionSpace(mesh)
+u <- Function(Vh)
+Lu <- dt(u) - laplace(u) + dot(c(1,0), grad(u))
+
+# PDE object
+pde <- Pde(Lu,f)
+pde$set_dirichletBC(dirichletBC)
+pde$set_initialCondition(initialCondition)
+pde$solve()
+```
+
+```{r}
+set.seed(0)
+num_stations <- 20
+boundary_points <- which(mesh$boundary() == 1)
+boundary_id <- sample(x = 1:length(boundary_points),size = num_stations)
+stations <- list()
+for(i in 1:length(boundary_id))
+  stations[[i]] <- st_point(x=mesh$get_nodes()[boundary_id[i],])
+
+stations <- st_sfc(stations, crs=4326)
+station_name <- as.character(1:num_stations)
+stations <- st_as_sf(data.frame(station_name=station_name),
+                     geometry = stations)
+
+times <-seq(from=0, to=1, by=0.125)
+mesh <- mesh %X% times
+observations <- matrix(round(rnorm(num_stations*length(times),mean = 0.13,sd=0.01), digits = 3), 
+                       nrow=num_stations, ncol=length(times))
+
+mapview(stations, legend=F, cex=5, col.region="black")
+observations <- matrix(round(rnorm(num_stations,mean = 0.13,sd=0.01), digits = 2), 
+                       nrow=num_stations, ncol=1)
+```
+
+```{r}
+initialCoeff <- round(rnorm(nrow(mesh$get_nodes()), 
+                            mean=0.13, sd=0.01), digits = 2)
+
+# dummmy function
+initialCondition <- function(points){
+  initialCoeff
+}
+
+dirichletBC <- function(points, times){
+  res <- matrix(nrow=nrow(points), ncol=length(times))
+  res[,1] <- initialCoeff
+  for(t in 2:length(times)){
+    res[,t] <- initialCoeff*(1-times[t])
+  }
+  return(res)
+}
+
+f <- function(points, times){
+  matrix(0, nrow=nrow(points), ncol=length(times))
+}
+
+# PDEs Solution
+Vh <- FunctionSpace(mesh)
+u <- Function(Vh)
+Lu <- dt(u) - laplace(u) + dot(c(1,0), grad(u))
+
+# PDE object
+pde <- Pde(Lu,f)
+pde$set_dirichletBC(dirichletBC)
+pde$set_initialCondition(initialCondition)
+pde$solve()
+```

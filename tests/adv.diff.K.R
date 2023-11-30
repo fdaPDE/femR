@@ -40,20 +40,20 @@ u <- function(points){
   return(gamma_ * sin(pi * points[,2])) 
 }
 ## Dirichlet BC
-dirichletBC <- function(points){
+g <- function(points){
   return(matrix(0,nrow=nrow(points), ncol=1))
 }
 ## create pde
 pde <- Pde(L, u)
 
-pde$set_dirichletBC(dirichletBC)
+pde$set_boundary_condition(g)
 
 ## solve problem
 pde$solve()
 
 ## compute L2 norm of the error
 u_ex <- as.matrix(exact_solution(pde$get_dofs_coordinates()))
-error.L2 <- sqrt(sum(pde$get_mass() %*% (u_ex - pde$solution())^2))
+error.L2 <- sqrt(sum(pde$get_mass() %*% (u_ex - pde$get_solution())^2))
 cat("L2 error = ", error.L2, "\n")
 
 ## perform evaluation at single point

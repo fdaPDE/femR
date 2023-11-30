@@ -26,28 +26,31 @@
       if(!is_init) pde_$init()
       pde_$solve()
     },
-    solution = function(){
+    get_solution = function(){
       pde_$solution()
     },
     get_dofs_coordinates = function(){
       pde_$get_dofs_coordinates()
     },
-    set_dirichletBC = function(dirichletBC){
+    set_boundary_condition = function(fun, type="dirichlet", on=NULL){
+      if(!any(type == c("dirichlet", "Dirichlet", "d"))) 
+        stop("Only Dirichlet boundary condtions allowed.")
+      
       if(!is_parabolic){
-        dirichletBC_ <- as.matrix(dirichletBC(pde_$get_dofs_coordinates()))
+        dirichletBC_ <- as.matrix(fun(pde_$get_dofs_coordinates()))
       }else{
         
-        dirichletBC_ <- dirichletBC(pde_$get_dofs_coordinates(),times)
+        dirichletBC_ <- fun(pde_$get_dofs_coordinates(),times)
         pde_$set_dirichlet_bc(dirichletBC_)
       }
       is_dirichletBC_set <<- TRUE
       pde_$set_dirichlet_bc(dirichletBC_)
     },
-    set_initialCondition = function(initialCondtion){
+    set_initialCondition = function(fun){
       if(!is_parabolic)
         stop("Cannot set initial condition for elliptic problem.")
       is_initialCondition_set <<- TRUE
-      pde_$set_initial_condition(initialCondition(pde_$get_dofs_coordinates()))
+      pde_$set_initial_condition(fun(pde_$get_dofs_coordinates()))
     },
     get_mass = function(){
       pde_$get_mass()

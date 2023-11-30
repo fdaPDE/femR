@@ -99,13 +99,14 @@ f <- function(points){
     return(8.*pi^2* sin(2.*pi*points[,1])*sin(2.*pi*points[,2])) 
 }
 # Dirichlet boundary conditions
-dirichletBC <- function(points){
+g <- function(points){
   return(matrix(0,nrow=nrow(points), ncol=1))
 }
 ## 5. Building the PDE object
 pde <- Pde(Lu, f)
 # setting boundary conditions
-pde$set_dirichletBC(dirichletBC)
+pde$set_boundary_condition(type="dirichlet",
+                           fun=g)
 ## 7. computing the discrete solution
 pde$solve()
 
@@ -242,7 +243,7 @@ f <- function(points){
 }
 
 ## dirichletBC
-dirichletBC <- function(points){
+g <- function(points){
   return(matrix(0,nrow=nrow(points), ncol=1))
 }
 ```
@@ -253,7 +254,8 @@ Finally, we build a `pde` object passing the differential operator `L`, as first
 pde <- Pde(Lu, f)
 
 ## set Dirichlet boundary conditions
-pde$set_dirichletBC(dirichletBC)
+pde$set_boundary_condition(type="dirichlet",
+                           fun=g)
 ```
 We can compute the discrete solution of the Poisson problem calling the `solve` method:
 ```{r Solving the problem}
@@ -267,7 +269,7 @@ exact_solution <- function(points){
     return( sin(2.*pi*points[,1])*sin(2.*pi*points[,2]))
 }
 u_ex <- as.matrix(exact_solution(pde$get_dofs_coordinates()))
-error.L2 <- sqrt(sum(pde$get_mass()%*%(u_ex-pde$solution())^2))
+error.L2 <- sqrt(sum(pde$get_mass()%*%(u_ex-pde$get_solution())^2))
 cat("L2 error = ", error.L2, "\n")
 ```
 

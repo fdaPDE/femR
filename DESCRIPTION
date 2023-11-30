@@ -28,5 +28,6 @@ Encoding: UTF-8
 Suggests: 
     knitr,
     rmarkdown,
-    RTriangle
+    RTriangle,
+    sf
 VignetteBuilder: knitr

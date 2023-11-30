@@ -22,7 +22,7 @@ dirichletBC <- function(points){
 }
 ## 5. Building the PDE object
 pde <- Pde(L, u)
-pde$set_dirichletBC(dirichletBC)
+pde$set_boundary_condition(dirichletBC)
 ## 6. computing the discrete solution
 pde$solve()
 ## 7. Plots

@@ -63,7 +63,7 @@ plot(st_as_sfc(mesh))
 points(mesh$get_nodes()[dirichlet_id,], pch=16)
 
 # Dirichlet boundary conditions 
-dirichletBC <- function(points, times){
+g <- function(points, times){
   res <- matrix(0, nrow=nrow(points), ncol=length(times))
   for( t in 1:length(times)){
     res[dirichlet_id,t] <- rep(Q*exp(-times[t]), times=length(dirichlet_id))
@@ -71,7 +71,7 @@ dirichletBC <- function(points, times){
   return(res)
 }
 
-initialCondition <- function(points){
+u0 <- function(points){
   res <- matrix(0, nrow=nrow(points))
   res[dirichlet_id,] <- rep(Q, times=length(dirichlet_id))
   return(res)
@@ -79,10 +79,10 @@ initialCondition <- function(points){
 ## 5. Building the PDE object
 pde <- Pde(Lu, f)
 # setting initial conditions
-pde$set_initialCondition(initialCondition)
+pde$set_initialCondition(u0)
 
 # setting boundary conditions
-pde$set_dirichletBC(dirichletBC)
+pde$set_boundary_condition(g)
 ## 7. computing the discrete solution
 pde$solve()
 

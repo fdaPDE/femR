@@ -23,19 +23,20 @@ u <- function(points){
     return(8.*pi^2* sin( 2.* pi * points[,1]) * sin(2.*pi* points[,2]) ) 
 }
 ## Dirichlet BC
-dirichletBC <- function(points){
+g <- function(points){
   return(rep(0, times=nrow(points)))
 }
 ## Pde constructor
 pde <- Pde(L,u)
-pde$set_dirichletBC(dirichletBC)
+pde$set_boundary_condition(fun=g,
+                           type = "dirichlet")
 
 ## solve problem
 pde$solve()
 
 ## compute L2 norm of the error
 u_ex <- as.matrix(exact_solution(pde$get_dofs_coordinates()))
-error.L2 <- sqrt(sum(pde$get_mass() %*% (u_ex - pde$solution())^2))
+error.L2 <- sqrt(sum(pde$get_mass() %*% (u_ex - pde$get_solution())^2))
 cat("L2 error = ", error.L2, "\n")
 
 ## perform evaluation at single point

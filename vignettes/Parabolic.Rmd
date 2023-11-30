@@ -106,12 +106,12 @@ f <- function(points,times){
   return(res) 
 }
 ## Dirichlet BC
-dirichletBC <- function(points, times){
+g <- function(points, times){
   return(matrix(0, nrow=nrow(points), ncol=length(times)))
 }
 
 ## initial condition 
-initialCondition <- function(points){
+u0 <- function(points){
  return(sin( 2.* pi * points[,1]) * sin(2.*pi* points[,2]))
 }
   
@@ -119,8 +119,9 @@ initialCondition <- function(points){
 pde <- Pde(Lu, f)
 
 # set initial condition and dirichlet BC
-pde$set_initialCondition(initialCondition)
-pde$set_dirichletBC(dirichletBC)
+pde$set_initialCondition(u0)
+pde$set_boundary_condition(type="dirichlet",
+                           fun=g)
 
 ## solve problem
 pde$solve()
