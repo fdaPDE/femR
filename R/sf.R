@@ -1,8 +1,8 @@
-#' sf methods for DomainObject and MeshObject
+#' sf methods for Domain and Mesh
 #'
-#' \code{\link[sf]{sf}} methods for \code{\link{DomainObject}} and \code{\link{MeshObject}} objects.
+#' \code{\link[sf]{sf}} methods for \code{Domain} and \code{Mesh} objects.
 ##
-#' @param x An object of class \code{\link{DomainObject}} or \code{\link{MeshObject}}.
+#' @param x An object of class \code{Domain} or \code{Mesh}.
 #' @param ... Arguments passed on the corresponding \code{sf} function.
 #' @param value The value to be assigned. See the documentation of the
 #' corresponding sf function for details.
@@ -13,7 +13,7 @@
 #' @importFrom sf st_as_sfc
 #' @rdname sf
 #' @export
-st_as_sf.DomainObject <- function(x, ...){
+st_as_sf.Domain <- function(x, ...){
   geom_sf <- list()
   for(sub_id in 1:length(x$geometry)){
     
@@ -63,9 +63,10 @@ st_as_sf.DomainObject <- function(x, ...){
 #' @importFrom sf st_linestring
 #' @importFrom sf st_point
 #' @importFrom sf st_sfc
+#' @importFrom sf st_cast
 #' @rdname sf
 #' @export
-st_as_sfc.DomainObject <- function(x, ...){
+st_as_sfc.Domain <- function(x, ...){
   polygon_list <- list(mode="list", length=length(x$geometry))
   for(sub_id in 1:length(x$geometry)){
     geometry <- x$geometry[[sub_id]]
@@ -95,9 +96,10 @@ st_as_sfc.DomainObject <- function(x, ...){
 #' @importFrom sf st_as_sf
 #' @importFrom sf st_polygon
 #' @importFrom sf st_sfc
+#' @importFrom sf st_cast
 #' @rdname sf
 #' @export
-st_as_sfc.MeshObject <- function(x, ...){
+st_as_sfc.Mesh <- function(x, ...){
 
   polygon_list <- apply(x$get_elements(), MARGIN=1, FUN=function(x){
     st_cast(st_linestring(mesh$get_nodes()[x,]),
@@ -114,7 +116,7 @@ st_as_sfc.MeshObject <- function(x, ...){
 #' @importFrom sf st_crs
 #' @rdname sf
 #' @export
-st_crs.DomainObject <- function(x, ...){
+st_crs.Domain <- function(x, ...){
   #st_crs(x$crs, ...)
   st_crs(st_as_sfc(x), ...)
 }
@@ -122,7 +124,7 @@ st_crs.DomainObject <- function(x, ...){
 #' @importFrom sf st_crs<- st_crs
 #' @rdname sf
 #' @export
-`st_crs<-.DomainObject` = function(x, value) {
+`st_crs<-.Domain` = function(x, value) {
   #st_crs(x$crs) = value
   sfc <- st_as_sfc(x)
   st_crs(sfc) <- value

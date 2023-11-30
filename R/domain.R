@@ -1,4 +1,4 @@
-.DomainCtr <- setRefClass("DomainObject", 
+.DomainCtr <- setRefClass("Domain", 
                           fields=c(
                             geometry = "ANY",
                             coords = "data.frame",         # (x,y,boundary)
@@ -14,14 +14,14 @@
 #' \itemize{
 #'    \item{\code{nodes}, a #nodes-by-2 matrix containing the x and y coordinates of the boundary nodes;}
 #' }
-#' @rdname DomainObject
+#' @rdname Domain
 #' @importFrom sf NA_crs_
 #' @importFrom sf st_crs
 #' @importFrom sf st_within
 #' @export 
 setGeneric("Domain", function(x) standardGeneric("Domain"))
 
-#' @rdname DomainObject
+#' @rdname Domain
 setMethod("Domain", signature = "list", function(x){
     if(is.null(x$nodes_group)) x$nodes_group <- rep(1, times=nrow(x$nodes))
     if(is.null(x$edges_group)) x$edges_group <- rep(1, times=nrow(x$edges))
@@ -40,7 +40,7 @@ setMethod("Domain", signature = "list", function(x){
              coords=coords, crs = crs)
 })
 
-#' @rdname DomainObject
+#' @rdname Domain
 setMethod("Domain", signature = "pslg", function(x){
   nodes <- x$P
   edges <- x$S
@@ -66,7 +66,13 @@ setMethod("Domain", signature = "pslg", function(x){
              coords=coords, crs = NA)
 })
 
-#' @rdname DomainObject
+#' @rdname Domain
+#' @importFrom sf st_cast
+#' @importFrom sf st_coordinates
+#' @importFrom sf st_union
+#' @importFrom sf st_geometry
+#' @importFrom sf st_distance
+#' @importFrom sf st_centroid
 setMethod("Domain", signature="sfc", function(x){
   if(length(x) == 1) x <- st_cast(x, to="MULTIPOLYGON") 
   st_coords <- st_coordinates(x)
@@ -222,18 +228,19 @@ setMethod("Domain", signature="sfc", function(x){
 
 #' Delaunay triangulation of the spatial domain
 #' 
-#' @param Domain 
-#' @param maximum_area maximum triangle area
-#' @param minumum_angle minimum triangle angle in degrees
+#' @param domain a domain object returned by \code{Domain}.
+#' @param maximum_area maximum triangle area.
+#' @param minimum_angle minimum triangle angle in degrees.
 #' @rdname build_mesh
 #' @importFrom RTriangle pslg
 #' @importFrom RTriangle triangulate
 #' @importFrom sf NA_crs_
+#' @importFrom sf st_point_on_surface
 #' @export
 setGeneric("build_mesh", function(domain, maximum_area, minimum_angle) standardGeneric("build_mesh"))
 
 #' @rdname build_mesh
-setMethod("build_mesh", signature=c("DomainObject", "numeric", "numeric"),
+setMethod("build_mesh", signature=c("Domain", "numeric", "numeric"),
           function(domain, maximum_area, minimum_angle){
   S = matrix(nrow=0, ncol=2)
   SB = matrix(nrow=0, ncol=1)
@@ -280,12 +287,12 @@ setMethod("build_mesh", signature=c("DomainObject", "numeric", "numeric"),
 #' @param op1 A mesh object created by \code{Mesh}.
 #' @param op2 A numeric vector.
 #' @return An S4 object representing a spatio-temporal domain.
-#' @rdname DomainObject_times_vector
+#' @rdname Domain_times_vector
 #' @export 
 setGeneric("%X%", function(op1, op2) standardGeneric("%X%"))
 
-#' @rdname DomainObject_times_vector
-setMethod("%X%", signature=c(op1="DomainObject", op2="numeric"),
+#' @rdname Domain_times_vector
+setMethod("%X%", signature=c(op1="Domain", op2="numeric"),
           function(op1, op2){
             if(op2[1] > op2[length(op2)])
               stop("Error! First time instant is greater than last time instant.")

@@ -128,4 +128,5 @@ pde$solve()
 
 ## plot solution
 plot(u)
+
 ```

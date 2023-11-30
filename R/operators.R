@@ -1,18 +1,18 @@
 # gradient of Function
 .FunctionGradCtr <- setRefClass(
-  Class = "FunctionGradObject",
+  Class = "FunctionGrad",
   fields = c(
-    f = "FunctionObject", ## Function of which the gradient is taken
+    f = "Function", ## Function of which the gradient is taken
     K = "ANY" ## set by product operator
   )
 )
 
 ## take gradient of Function
 
-#' compute gradient of FunctionObject
+#' compute gradient of Function
 #'
-#' @param f a FunctionObject created by \code{Function}:
-#' @return An S4 object representing the gradient of the FunctionObject passed as parameter.
+#' @param f a Function created by \code{Function}:
+#' @return An S4 object representing the gradient of the Function passed as parameter.
 #' @export 
 #' @rdname grad
 #' @examples
@@ -27,23 +27,23 @@
 setGeneric("grad", function(f) standardGeneric("grad"))
 
 #' @rdname grad
-setMethod("grad", signature(f = "FunctionObject"), function(f) {
+setMethod("grad", signature(f = "Function"), function(f) {
   .FunctionGradCtr(f = f)
 })
 
 #' product overload for FunctionGradObejct
 #'
 #' @param e1 a numeric matrix.
-#' @param e2 a FunctionGradObject created by \code{grad} function.
-#' @return A FunctionGradObject.
+#' @param e2 a FunctionGrad created by \code{grad} function.
+#' @return A FunctionGrad.
 #' @export 
-setMethod("*", signature=c(e1="matrix", e2="FunctionGradObject"),
+setMethod("*", signature=c(e1="matrix", e2="FunctionGrad"),
           function(e1,e2){
         .FunctionGradCtr(f = e2$f, K = e1)    
 })
 
 # ## diffusion tensor - FunctionGrad product overload
-# `*.FunctionGradObject` <- function(op1, op2) {
+# `*.FunctionGrad` <- function(op1, op2) {
 #   if (!is.matrix(op1) && !is.function(op1))
 #     stop("bad diffusion tensor type")
 #   .FunctionGradCtr(f = op2$f, K = op1)
@@ -57,7 +57,7 @@ setMethod("*", signature=c(e1="matrix", e2="FunctionGradObject"),
         tokens = "vector",
         params = "list",
         ## Function to which the operator is applied
-        f = "FunctionObject"
+        f = "Function"
     )
 )
 
@@ -150,9 +150,9 @@ setMethod("*", signature=c(e1="numeric", e2="DiffOpObject"),
 ## laplace() returns a special operator for the case of
 ## isotropic  and stationary diffusion
 
-#' laplace operator for FunctionObject
+#' laplace operator for Function
 #'
-#' @param f a FunctionObject.
+#' @param f a Function.
 #' @return A S4 object representing the laplace operator applied to the function passed as parameter.
 #' @export 
 #' @examples
@@ -165,7 +165,7 @@ setMethod("*", signature=c(e1="numeric", e2="DiffOpObject"),
 #' laplace_f <- laplace(f)
 #' }
 laplace <- function(f) {
-    if (!is(f, "FunctionObject")) {
+    if (!is(f, "Function")) {
         stop("wrong argument type")
     }
     .DiffusionCtr(
@@ -177,9 +177,9 @@ laplace <- function(f) {
 
 ## the general non-isotrpic, non-stationary diffusion operator
 
-#' divergence operator FunctionGradObject
+#' divergence operator FunctionGrad
 #'
-#' @param f a FunctionObject.
+#' @param f a Function.
 #' @return A S4 object representing the diffusion term of a second order linear differential operator.
 #' @export
 #' @examples
@@ -193,7 +193,7 @@ laplace <- function(f) {
 #' diffusion <- div(K*grad(f))
 #' } 
 div <- function(f) {
-    if (is(f, "FunctionGradObject")) {
+    if (is(f, "FunctionGrad")) {
         if (!is.null(f$K)) {
             return(.DiffusionCtr(
                        tokens = "diffusion",
@@ -211,10 +211,10 @@ div <- function(f) {
     contains = "DiffOpObject"
 )
 
-#' dot product between vector and FunctionGradObject
+#' dot product between vector and FunctionGrad
 #'
 #' @param op1 a numeric vector.
-#' @param op2 a FunctionGradObject.
+#' @param op2 a FunctionGrad.
 #' @return A S4 object representing the advection term of a second order linear differential operator.
 #' @rdname dot_product
 #' @export
@@ -231,7 +231,7 @@ div <- function(f) {
 setGeneric("dot", function(op1, op2) standardGeneric("dot"))
 
 #' @rdname dot_product
-setMethod("dot", signature(op1 = "vector", op2 = "FunctionGradObject"),
+setMethod("dot", signature(op1 = "vector", op2 = "FunctionGrad"),
           function(op1, op2) {
               .TransportCtr(
                   tokens = "transport",
@@ -261,7 +261,7 @@ setMethod("dot", signature(op1 = "vector", op2 = "FunctionGradObject"),
 #' f <- Function(Vh)
 #' reaction <- 2*f
 #' }
-setMethod("*", signature = c(e1="numeric", e2="FunctionObject"),
+setMethod("*", signature = c(e1="numeric", e2="Function"),
           function(e1,e2){
             .ReactionCtr(
               tokens = "reaction",
@@ -279,8 +279,8 @@ setMethod("*", signature = c(e1="numeric", e2="FunctionObject"),
 
 # time derivate of FunctionObejct
 #
-# @param x a FunctionObject.
-# @return A S4 object representing the time derivative of a FunctionObject.
+# @param x a Function.
+# @return A S4 object representing the time derivative of a Function.
 # @export
 # @examples
 # \dontrun{
@@ -291,7 +291,7 @@ setMethod("*", signature = c(e1="numeric", e2="FunctionObject"),
 # f <- Function(Vh)
 # dt(f)
 # }
-# dt.FunctionObject <- function(x){
+# dt.Function <- function(x){
 #   .TimeDerivativeCtr(
 #     tokens="time",
 #     params = list(time=1L),
@@ -301,10 +301,10 @@ setMethod("*", signature = c(e1="numeric", e2="FunctionObject"),
 
 #' time derivate of FunctionObejct
 #'
-#' @param x a FunctionObject.
+#' @param x a Function.
 #' @param df missing.
 #' @param ncp missing.
-#' @return A S4 object representing the time derivative of a FunctionObject.
+#' @return A S4 object representing the time derivative of a Function.
 #' @export
 #' @examples
 #' \dontrun{
@@ -315,7 +315,7 @@ setMethod("*", signature = c(e1="numeric", e2="FunctionObject"),
 #' f <- Function(Vh)
 #' dt(f)
 #' }
-setMethod("dt", signature = c(x="FunctionObject", df="missing", ncp="missing"),
+setMethod("dt", signature = c(x="Function", df="missing", ncp="missing"),
            function(x,df,ncp){
              .TimeDerivativeCtr(
                tokens="time",

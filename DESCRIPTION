@@ -16,7 +16,8 @@ Authors@R: c( person("Aldo", "Clemente", role = c("aut", "cre"),
 Maintainer: Aldo Clemente <aldo.clemente@polimi.it>
 Depends: 
     R (>= 3.5.0),
-    plotly, Matrix, methods
+    plotly, Matrix, methods,
+    RTriangle, sf
 Description: Solving partial differential equations relying on the Finite Element Method.
 License: GPL (>= 2)
 URL: https://github.com/fdaPDE/femR, https://fdapde.github.io/femR/
@@ -27,7 +28,5 @@ SystemRequirements: GNU make
 Encoding: UTF-8
 Suggests: 
     knitr,
-    rmarkdown,
-    RTriangle,
-    sf
+    rmarkdown
 VignetteBuilder: knitr
