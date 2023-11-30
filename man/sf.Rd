@@ -8,15 +8,15 @@
 \alias{st_crs<-.DomainObject}
 \title{sf methods for DomainObject and MeshObject}
 \usage{
-st_as_sf.DomainObject(x, ...)
+\method{st_as_sf}{DomainObject}(x, ...)
 
-st_as_sfc.DomainObject(x, ...)
+\method{st_as_sfc}{DomainObject}(x, ...)
 
-st_as_sfc.MeshObject(x, ...)
+\method{st_as_sfc}{MeshObject}(x, ...)
 
-st_crs.DomainObject(x, ...)
+\method{st_crs}{DomainObject}(x, ...)
 
-st_crs.DomainObject(x) <- value
+\method{st_crs}{DomainObject}(x) <- value
 }
 \arguments{
 \item{x}{An object of class \code{\link{DomainObject}} or \code{\link{MeshObject}}.}
