@@ -29,12 +29,12 @@ st_crs(domain_sf)
 domain_sf <- st_as_sf(domain) # + dataset
 plot(domain_sf)
 domain_sf %>% filter(label=="edge") %>% 
-              select(local_id)
+              select(id)
 plot(domain_sf %>% filter(label=="edge") %>% 
-       select(local_id), lwd=3)
+       select(id), lwd=3)
 
-plot(domain_sf %>% filter(label=="edge" & local_id >3) %>% 
-       select(local_id), lwd=3)
+plot(domain_sf %>% filter(label=="edge" & id >3) %>% 
+       select(id), lwd=3)
 #plot(domain_sf %>% select(bc) %>% filter(!is.na(bc)))
 #plot(domain_sf %>% select() %>% filter(!is.na(bc)))
 
@@ -44,7 +44,7 @@ mesh_sf <- st_as_sfc(mesh)
 plot(mesh_sf, col="red")
 
 # espolare st_triangulate / st_triangulate_constrained
-plot( st_triangulate(mesh_sf), col="red" )
+#plot( st_triangulate(mesh_sf), col="red" )
 
 # 2.
 nodes_ext <- rbind(c(0, 0), c(1, 0), c(1, 1), c(0, 1))

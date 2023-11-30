@@ -11,18 +11,71 @@
 #' @importFrom sf st_as_sf
 #' @importFrom sf st_polygon
 #' @importFrom sf st_as_sfc
-#' @name sf
+#' @rdname sf
+#' @export
+st_as_sf.DomainObject <- function(x, ...){
+  geom_sf <- list()
+  for(sub_id in 1:length(x$geometry)){
+    
+    geometry <- x$geometry[[sub_id]]
+    path_id <- unique(geometry$edges_ring)
+    
+    path_list = vector(mode="list", length=length(path_id))
+    for(i in 1:length(path_id)){
+      path  <- t(geometry$edges[geometry$edges_ring==path_id[i],][,1]) 
+      path  <- c(path,path[1]) 
+      nodes <- as.matrix(x$coords[path,1:2]) 
+      path_list[[i]] <- st_linestring(nodes)
+    }
+    
+    # edges to st_linestring ! (FAST)
+    edge_list <- lapply(as.list(as.data.frame(t(geometry$edges))), FUN=
+                          function(edge){
+                            st_linestring(as.matrix(x$coords[edge,1:2]))
+                          })
+    
+    # nodes to st_point ! (FAST)
+    pts_list <- lapply(as.list(as.data.frame(t(geometry$nodes))), st_point)
+    
+    label= c(rep("path", times=length(path_id)),
+             rep("edge", times=length(edge_list)),
+             rep("node", times=length(pts_list)))
+    group = c(path_id , geometry$edges_group, geometry$nodes_group)
+    id =  c(1:length(path_id),
+            1:nrow(geometry$edges), 
+            1:nrow(geometry$nodes))
+    
+    group <- as.factor(group)
+    crs <- x$crs
+    if(is.na(crs)) crs <- NA_crs_
+    geom_sfc <- st_sfc( append(append(path_list, edge_list), pts_list), crs=crs)
+    geom_sf[[sub_id]] <- st_as_sf(data.frame(label= label,
+                                             group = group, id=id),
+                                  geometry = geom_sfc)
+    
+  }
+  if(length(x$geometry)==1) geom_sf <- geom_sf[[1]]
+  return(geom_sf)
+}
+
+#' @importFrom sf st_as_sf
+#' @importFrom sf st_polygon
+#' @importFrom sf st_linestring
+#' @importFrom sf st_point
+#' @importFrom sf st_sfc
+#' @rdname sf
 #' @export
 st_as_sfc.DomainObject <- function(x, ...){
   polygon_list <- list(mode="list", length=length(x$geometry))
   for(sub_id in 1:length(x$geometry)){
-    groups_id <- unique(x$geometry[[sub_id]]$edges_ring)
-    n_physical_lines <- length(groups_id)
-    path_list = vector(mode="list", length=n_physical_lines)
-    for(i in 1:n_physical_lines){
-      path  <- t(x$geometry[[sub_id]]$edges[x$geometry[[sub_id]]$edges_ring==groups_id[i],])[1,]
+    geometry <- x$geometry[[sub_id]]
+    
+    path_id <- unique(geometry$edges_ring)
+    path_list = vector(mode="list", length=length(path_id))
+    for(i in 1:length(path_id)){
+      path  <- t(geometry$edges[geometry$edges_ring==path_id[i],])[1,]
       path  <- c(path,path[1]) 
-      nodes <- as.matrix(x$coords[path,1:2]) #x$geometry[[sub_id]]$nodes[path,]
+      nodes <- as.matrix(x$coords[path,1:2]) 
       path_list[[i]] <- nodes
     }
     polygon_list[[sub_id]] <- st_cast(st_polygon(path_list),
@@ -39,118 +92,35 @@ st_as_sfc.DomainObject <- function(x, ...){
   return(result)
 }
 
-
-#' @name sf
-#' @importFrom sf st_as_sf
-#' @importFrom sf st_polygon
-#' @importFrom sf st_linestring
-#' @importFrom sf st_point
-#' @importFrom sf st_sfc
-#' @export
-st_as_sf.DomainObject <- function(x, ...){
-  geom_sf <- list()
-  for(sub_id in 1:length(x$geometry)){
-    label <- vector(mode="character")
-    sub <- vector(mode="integer")
-    local_id <- vector(mode="integer")
-    group <- vector(mode="numeric")
-    boundary <- vector(mode="integer")
-    bc = vector(mode="character")
-    path_list = vector(mode="list")
-    edge_list = vector(mode="list")
-    pts_list = vector(mode="list")
-    
-    geometry <- x$geometry[[sub_id]]
-    path_id <- unique(geometry$edges_ring)
-    n_physical_lines <- length(path_id)
-    
-    path_list_sub = vector(mode="list", length=n_physical_lines)
-    for(i in 1:n_physical_lines){
-      path  <- t(geometry$edges[geometry$edges_ring==path_id[i],][,1]) # )[1,]
-      path  <- c(path,path[1]) 
-      nodes <- as.matrix(x$coords[path,1:2]) #geometry$nodes[path,]
-      path_list_sub[[i]] <- st_linestring(nodes)
-    }
-    edge_list_sub = vector(mode="list", length=n_physical_lines)
-    for(i in 1:nrow(geometry$edges)){
-      edge  <- geometry$edges[i,]
-      nodes <- as.matrix(x$coords[edge,1:2]) #geometry$nodes[path,]
-      edge_list_sub[[i]] <- st_linestring(nodes)
-    }
-    
-    groups_pts_id <- unique(geometry$nodes_group)
-    n_physical_pts <- length(groups_pts_id)
-    pts_list_sub = vector(mode="list", length=n_physical_pts)
-    for(i in 1:nrow(geometry$nodes)){
-      node  <- geometry$nodes[i,]
-      pts_list_sub[[i]] <- st_point(t(as.matrix(node)))
-    }
-    
-    label= append(label, c(rep("path", times=n_physical_lines),
-                           rep("edge", times=nrow(geometry$edges)),
-                           rep("node", times=nrow(geometry$nodes))))
-    group = append(group, c(path_id , geometry$edges_group, geometry$nodes_group))
-    local_id = append(local_id, 
-                      c(1:n_physical_lines,1:nrow(geometry$edges), 1:nrow(geometry$nodes)))
-    
-    path_list = append(path_list, path_list_sub) 
-    edge_list = append(edge_list, edge_list_sub)
-    pts_list  = append(pts_list, pts_list_sub)
-    
-    group <- as.factor(group)
-    crs <- x$crs
-    if(is.na(crs)) crs <- NA_crs_
-    geom_sfc <- st_sfc( append(append(path_list, edge_list), pts_list), crs=crs)
-    geom_sf[[sub_id]] <- st_as_sf(data.frame(label= label,
-                                             group = group, local_id=local_id),
-                                  geometry = geom_sfc)
-    
-  }
-  if(length(x$geometry)==1) geom_sf <- geom_sf[[1]]
-  return(geom_sf)
-}
-# st_as_sf.DomainObject <- function(x, ...){
-#   groups_id <- unique(x$geometry$edges_ring)
-#   n_physical_lines <- length(groups_id)
-#   path_list = vector(mode="list", length=n_physical_lines)
-#   for(i in 1:n_physical_lines){
-#     path  <- t(x$geometry$edges[x$geometry$edges_ring==groups_id[i],])[1,]
-#     path  <- c(path,path[1]) 
-#     nodes <- x$geometry$nodes[path,]
-#     path_list[[i]] <- nodes
-#   }
-#   st_sfc( st_polygon(path_list) )
-# }
-
 #' @importFrom sf st_as_sf
 #' @importFrom sf st_polygon
 #' @importFrom sf st_sfc
-#' @name sf
+#' @rdname sf
 #' @export
 st_as_sfc.MeshObject <- function(x, ...){
-  polygon_list <- list()
-  for(e in 1:nrow(x$get_elements())){
-    element_sf <- st_polygon(list(rbind(x$get_nodes()[x$get_elements()[e,],],
-                                        x$get_nodes()[x$get_elements()[e,1],])))
-    polygon_list[[e]]  <- element_sf
-    
-  }
+
+  polygon_list <- apply(x$get_elements(), MARGIN=1, FUN=function(x){
+    st_cast(st_linestring(mesh$get_nodes()[x,]),
+            to ="POLYGON"
+    )
+  })
+  
   crs <- x$crs
   if(is.na(crs)) crs <- NA_crs_
   mesh_sf <- st_sfc(polygon_list, crs = crs)
   mesh_sf
 }
 
-#' @name sf
 #' @importFrom sf st_crs
+#' @rdname sf
 #' @export
 st_crs.DomainObject <- function(x, ...){
   #st_crs(x$crs, ...)
   st_crs(st_as_sfc(x), ...)
 }
 
-#' @name sf
 #' @importFrom sf st_crs<- st_crs
+#' @rdname sf
 #' @export
 `st_crs<-.DomainObject` = function(x, value) {
   #st_crs(x$crs) = value

@@ -141,7 +141,16 @@ plot.FunctionObject <- function(x, ...){
                             Z=rep(0, times=length(times)),
                             coeff=as.vector(x$coeff[1:nrow(x$FunctionSpace$mesh$get_nodes()),]),
                             times = round(rep(times, each=nrow(x$FunctionSpace$mesh$get_nodes())),3))
-    limits = c(min(x$coeff), max(x$coeff))
+    coeff <- matrix(nrow=nrow(x$FunctionSpace$mesh$get_elements()), 
+                    ncol=length(times))
+    for(t in 1:length(times)){
+      coeff[,t] <- apply(mesh$get_elements(), MARGIN=1, FUN=
+                           function(edge){
+                             mean(x$coeff[edge,t])
+                           })
+    }
+    limits = c(min(coeff), max(coeff))
+    cmin = limits[1]; cmax=limits[2]
     I=x$FunctionSpace$mesh$get_elements()[,1]-1
     J=x$FunctionSpace$mesh$get_elements()[,2]-1
     K=x$FunctionSpace$mesh$get_elements()[,3]-1

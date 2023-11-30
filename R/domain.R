@@ -5,17 +5,6 @@
                             time_interval = "numeric",
                             crs ="ANY"
                            )
-                           #,
-                           # methods=c(                                 # on -> list(sub_id=sub_id, edges_id=) local edge id(s)   
-                           #    set_boundary_type = function(on, type){ # "neumann", "dirichlet"
-                           #      if(is.null(on$sub_id)) sub_id <- 1
-                           #      edges_id <- on$edges_id 
-                           #      geometry[[sub_id]]$BC[edges_id] <<- rep(type, times=length(edges_id))
-                           #      nodes_id <- unique(as.vector(geometry[[sub_id]]$edges[edges_id,]))
-                           #      #geometry[[sub_id]]$nodes_group[nodes_id] <<- rep(type, length(nodes_id))
-                           #    }
-                           # )
-                          
 )
 
 #' S4 class representing a spatial (spatio-temporal) domain
@@ -28,6 +17,7 @@
 #' @rdname DomainObject
 #' @importFrom sf NA_crs_
 #' @importFrom sf st_crs
+#' @importFrom sf st_within
 #' @export 
 setGeneric("Domain", function(x) standardGeneric("Domain"))
 
@@ -38,10 +28,6 @@ setMethod("Domain", signature = "list", function(x){
     if(is.null(x$nodes_boundary)) x$nodes_boundary <- rep(1, times=nrow(x$nodes))
     if(is.null(x$edges_boundary)) x$edges_boundary <- rep(1, times=nrow(x$edges))
     if(is.null(x$edges_ring))     x$edges_ring <- rep(1, times = nrow(x$edges))
-    # if(is.null(x$BC)){
-    #   x$BC <- rep(NA, length=length(x$edges_boundary))
-    #   x$BC[which(x$edges_boundary==1)] = "neumann"
-    # } 
     
     geometry <- vector(mode="list", length=1L)
     geometry[[1]] <- list(nodes=x$nodes, nodes_group=x$nodes_group, nodes_boundary=x$nodes_boundary,
@@ -50,7 +36,6 @@ setMethod("Domain", signature = "list", function(x){
     
     coords <- data.frame(x=x$nodes[,1], y=x$nodes[,2], boundary=x$nodes_boundary)
   crs = NA
-  #if(!is.null(x$crs)) crs <- st_crs(x$crs)
   .DomainCtr(geometry = geometry, time_interval = vector(mode="numeric", length = 0), 
              coords=coords, crs = crs)
 })
@@ -68,8 +53,6 @@ setMethod("Domain", signature = "pslg", function(x){
   
   nodes_group <- rep(1, times=nrow(nodes))
   edges_group <- rep(1, times=nrow(edges))
-  #BC <- rep(NA, length=length(edges_boundary))
-  #BC[which(edges_boundary==1)] = "neumann"
   edges_ring <- rep(1, times=nrow(edges))
   
   geometry <- vector(mode="list", length=1L)
@@ -86,59 +69,54 @@ setMethod("Domain", signature = "pslg", function(x){
 #' @rdname DomainObject
 setMethod("Domain", signature="sfc", function(x){
   if(length(x) == 1) x <- st_cast(x, to="MULTIPOLYGON") 
-  coords <- st_coordinates(x)
-  #coords <- coords[-nrow(coords),]
-  coords <- cbind(coords, 
-                  rep(0, times=nrow(coords)), # id 
-                  rep(0, times=nrow(coords))) # boundary (1,0)
-  coords <- as.data.frame(coords)
-  colnames(coords)[(ncol(coords)-1):ncol(coords)] <- c("id", "boundary")
-  storage.mode(coords$id) <- "integer"; storage.mode(coords$boundary) <- "integer" 
-  pts_list <- vector(mode="list", length=nrow(coords))
-  for(i in 1:nrow(coords)){
-    pts_list[[i]] <- st_point(as.numeric(coords[i,1:2]))
-  }
+  st_coords <- st_coordinates(x)
+  
+  st_coords <- cbind(st_coords, 
+                  rep(0, times=nrow(st_coords)), # id 
+                  rep(0, times=nrow(st_coords))) # boundary (1,0)
+  st_coords <- as.data.frame(st_coords)
+  colnames(st_coords)[(ncol(st_coords)-1):ncol(st_coords)] <- c("id", "boundary")
+  storage.mode(st_coords$id) <- "integer"; storage.mode(st_coords$boundary) <- "integer" 
+  
+  # nodes to st_point ! (FAST)
+  pts_list <- lapply(as.list(as.data.frame(t(st_coords[,1:2]))), st_point)
   pts_sfc <- st_sfc(pts_list)
   
   # setto indici dei nodi al bordo
   coords_bd <- st_coordinates(st_cast(st_union(st_geometry(x)),
                                       to="LINESTRING"))
-  pts_bd_list <- vector(mode="list", length=nrow(coords_bd))
-  for(i in 1:nrow(coords_bd)){
-    pts_bd_list[[i]] <- st_point(coords_bd[i,1:2])
-  }
+  
+  pts_bd_list <- lapply(as.list(as.data.frame(t(coords_bd[,1:2]))), st_point)
   pts_bd_sfc <- st_sfc(pts_bd_list)
   dist_bd <- st_distance(pts_sfc, pts_bd_sfc)
   
   num_nodes <- 1
   for(i in 1:nrow(coords_bd)){
     id_bd <- which(dist_bd[,i] < 100 *.Machine$double.eps )
-    if(any( coords[id_bd,(ncol(coords)-1)] != 0)){
-      global_id <- which(coords[id_bd,(ncol(coords)-1)] != 0)[1]
-      coords[id_bd,(ncol(coords)-1)] <-  rep(global_id, times=length(id_bd))
+    if(any( st_coords[id_bd,(ncol(st_coords)-1)] != 0)){
+      global_id <- which(st_coords[id_bd,(ncol(st_coords)-1)] != 0)[1]
+      st_coords[id_bd,(ncol(st_coords)-1)] <-  rep(global_id, times=length(id_bd))
     }else{
-      coords[id_bd,(ncol(coords)-1)] <- rep(num_nodes, times=length(id_bd))
+      st_coords[id_bd,(ncol(st_coords)-1)] <- rep(num_nodes, times=length(id_bd))
       num_nodes <- num_nodes + 1  
     }
-    coords[id_bd, ncol(coords)] <- rep(1, times=length(id_bd))
+    st_coords[id_bd, ncol(st_coords)] <- rep(1, times=length(id_bd))
   }
   
   for(sub_id in 1:length(st_geometry(x))){
     coords_sub_id <- st_coordinates(st_geometry(x)[sub_id])
-    pts_sub_id_list <- vector(mode="list", length=nrow(coords_sub_id))
-    for(j in 1:nrow(coords_sub_id)){
-      pts_sub_id_list[[j]] <- st_point(coords_sub_id[j,1:2])
-    }
+    pts_sub_id_list <- lapply(as.list(as.data.frame(t(coords_sub_id[,1:2]))), st_point)
+    
     pts_sub_id_sfc <- st_sfc(pts_sub_id_list)
     dist_matrix_sub_id <- st_distance(pts_sfc, pts_sub_id_sfc)
     for(j in 1:nrow(coords_sub_id)){
       id <- which(dist_matrix_sub_id[,j] < 100* .Machine$double.eps)
-      if(all(coords[id,(ncol(coords)-1)] != 0 )){ next }
-      if( any( coords[id,(ncol(coords)-1)] != 0) ){
-        global_id <- which(coords[id,(ncol(coords)-1)] != 0)[1]
-        coords[id,(ncol(coords)-1)] <-  rep(global_id, times=length(id))
+      if(all(st_coords[id,(ncol(st_coords)-1)] != 0 )){ next }
+      if( any( st_coords[id,(ncol(st_coords)-1)] != 0) ){
+        global_id <- which(st_coords[id,(ncol(st_coords)-1)] != 0)[1]
+        st_coords[id,(ncol(st_coords)-1)] <-  rep(global_id, times=length(id))
       }else{
-        coords[id,(ncol(coords)-1)] <- rep(num_nodes, times = length(id))
+        st_coords[id,(ncol(st_coords)-1)] <- rep(num_nodes, times = length(id))
         num_nodes = num_nodes + 1
       }
     }
@@ -147,79 +125,83 @@ setMethod("Domain", signature="sfc", function(x){
   geometry <- vector(mode="list", length =length(st_geometry(x)))
   
   for(sub_id in 1:length(st_geometry(x))){
-    idx <- which(coords[,5]==sub_id)  
-    nodes <- unique(coords[idx,])
-    n_main_ring <- diff(range(nodes[,4])) + 1 # number of main ring!!! see st_coordinates
-    edge <- matrix(nrow=0, ncol=2)
-    edge_sub <- matrix(nrow=0, ncol=2)
-    edge_group <- matrix(NA, nrow=0, ncol=1)
-    edge_bd <- matrix(nrow=0, ncol=1)
-    #edge_BC <- matrix(NA,nrow=0, ncol=1)
-    edge_ring <- matrix(nrow=0, ncol=1)
-    node_group <- matrix(nrow=0, ncol=1)
-    for(ring in 1:n_main_ring){
-      idx_ring <- which(nodes[,4] == ring)
-      nodes_ring <- nodes[idx_ring,]
+      
+    nodes <- unique(st_coords[which(st_coords[,5]==sub_id),])
+    n_rings <- diff(range(nodes[,4])) + 1 # number of "rings"! see st_coordinates,
+                                          # 1 main ring (external boundary), 
+                                          #>1 interior rings (holes!)
+    
+    edges <- matrix(nrow=0, ncol=2)        
+    
+    edges_group <- matrix(NA, nrow=0, ncol=1)
+    edges_bd <- matrix(nrow=0, ncol=1)
+    edges_ring <- matrix(nrow=0, ncol=1)
+    nodes_group <- matrix(nrow=0, ncol=1)
+    for(ring in 1:n_rings){
+
+      nodes_ring <- nodes[which(nodes[,4] == ring),]
       # in the current main ring
-      n_physical_lines <- diff(range(nodes_ring[,3])) + 1 
-      for(i in 1:n_physical_lines){
+      n_lines <- diff(range(nodes_ring[,3])) + 1 
+      for(i in 1:n_lines){
         id_edge_sub <- which(nodes_ring[,3] == i)
         # local
-        edge_sub_i <-  cbind(id_edge_sub,
+        edges_sub_i <-  cbind(id_edge_sub,
                              c(id_edge_sub[2:length(id_edge_sub)],id_edge_sub[1]))
         # global 
-        edge_i <- cbind(nodes_ring[edge_sub_i[,1],(ncol(coords)-1)], nodes_ring[edge_sub_i[,2],(ncol(coords)-1)])           
+        edges_i <- cbind(nodes_ring[edges_sub_i[,1],(ncol(st_coords)-1)], nodes_ring[edges_sub_i[,2],(ncol(st_coords)-1)])           
         
-        edge_bd_i <- matrix(0, nrow=nrow(edge_sub_i),ncol=1)
-        edge_group_i <- matrix(NA, nrow=nrow(edge_sub_i), ncol=1)
-        #edge_BC_i <- matrix(NA, nrow=nrow(edge_sub_i),ncol=1)
-        node_group_i <-matrix(0, nrow(nodes[id_edge_sub,]),ncol=1)
-        for(e in 1:nrow(edge_sub_i)){
-          if( nodes_ring[edge_sub_i[e,1],ncol(coords)] & nodes_ring[edge_sub_i[e,2],ncol(coords)] ){ # sono entrambi sul bordo
-            if(!st_within( st_centroid(st_linestring(as.matrix(rbind(nodes_ring[edge_sub_i[e,1],1:2], # controllo che il punto medio 
-                                                         nodes_ring[edge_sub_i[e,2],1:2])))),         # del lato NON giaccia all'interno -> nodi di bordo che collegano due lati
-                          st_union(st_geometry(x)),                                                   # NB. sembra rallentare
-                          sparse=F)){
-              edge_bd_i[e] <- 1 
-              
-            } 
-            edge_group_i[e] <- sub_id
-            #edge_BC_i[e] <- "neumann"
-            node_group_i[edge_sub_i[e,1]] <- e
-            node_group_i[edge_sub_i[e,2]] <- e
+        edges_bd_i <- matrix(0, nrow=nrow(edges_sub_i),ncol=1)
+        edges_group_i <- matrix(NA, nrow=nrow(edges_sub_i), ncol=1)
+        
+        nodes_group_i <-matrix(0, nrow(nodes[id_edge_sub,]),ncol=1)
+        
+        centroids_list <- lapply( as.list(as.data.frame(t(edges_sub_i))), FUN=function(edge){
+          st_centroid(st_linestring(as.matrix(nodes_ring[edge,1:2])))
+        })
+        
+        is_inside <- st_within(st_sfc(centroids_list, crs=st_crs(x)$input), 
+                                    st_union(st_geometry(x)), sparse = F)
+        
+        for(e in 1:nrow(edges_sub_i)){
+          if( nodes_ring[edges_sub_i[e,1],ncol(st_coords)] & nodes_ring[edges_sub_i[e,2],ncol(st_coords)] ){ 
+            if(!is_inside[e]) edges_bd_i[e] <- 1 
+            
+            edges_group_i[e] <- sub_id
+            nodes_group_i[edges_sub_i[e,1]] <- e
+            nodes_group_i[edges_sub_i[e,2]] <- e
           } 
         }
-        if(i == 1){
-          edge_ring_i <- as.matrix(rep(ring, times=nrow(edge_sub_i)))
-        }else{
-          edge_ring_i <- as.matrix(rep((-i+1), times=nrow(edge_sub_i)))
+        
+        if(i == 1){ 
+          edge_ring_i <- as.matrix(rep(ring, times=nrow(edges_sub_i)))
+        }else{  
+          edge_ring_i <- as.matrix(rep((-i+1), times=nrow(edges_sub_i)))
         }
-        edge <- rbind(edge, edge_i)
-        edge_ring <- rbind(edge_ring, edge_ring_i)
-        edge_bd <- rbind(edge_bd, edge_bd_i)
-        edge_group <- rbind(edge_group, edge_group_i)
-        #edge_BC <- rbind(edge_BC, edge_BC_i)
-        edge_sub <- rbind(edge_sub, edge_sub_i)
-        node_group <- rbind(node_group, node_group_i)
+        edges <- rbind(edges, edges_i)
+        edges_ring <- rbind(edges_ring, edge_ring_i)
+        edges_bd <- rbind(edges_bd, edges_bd_i)
+        edges_group <- rbind(edges_group, edges_group_i)
+        #edge_sub <- rbind(edge_sub, edges_sub_i)
+        nodes_group <- rbind(nodes_group, nodes_group_i)
       }
     }
-    storage.mode(edge) <-"integer"
-    storage.mode(edge_bd) <-"integer"
-    storage.mode(nodes[,ncol(coords)]) <- "integer" 
-    geometry[[sub_id]] <- list(nodes = as.matrix(nodes[,1:2]), nodes_group = node_group, nodes_boundary = nodes[,ncol(coords)],
-                               edges = edge, edges_group = edge_group, edges_boundary = edge_bd,
-                               edges_ring = edge_ring)
+    storage.mode(edges) <-"integer"
+    storage.mode(edges_bd) <-"integer"
+    storage.mode(nodes[,ncol(st_coords)]) <- "integer" 
+    geometry[[sub_id]] <- list(nodes = as.matrix(nodes[,1:2]), nodes_group = nodes_group, nodes_boundary = nodes[,ncol(st_coords)],
+                               edges = edges, edges_group = edges_group, edges_boundary = edges_bd,
+                               edges_ring = edges_ring)
     
   }
   # da salvare
-  NODES <- unique(coords[order(coords[,(ncol(coords)-1)]),][,c(1:2,ncol(coords))])
-  NODES <- as.data.frame(NODES)
-  storage.mode(NODES$boundary) <- "integer"
+  coords <- unique(st_coords[order(st_coords[,(ncol(st_coords)-1)]),][,c(1:2,ncol(st_coords))])
+  coords <- as.data.frame(coords)
+  storage.mode(coords$boundary) <- "integer"
   
   crs <- NA
   if(!is.na(st_crs(x))) crs <- st_crs(x)$input
       .DomainCtr(geometry = geometry, time_interval = vector(mode="numeric", length = 0), 
-                coords=NODES, crs = crs)
+                coords=coords, crs = crs)
 })
 
 # setMethod("Domain", signature = "sfc", function(x){
@@ -261,7 +243,7 @@ setMethod("build_mesh", signature=c("DomainObject", "numeric", "numeric"),
     groups_id <- unique(domain$geometry[[sub_id]]$edges_ring)
     holes_id <- groups_id[ groups_id < 0 ]
     num_holes <- length(holes_id)
-    #holes <- matrix(0, nrow=num_holes, ncol=2)
+    
     if(num_holes > 0){
       for(i in 1:num_holes){
         edges_id <- which(domain$geometry[[sub_id]]$edges_ring==holes_id[i])
@@ -286,55 +268,12 @@ setMethod("build_mesh", signature=c("DomainObject", "numeric", "numeric"),
                S = S, SB = SB, H = H) 
   triangulation <- triangulate(p = pslg, a = maximum_area, q = minimum_angle)
   
-  # num_bd_nodes <- sum(triangulation$PB==1)
-  # bd_id <- which(triangulation$PB==1)
-  # pts_list <- list()
-  # for(i in 1:num_bd_nodes){
-  #   pts_list[[i]] <- st_point( t(as.matrix(triangulation$P[bd_id[i],1:2])))
-  # }
-  # 
-  # triangulation$PB <- matrix(0, nrow=nrow(triangulation$P),ncol=1)
-  # for(e in 1:nrow(S)){
-  #   if(SB[e] == 1 & BC[e] == "dirichlet"){
-  #     edge <- st_linestring(as.matrix(triangulation$P[S[e,],1:2]))
-  #     dirichlet_nodes <- st_intersects(edge, 
-  #                                      st_sfc(pts_list),sparse = FALSE)
-  #     dirichlet_id <- which(dirichlet_nodes[1,] == T)
-  #     triangulation$PB[ bd_id[dirichlet_id] ] = 1
-  #   }
-  # }
   res <- Mesh(triangulation)
   res$geometry <- domain$geometry
   res$time_interval <- domain$time_interval
   res$crs <- domain$crs
   return(res)
 })
-# setMethod("build_mesh", signature=c("DomainObject","numeric", "numeric"), 
-#           function(domain, maximum_area, minimum_angle){
-#             groups_id <- unique(domain$geometry$edges_ring)
-#             holes_id <- groups_id[ groups_id < 0 ]
-#             num_holes <- length(holes_id)
-#             holes <- matrix(0, nrow=num_holes, ncol=2)
-#             if(num_holes > 0){
-#               for(i in 1:num_holes){
-#                 path  <- t(domain$geometry$edges[domain$geometry$edges_ring==holes_id[i],])[1,]
-#                 path  <- c(path,path[1]) 
-#                 nodes <- domain$geometry$nodes[path,]
-#                 holes[i,] <- st_point_on_surface(st_polygon(list(nodes)))
-#               }
-#             }else{
-#               holes <- NA
-#             }
-#             pslg <- pslg(P = domain$geometry$nodes, PB = domain$geometry$nodes_group,
-#                          S = domain$geometry$edges, SB = domain$geometry$edges_group,
-#                          H = holes) 
-#             triangulation <- triangulate(p = pslg, a = maximum_area, q = minimum_angle)
-#             res <- Mesh(triangulation)
-#             res$geometry <- domain$geometry
-#             res$time_interval <- domain$time_interval
-#             res$crs <- domain$crs
-#             return(res)
-# })
 
 #' create spatio-temporal domain
 #'
