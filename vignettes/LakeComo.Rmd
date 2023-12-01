@@ -1,0 +1,262 @@
+---
+title: "Spread of a pollutant in Lake Como"
+output: rmarkdown::html_vignette
+description: >
+  This document explain the basic usage of femR to solve PDEs in R. 
+vignette: >
+  %\VignetteIndexEntry{Spread of a pollutant in Lake Como}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align= "center",
+                                   collapse = TRUE,
+                                   comment = "#>", 
+                                   fig.width= 6,fig.height= 4.5)
+                                   
+options(warn = -1)
+library(sf, quietly = T)
+library(mapview, quietly = T)
+library(femR, quietly = T)
+library(rmapshaper, quietly = T)
+```
+
+Lake Como, nestled in the Lombardy region, is recognized as a crucial freshwater ecosystem esteemed for its biodiversity and ecological significance. Let assume that recent environmental studies suggests the potential presence and spreading of a concerning pollutant within the lake's waters. The hypothetical emergence of this pollutant raises significant concerns regarding the potential threat it may pose to the ecological balance of the aquatic environment and prompts considerations about its long-term environmental stability. The hypothetical presence of this pollutant prompts a thorough examination to understand its hypothetical nature, source, and potential implications on Lake Como's delicate ecosystem.
+Assume that several monitoring stations have been strategically established around Lake Como to track and measure pollutant concentrations in its waters. These stations serve as pivotal tools for continuous surveillance, providing crucial data to assess the levels and potential impacts of pollutants on the lake's ecosystem.
+In the following interactive figure, has been reported the comprehensive map of Lake Como includes georeferenced black points denoting the strategic placement of monitoring stations across its expanse. 
+The red points denote potential 'hotspots' where abnormal concentrations of the pollutant have been recorded. 
+```{r, echo=FALSE}
+lake_bd <- read_sf("data/deims_sites_boundariesPolygon.shp")
+lake_bd_simp <- rmapshaper::ms_simplify(lake_bd, keep= 0.5, 
+                                        keep_shapes=T)
+st_crs(lake_bd_simp) <- 4326
+domain <- Domain(st_geometry(lake_bd_simp))
+mesh <- build_mesh(domain, maximum_area = 0.25e-5, minimum_angle = 20)
+mesh_sf <- st_as_sfc(mesh)
+set.seed(0)
+num_stations <- 20
+boundary_points <- which(mesh$get_boundary() == 1)
+boundary_id <- sample(x = 1:length(boundary_points),size = num_stations)
+stations <- lapply(as.list(as.data.frame(t(mesh$get_nodes()[boundary_id,]))),
+                   st_point)
+
+stations <- st_sfc(stations, crs=4326)
+station_name <- as.character(1:num_stations)
+stations <- st_as_sf(data.frame(station_name=station_name),
+                     geometry = stations)
+
+sources <- st_as_sf(data.frame(station_name=station_name[c(16,9)]),
+                    geometry=st_geometry(stations)[c(16,9)])
+map.type <- "Esri.WorldTopoMap"
+mappa_completa <-  mapview(stations, legend=F, cex=5, col.region="black",
+        map.type=map.type) + 
+  mapview(sources, legend=F, cex=5, col.region="red") +
+  mapview(lake_bd_simp, col.regions = "white", lwd = 2, 
+          alpha.regions=0.2,legend=F)
+mappa_completa
+
+mappa_mesh <- mapview(mesh_sf, col.region="white",alpha.regions=0.2,legend=F,  alpha=0.2,
+        lwd=0.4,
+        map.type=map.type) + 
+  mapview(lake_bd_simp, col.regions = "white", lwd = 2, 
+          alpha.regions=0.2,legend=F)
+
+beta <- lapply(st_geometry(stations)[c(9,8)], as.numeric)
+beta <- matrix(c(beta[[1]][1]-beta[[2]][1],
+                 beta[[1]][2]-beta[[2]][2]), nrow=2)*10^2
+
+mu = 0.01
+Q <- 5
+```
+
+To model the spreads of the pollutant, one should consider also the presence of a tributary in the northern region of the lake.  Hence, a transport term has been identified, signifying the movement of the pollutant carried by the inflow towards other areas within Lake Como.
+Denote with $\Omega$ our domain of interest. Assume that the concentration of pollutant spreads on $\Omega$ according to the following PDE:
+
+$$
+\begin{cases}
+-\mu \Delta u + \boldsymbol{b} \cdot \nabla u = 0 \qquad & in \ \Omega \\
+ u = g_D \qquad         & on \ \partial \Omega,
+\end{cases}
+$$
+where $\mu \in \mathbb{R}$, $\boldsymbol{b} \in \mathbb{R}^2$, $a \in \mathbb{R}$ are the diffusion coefficient and the transport coefficient. The following sections explain how to solve the problem exploiting `femR` package. 
+```{r, eval=FALSE}
+library(sf, quietly = T)
+library(mapview, quietly = T)
+library(femR, quietly = T)
+library(rmapshaper, quietly = T)
+
+lake_bd <- read_sf("data/deims_sites_boundariesPolygon.shp")
+lake_bd_simp <- rmapshaper::ms_simplify(lake_bd, keep= 0.5, 
+                                        keep_shapes=T)
+st_crs(lake_bd_simp) <- 4326
+
+```
+
+The `femR` package implements utilities to read a `sfc` (Simple Features Collection) object, such as the boundary of the Lake, and construct meshes by specifying the `maximum_area` of each triangle and the `minimum_angle` between adjacent sides of the triangles.
+```{r}
+# create the physical domain
+domain <- Domain(st_geometry(lake_bd_simp)) 
+# create the mesh
+mesh <- build_mesh(domain, maximum_area = 0.25e-5, minimum_angle = 20)
+```
+In addition, the package provides utilities to convert the newly created mesh into an `sfc` object. For example, it allows us to visualize the mesh object on an interactive map using the `mapview` package, as shown in the following code chunk.
+```{r}
+mesh_sf <- st_as_sfc(mesh)
+
+map.type <- "Esri.WorldTopoMap"
+mapview(lake_bd_simp, col.regions = "white", lwd = 2, 
+          alpha.regions=0.2,legend=F,map.type=map.type) +
+mapview(mesh_sf, col.region="white",alpha.regions=0.2,legend=F,  alpha=0.2,
+        lwd=0.4, map.type=map.type) 
+```
+Once, the mesh has been built, the `FunctionSpace`, to which the solution of the problem belongs, has to be defined. By the default, first order finite elements are considered. Then, we initialize `u`, the `Function` object, solution of the PDEs, as an instance of the `Vh`.
+```{r}
+# create function space and PDEs solution
+Vh <- FunctionSpace(mesh)
+u <- Function(Vh)
+```
+
+Then, we define the differential operator in its strong formulation.
+```{r}
+# apply the differential operator to the solution
+mu
+beta
+Lu <- -mu*laplace(u) + dot(beta, grad(u))
+```
+
+Either the forcing term of the differential problem and the boundary condition can be defined as simple R `function`s.
+```{r}
+# forcing term
+f <- function(points){
+  matrix(0, nrow=nrow(points), ncol=1)
+}
+# Dirichlet boundary conditions 
+g <- function(points){
+  res <- matrix(0, nrow=nrow(points), ncol=1)
+  pts_list <- lapply(as.list(as.data.frame(t(points))), st_point)
+  dists2 <- st_distance(st_geometry(sources),
+                        st_sfc(pts_list, crs=st_crs(sources))) 
+  dists2 <- matrix(as.numeric(dists2), 
+                   nrow=length(st_geometry(sources)), ncol=nrow(points))/(2.5*10^3)
+  for(i in 1:length(sources))
+    res <- res + Q*exp(-dists2[i,]) 
+  return(res)
+}
+```
+Finally, we build a `pde` object passing the differential operator `L`, as first parameter and the forcing term `f`, as second parameter:
+```{r}
+# build the PDE object
+pde <- Pde(Lu, f)
+# set boundary conditions
+pde$set_boundary_condition(fun= g, type= "dirichlet")
+```
+We can compute the discrete solution of the problem calling the `solve` method:
+```{r}
+## compute the discrete solution
+pde$solve()
+```
+Finally, it is possible to visualize the computed solution on an interactive map using the `mapview` package.
+```{r}
+coeff <- apply(mesh$get_elements(), MARGIN=1, FUN=
+                   function(edge){
+                     mean(u$coeff[edge])})
+U <- st_sf(data.frame(coeff = coeff), geometry= mesh_sf)
+mapview(U, alpha.regions=0.8,  
+        alpha = 0,                
+        map.type=map.type)
+```
+
+```{r,eval=FALSE, include=FALSE}
+library(webshot2)
+library(leaflet)
+cntr_crds <- c(mean(mesh$get_nodes()[, 1]),
+               mean(mesh$get_nodes()[, 2]))
+
+solution <- mapview(U, alpha.regions=0.8,  legend=F,
+                    alpha = 0,                
+                    map.type=map.type)
+folder.name <- paste0(getwd(),"/../tests/")
+
+html_fl =  paste0(folder.name,"mappa_mesh.html")
+png_fl = paste0(folder.name, "mappa_mesh.png")
+mappa_mesh@map <- mappa_mesh@map %>% setView(cntr_crds[1], cntr_crds[2], zoom = 10)
+mapshot2(mappa_mesh, url = html_fl, file = png_fl, delay=10, 
+         cliprect = c(190,135, 600,500), zoom=1.5 )
+
+
+html_fl = paste0(folder.name, "mappa_completa.html")
+png_fl = paste0(folder.name, "mappa_completa.png")
+mappa_completa@map <- mappa_completa@map %>% setView(cntr_crds[1], cntr_crds[2], zoom = 10)
+mapshot2(mappa_completa, url = html_fl, file = png_fl, delay=10, 
+         cliprect = c(190,135, 600,500), zoom=1.5)
+
+
+html_fl = paste0(folder.name, "solution_zoom.html")
+png_fl = paste0(folder.name, "solution_zoom.png")
+solution@map <- solution@map %>% setView(as.numeric(st_geometry(stations)[17][[1]])[1], 
+                                         as.numeric(st_geometry(stations)[17][[1]])[2], zoom = 10.6)
+mapshot2(solution, url = html_fl, file = png_fl, delay=10, 
+         cliprect = c(190,135, 600,500), zoom=1.5)
+
+html_fl = paste0(folder.name, "solution.html")
+png_fl = paste0(folder.name, "solution.png")
+solution@map <- solution@map %>% setView(as.numeric(st_geometry(stations)[17][[1]])[1], 
+                                         as.numeric(st_geometry(stations)[17][[1]])[2], zoom = 10)
+mapshot2(solution, url = html_fl, file = png_fl, delay=10, 
+         cliprect = c(190,145, 600,500), zoom=1.5)
+
+```
+
+```{r, include=FALSE, eval=FALSE}
+# Time dependent case
+
+
+# initial condition
+u0 <- u$eval_at(pde$get_dofs_coordinates())
+
+time_interval <- c(0,0.5)
+times <- seq(time_interval[1],
+             time_interval[2],
+             length.out=60)
+Vh <- FunctionSpace(mesh %X% times)
+u <- Function(Vh)
+
+# differential operator
+Lu <- dt(u) -0.01*laplace(u) + dot(10*beta, grad(u))
+
+# forcing term
+f <- function(points, times){
+  matrix(0, nrow=nrow(points), ncol=length(times))
+}
+
+# dirichlet bc
+g <- function(points, times){
+  res <- matrix(0, nrow=nrow(points), ncol=length(times))
+  
+  pts_list <- lapply(as.list(as.data.frame(t(points))), st_point)
+  
+  dists2 <- st_distance(st_geometry(sources),
+                        st_sfc(pts_list, crs=st_crs(sources))) 
+  dists2 <- matrix(as.numeric(dists2), 
+                   nrow=length(st_geometry(sources)), ncol=nrow(points))/(2.5*10^3)
+  
+  for(i in 1:length(sources)){
+    for( t in 1:length(times)){
+      res[,t] <- res[,t] + Q*exp(-dists2[i,])
+    }
+  }
+  return(res)
+}
+
+## building PDE object
+pde <- Pde(Lu, f)
+# setting initial conditions
+pde$set_initial_condition(u0)
+
+# setting boundary conditions
+pde$set_boundary_condition(g)
+## 7. computing the discrete solution
+pde$solve()
+plot(u)
+```
