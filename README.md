@@ -1,34 +1,50 @@
-# femR
-The R wrapper to the fdaPDE finite element solver for Partial Differential Equations 
 
-> This is a first pre-release of the package, as such, bugs might occur. Feel free to open an issue in case of problems.
+# Solving Partial Differential Equations in R
+
+The R wrapper to the fdaPDE finite element solver for Partial
+Differential Equations
+
+> This is a first pre-release of the package, as such, bugs might occur.
+> Feel free to open an issue in case of problems.
 
 ## Installation
 
 Make sure to have the following dependencies installed on your system:
 
-* a C++17 compliant compiler
-* the `Rcpp` and `RcppEigen` packages 
+- a C++17 compliant compiler
+- the `Rcpp` and `RcppEigen` packages
 
 then, to install the latest stable version of `femR`, you can either:
 
-1. use the `devtools` package. From the R console, execute
+1.  use the `devtools` package. From the R console, execute
 
-      ```
-	  devtools::install_github("fdaPDE/femR", ref="stable") 
-	  ```
+<!-- -->
 
-2. clone this repository and install. From a terminal, execute
+    devtools::install_github("fdaPDE/femR", ref="stable") 
 
-      ``` 
-	  git clone --recurse-submodules -b stable git@github.com:fdaPDE/femR.git 
-      cd path/to/femR 
-	  ```
+2.  clone this repository and install. From a terminal, execute
 
-	and install the package from the R console
+<!-- -->
 
-	``` 
-	  install.packages(".", type="source", repos=NULL) 
-	  ```
+    git clone --recurse-submodules -b stable git@github.com:fdaPDE/femR.git cd path/to/femR 
 
-Both procedures will automatically pull the [fdaPDE-core](https://github.com/fdaPDE/fdaPDE-core) submodule dependence required by `femR`. It is not recommended to download the source code directly from Github, as this won't include any submodule dependence, making the installation procedure to fail.
+and install the package from the R console
+
+    install.packages(".", type="source", repos=NULL) 
+
+Both procedures will automatically pull the
+[fdaPDE-core](https://github.com/fdaPDE/fdaPDE-core) submodule
+dependence required by `femR`. It is not recommended to download the
+source code directly from Github, as this won’t include any submodule
+dependence, making the installation procedure to fail.
+
+## Quick start
+
+## Acknowledgment
+
+This project gratefully acknowledges financial
+[support](https://www.r-consortium.org/projects) from the
+
+<a href="https://www.r-consortium.org/all-projects/awarded-projects">
+<img src="https://raw.githubusercontent.com/RConsortium/artwork/main/r_consortium/R_Consortium-logo-horizontal-color.png" width="150">
+</a>

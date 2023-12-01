@@ -122,6 +122,7 @@ setMethod("%X%", signature=c(op1="Mesh", op2="numeric"),
               stop("Error! First time instant is greater than last time instant.")
             op1$times <- times
             op1$time_interval <- c(times[1], times[length(times)])
+            op1$deltaT <- times[2] - times[1]
             op1
 })
 

@@ -33,7 +33,7 @@ u <- Function(Vh)
 ## define differential operator in its strong formulation
 #L <- dt(f) + (-1)*laplace(f) 
 
-L <- dt(u) - laplace(u)
+L <- dt(u) - laplace(u) + dot(c(0,10),grad(u))
 
 ## forcing term
 f <- function(points,times){
@@ -56,7 +56,10 @@ u0 <- function(points){
 ## create pde
 pde <- Pde(L, f)
 pde$set_boundary_condition(g)
-pde$set_initialCondition(u0)
+pde$set_initial_condition(u0)
+
+pde$set_boundary_condition(g(pde$get_dofs_coordinates(),times))
+pde$set_initial_condition(u0(pde$get_dofs_coordinates()))
 pde$solve()
 
 ## compute L2 norm of the error

@@ -173,7 +173,7 @@ mesh <- Mesh(domain)
 ```
 
 ## Defining the solution of the PDE and the differential operator
-First, we define initialize a `FunctionSpace` object passing the mesh tha we previously build and the finite element order. Note that, the package provide first order and second order finite elements.
+First, we initialize a `FunctionSpace` object passing the mesh that we previously build and the finite element order. Note that, the package provide first order and second order finite elements.
 First order finite element is the default parameter.
 Then, we define a `Function`, solution of the PDEs, belonging to the function space `Vh`.  
 ```{r Defining Differential Operator}
@@ -248,7 +248,7 @@ g <- function(points){
 }
 ```
 ## Computing the FE solution
-Finally, we build a `pde` object passing the differential operator `L`, as first parameter and the forcing term `u`, as second parameter:
+Finally, we build a `pde` object passing the differential operator `L`, as first parameter and the forcing term `f`, as second parameter:
 ```{r Defining PDE object}
 ## create pde
 pde <- Pde(Lu, f)

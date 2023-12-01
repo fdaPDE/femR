@@ -35,22 +35,30 @@
     set_boundary_condition = function(fun, type="dirichlet", on=NULL){
       if(!any(type == c("dirichlet", "Dirichlet", "d"))) 
         stop("Only Dirichlet boundary condtions allowed.")
-      
-      if(!is_parabolic){
-        dirichletBC_ <- as.matrix(fun(pde_$get_dofs_coordinates()))
-      }else{
-        
-        dirichletBC_ <- fun(pde_$get_dofs_coordinates(),times)
-        pde_$set_dirichlet_bc(dirichletBC_)
+      dirichletBC_ <- NULL
+      if(typeof(fun) == "closure"){
+        if(!is_parabolic){
+          dirichletBC_ <- as.matrix(fun(pde_$get_dofs_coordinates()))
+        }else{
+          dirichletBC_ <- fun(pde_$get_dofs_coordinates(),times)
+        }
+      }else if(any(typeof(fun) == c("matrix","vector", "numeric" ,"double")) & 
+               nrow(as.matrix(fun)) == nrow(pde_$get_dofs_coordinates())){ # si controllerà "on"
+        dirichletBC_ <- fun
       }
       is_dirichletBC_set <<- TRUE
       pde_$set_dirichlet_bc(dirichletBC_)
     },
-    set_initialCondition = function(fun){
+    set_initial_condition = function(fun){
       if(!is_parabolic)
         stop("Cannot set initial condition for elliptic problem.")
       is_initialCondition_set <<- TRUE
-      pde_$set_initial_condition(fun(pde_$get_dofs_coordinates()))
+      if(typeof(fun) == "closure"){ 
+        pde_$set_initial_condition(fun(pde_$get_dofs_coordinates()))
+      }else if(any(typeof(fun) == c("matrix","vector", "numeric" ,"double")) & 
+              nrow(as.matrix(fun)) == nrow(pde_$get_dofs_coordinates())){
+        pde_$set_initial_condition(fun)
+      }
     },
     get_mass = function(){
       pde_$get_mass()
