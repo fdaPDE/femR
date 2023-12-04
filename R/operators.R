@@ -277,28 +277,6 @@ setMethod("*", signature = c(e1="numeric", e2="Function"),
 
 # overloading stats::dt function
 
-# time derivate of FunctionObejct
-#
-# @param x a Function.
-# @return A S4 object representing the time derivative of a Function.
-# @export
-# @examples
-# \dontrun{
-# library(femR)
-# data("unit_square")
-# mesh <- Mesh(unit_square)
-# Vh <- FunctionSpace(mesh)
-# f <- Function(Vh)
-# dt(f)
-# }
-# dt.Function <- function(x){
-#   .TimeDerivativeCtr(
-#     tokens="time",
-#     params = list(time=1L),
-#     f=x
-#   )
-# }
-
 #' time derivate of FunctionObejct
 #'
 #' @param x a Function.

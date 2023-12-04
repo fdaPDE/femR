@@ -42,10 +42,16 @@
         }else{
           dirichletBC_ <- fun(pde_$get_dofs_coordinates(),times)
         }
-      }else if(any(typeof(fun) == c("matrix","vector", "numeric" ,"double")) & 
-               nrow(as.matrix(fun)) == nrow(pde_$get_dofs_coordinates())){ # si controllerà "on"
-        dirichletBC_ <- fun
-      }
+      }else if(any(typeof(fun) == c("matrix","vector", "numeric" ,"double"))){
+        if(nrow(as.matrix(fun)) == nrow(pde_$get_dofs_coordinates())){
+          dirichletBC_ <- fun  
+        }else if (nrow(as.matrix(fun)) == 1L){
+          if(!is_parabolic)
+            dirichletBC_ <- matrix(fun, nrow=nrow(pde_$get_dofs_coordinates()), ncol=1)
+          else 
+            dirichletBC_ <- matrix(fun, nrow=nrow(pde_$get_dofs_coordinates()), ncol=length(times))
+          }   
+        }
       is_dirichletBC_set <<- TRUE
       pde_$set_dirichlet_bc(dirichletBC_)
     },
@@ -55,9 +61,13 @@
       is_initialCondition_set <<- TRUE
       if(typeof(fun) == "closure"){ 
         pde_$set_initial_condition(fun(pde_$get_dofs_coordinates()))
-      }else if(any(typeof(fun) == c("matrix","vector", "numeric" ,"double")) & 
-              nrow(as.matrix(fun)) == nrow(pde_$get_dofs_coordinates())){
-        pde_$set_initial_condition(fun)
+      }else if(any(typeof(fun) == c("matrix","vector", "numeric" ,"double"))){
+        if(nrow(as.matrix(fun)) == nrow(pde_$get_dofs_coordinates())){
+          pde_$set_initial_condition(fun)
+        }else if(nrow(as.matrix(fun)) == 1L){
+          pde_$set_initial_condition(matrix(fun, nrow=nrow(pde_$get_dofs_coordinates()),
+                                                 ncol=1))   
+        }
       }
     },
     get_mass = function(){
@@ -72,15 +82,15 @@
 #' A PDEs object
 #'
 #' @param L a differential operator.
-#' @param u a standard R function representing the forcing term of the PDE.
+#' @param f a standard R function representing the forcing term of the PDE or a numeric value, in case of constant forcing term.
 #' @return A S4 object representing a PDE.
 #' @rdname pde
 #' @export 
-setGeneric("Pde", function(L,u) standardGeneric("Pde"))
+setGeneric("Pde", function(L,f) standardGeneric("Pde"))
 
 #' @rdname pde
-setMethod("Pde", signature=c(L="DiffOpObject", u="ANY"),
-          function(L,u){
+setMethod("Pde", signature=c(L="DiffOpObject", f="ANY"),
+          function(L,f){
             D = L$f$FunctionSpace$mesh$data ## C++ R_Mesh class
             
             is_parabolic = FALSE
@@ -140,10 +150,11 @@ setMethod("Pde", signature=c(L="DiffOpObject", u="ANY"),
             quad_nodes <- as.matrix(pde_$get_quadrature_nodes())
             ## evaluate forcing term on quadrature nodes
             if(!is_parabolic){
-              pde_$set_forcing(as.matrix(u(quad_nodes)))
+              pde_$set_forcing(as.matrix(f(quad_nodes)))
             }else{
-              pde_$set_forcing(u(quad_nodes, times))
+              pde_$set_forcing(f(quad_nodes, times))
             }
+            
             ## initialize solver 
             pde_$init()
             is_init = TRUE
@@ -155,5 +166,29 @@ setMethod("Pde", signature=c(L="DiffOpObject", u="ANY"),
                     pde_ = pde_,                  # Wraps of C++ class
                     is_parabolic = is_parabolic,
                     is_init=is_init)
+})
+
+#' @rdname pde
+setMethod("Pde", signature=c(L="DiffOpObject", f="numeric"),
+          function(L,f){
+            is_parabolic = FALSE
+            times <- vector(mode="numeric", length=0L)
+            if( length(L$f$FunctionSpace$mesh$times) != 0 ){ 
+              is_parabolic = TRUE
+              times <- L$f$FunctionSpace$mesh$times
+            }
+            
+            fun <- NULL
+            if(!is_parabolic){
+              fun <- function(points){
+                return( matrix(f, nrow=nrow(points), ncol=1))
+              }
+            }else{
+              fun <- function(points, times){
+                return( matrix(f, nrow=nrow(points), ncol=length(times)))
+              }  
+            }
+            
+            return(Pde(L,fun))
 })
 

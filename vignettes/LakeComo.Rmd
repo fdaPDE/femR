@@ -13,9 +13,10 @@ vignette: >
 knitr::opts_chunk$set(echo = TRUE, fig.align= "center",
                                    collapse = TRUE,
                                    comment = "#>", 
-                                   fig.width= 6,fig.height= 4.5)
+                                   fig.width= 6,fig.height= 4.5,
+                                   message = FALSE,
+                                   warning = FALSE)
                                    
-options(warn = -1)
 library(sf, quietly = T)
 library(mapview, quietly = T)
 library(femR, quietly = T)
@@ -70,16 +71,21 @@ mu = 0.01
 Q <- 5
 ```
 
-To model the spreads of the pollutant, one should consider also the presence of a tributary in the northern region of the lake.  Hence, a transport term has been identified, signifying the movement of the pollutant carried by the inflow towards other areas within Lake Como.
-Denote with $\Omega$ our domain of interest. Assume that the concentration of pollutant spreads on $\Omega$ according to the following PDE:
+To model the spreads of the pollutant, one should consider also the presence of a tributary in the northern region of the lake. Hence, a transport term has been identified, signifying the movement of the pollutant carried by the inflow towards other areas within Lake Como. Moreover, non-homogeneous Dirichlet boundary condition are prescribed on boundary regions near the locations of the stations which recorded anomalies concerning the concentration of the pollutant. On the boundary regions unaffected by the anomalies, homogeneous Dirichlet boundary conditions are prescribed.
+
+## Steady-state solution 
+In this section, we consider the solution of the steady-state problem at hand.
+Denote with $\Omega$ our domain of interest. Assume that the concentration of pollutant, denoted by $u$, spreads on $\Omega$ according to the following PDE:
 
 $$
 \begin{cases}
--\mu \Delta u + \boldsymbol{b} \cdot \nabla u = 0 \qquad & in \ \Omega \\
- u = g_D \qquad         & on \ \partial \Omega,
+-\mu \Delta u + \boldsymbol{\beta} \cdot \nabla u = 0 \qquad & in \ \Omega \\
+ u = g|_{\partial \Omega} \qquad         & on \ \partial \Omega,
 \end{cases}
 $$
-where $\mu \in \mathbb{R}$, $\boldsymbol{b} \in \mathbb{R}^2$, $a \in \mathbb{R}$ are the diffusion coefficient and the transport coefficient. The following sections explain how to solve the problem exploiting `femR` package. 
+where $\mu \in \mathbb{R}$, $\boldsymbol{\beta} \in \mathbb{R}^2$ are the diffusion coefficient and the transport coefficient, respectively. The function $g$ exploited to impose the boundary conditions is the sum of two Gaussian-like functions centered at the locations of the stations which recorded anomalous concentrations of pollutant.
+
+The following sections explain how to solve the problem exploiting `femR` package. 
 ```{r, eval=FALSE}
 library(sf, quietly = T)
 library(mapview, quietly = T)
@@ -107,30 +113,24 @@ mesh_sf <- st_as_sfc(mesh)
 map.type <- "Esri.WorldTopoMap"
 mapview(lake_bd_simp, col.regions = "white", lwd = 2, 
           alpha.regions=0.2,legend=F,map.type=map.type) +
-mapview(mesh_sf, col.region="white",alpha.regions=0.2,legend=F,  alpha=0.2,
+mapview(mesh_sf, col.region="white",alpha.regions=0.2,legend=F,  alpha=0.4,
         lwd=0.4, map.type=map.type) 
 ```
-Once, the mesh has been built, the `FunctionSpace`, to which the solution of the problem belongs, has to be defined. By the default, first order finite elements are considered. Then, we initialize `u`, the `Function` object, solution of the PDEs, as an instance of the `Vh`.
+Once, the mesh has been built, the `FunctionSpace`, to which the solution of the problem belongs, has to be defined. By the default, first order finite elements are considered when `Vh` is build. Then, we initialize `u`, the `Function` object, solution of the PDEs, as an instance of the object `Vh`.
 ```{r}
-# create function space and PDEs solution
 Vh <- FunctionSpace(mesh)
 u <- Function(Vh)
 ```
 
-Then, we define the differential operator in its strong formulation.
+Then, we define the differential operator in its strong formulation as follows:
 ```{r}
-# apply the differential operator to the solution
-mu
-beta
+mu <- 0.001
+beta <- c(-4.091349, -4.493403)/20
 Lu <- -mu*laplace(u) + dot(beta, grad(u))
 ```
 
-Either the forcing term of the differential problem and the boundary condition can be defined as simple R `function`s.
+Either the forcing term of the differential problem and the boundary condition can be defined as simple R `function`s. You can use also numbers in case of either constant forcing term or constant boundary conditions. 
 ```{r}
-# forcing term
-f <- function(points){
-  matrix(0, nrow=nrow(points), ncol=1)
-}
 # Dirichlet boundary conditions 
 g <- function(points){
   res <- matrix(0, nrow=nrow(points), ncol=1)
@@ -145,26 +145,23 @@ g <- function(points){
 }
 ```
 Finally, we build a `pde` object passing the differential operator `L`, as first parameter and the forcing term `f`, as second parameter:
-```{r}
-# build the PDE object
-pde <- Pde(Lu, f)
+```{r, results="hide"}
+# build PDE object
+pde <- Pde(Lu, 0.)
 # set boundary conditions
 pde$set_boundary_condition(fun= g, type= "dirichlet")
 ```
 We can compute the discrete solution of the problem calling the `solve` method:
 ```{r}
-## compute the discrete solution
 pde$solve()
 ```
-Finally, it is possible to visualize the computed solution on an interactive map using the `mapview` package.
+Finally, it is possible to visualize the computed solution on an interactive map using the `mapview` package as the following code chunk shows.
 ```{r}
 coeff <- apply(mesh$get_elements(), MARGIN=1, FUN=
                    function(edge){
                      mean(u$coeff[edge])})
 U <- st_sf(data.frame(coeff = coeff), geometry= mesh_sf)
-mapview(U, alpha.regions=0.8,  
-        alpha = 0,                
-        map.type=map.type)
+mapview(U, alpha.regions=0.8, alpha = 0, map.type=map.type)
 ```
 
 ```{r,eval=FALSE, include=FALSE}
@@ -208,55 +205,52 @@ mapshot2(solution, url = html_fl, file = png_fl, delay=10,
 
 ```
 
-```{r, include=FALSE, eval=FALSE}
-# Time dependent case
+## Time-dependent solution
 
+Now, we aim to estimate the evolution of pollutant concentrations in Lake Como. We consider the same Gaussian-like function $g$ of the previous section, appropriately modified to account the presence of time. We leverage this function to set both the initial condition for the pollutant concentration and to impose the boundary conditions. Hence, the partial differential equation (PDE) that models the evolution of pollutant concentration in Lake Como reads as follows:
 
-# initial condition
-u0 <- u$eval_at(pde$get_dofs_coordinates())
+$$
+\begin{cases}
+\frac{\partial u}{\partial t} -\mu \Delta u + \boldsymbol{\beta} \cdot \nabla u = 0 \qquad & in \ \Omega \times (0,T) \\
+ u = g            & in \ \Omega, \ t=0  \\
+ u = g|_{\partial \Omega} \qquad         & on \ \partial \Omega \times (0,T),
 
-time_interval <- c(0,0.5)
-times <- seq(time_interval[1],
-             time_interval[2],
-             length.out=60)
+\end{cases}
+$$
+
+The following window wraps all the steps needed to estimate the evolution of the pollutant concentration relying on `femR` package.
+```{r, results='hide'}
+time_interval <- c(0,0.3)
+times <- seq(time_interval[1], time_interval[2], length.out=50)
+# function space
 Vh <- FunctionSpace(mesh %X% times)
+# PDE solution
 u <- Function(Vh)
-
 # differential operator
-Lu <- dt(u) -0.01*laplace(u) + dot(10*beta, grad(u))
-
-# forcing term
-f <- function(points, times){
-  matrix(0, nrow=nrow(points), ncol=length(times))
-}
-
+Lu <- dt(u) - mu*laplace(u) + dot(beta, grad(u))
 # dirichlet bc
 g <- function(points, times){
   res <- matrix(0, nrow=nrow(points), ncol=length(times))
-  
   pts_list <- lapply(as.list(as.data.frame(t(points))), st_point)
-  
   dists2 <- st_distance(st_geometry(sources),
                         st_sfc(pts_list, crs=st_crs(sources))) 
   dists2 <- matrix(as.numeric(dists2), 
                    nrow=length(st_geometry(sources)), ncol=nrow(points))/(2.5*10^3)
-  
   for(i in 1:length(sources)){
-    for( t in 1:length(times)){
-      res[,t] <- res[,t] + Q*exp(-dists2[i,])
-    }
+      res[,1:length(times)] <- res[,1:length(times)] + Q*exp(-dists2[i,])
   }
   return(res)
 }
-
-## building PDE object
-pde <- Pde(Lu, f)
-# setting initial conditions
+# initial condition
+u0 <- g(mesh$get_nodes(), times[1])
+# build PDE object
+pde <- Pde(Lu, 0.)
+# set initial conditions
 pde$set_initial_condition(u0)
-
-# setting boundary conditions
-pde$set_boundary_condition(g)
-## 7. computing the discrete solution
+# set boundary conditions
+pde$set_boundary_condition(fun= g, type= "dirichlet")
+# compute the discrete solution
 pde$solve()
+# plot 
 plot(u)
 ```

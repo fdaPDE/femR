@@ -75,28 +75,23 @@ The exact solution of the previous problem is $u_{ex}(x,y) = \sin(2\pi x) \sin(2
 <!-- ``` -->
 
 ```{r}
-## load domain data
-data("unit_square", package="femR")
+## spatio-temporal domain
+nodes <- rbind(c(0,0), c(1,0), c(1,1), c(0,1))
+edges <- cbind(1:nrow(nodes), c(2:nrow(nodes),1))
+domain <- Domain(list(nodes=nodes, edges=edges))
+domain <- domain %X% c(0,1)
 
-## time steps
-t0 = 0.
-t_max = 1
+## build mesh
+mesh <- build_mesh(domain, maximum_area = 0.00125, minimum_angle = 20)
+# time step
 dT = 1e-2
-M = (t_max - t0)/dT + 1
-times = seq(t0,t_max,length=M)
-
-## Spatio-temporal domain
-domain = Mesh(unit_square) %X% times
-
+mesh$set_deltaT(dT)
 ## create Functional Space
-Vh <- FunctionSpace(domain)
-
+Vh <- FunctionSpace(mesh)
 ## define differential operator in its strong formulation
 u <- Function(Vh)
-
 ## define differential operator in its strong formulation
 Lu <- dt(u) -laplace(u)
-
 ## forcing term
 f <- function(points,times){
   res <- matrix(0, nrow=nrow(points), ncol=length(times))
@@ -105,28 +100,17 @@ f <- function(points,times){
   }
   return(res) 
 }
-## Dirichlet BC
-g <- function(points, times){
-  return(matrix(0, nrow=nrow(points), ncol=length(times)))
-}
-
 ## initial condition 
 u0 <- function(points){
  return(sin( 2.* pi * points[,1]) * sin(2.*pi* points[,2]))
 }
-  
 ## create pde
 pde <- Pde(Lu, f)
-
 # set initial condition and dirichlet BC
-pde$set_initialCondition(u0)
-pde$set_boundary_condition(type="dirichlet",
-                           fun=g)
-
+pde$set_initial_condition(u0)
+pde$set_boundary_condition(fun= 0.0, type="dirichlet")
 ## solve problem
 pde$solve()
-
 ## plot solution
 plot(u)
-
 ```
