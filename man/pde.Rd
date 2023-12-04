@@ -2,17 +2,20 @@
 % Please edit documentation in R/pde.R
 \name{Pde}
 \alias{Pde}
-\alias{Pde,DiffOpObject-method}
+\alias{Pde,DiffOpObject,ANY-method}
+\alias{Pde,DiffOpObject,numeric-method}
 \title{A PDEs object}
 \usage{
-Pde(L, u)
+Pde(L, f)
 
-\S4method{Pde}{DiffOpObject}(L, u)
+\S4method{Pde}{DiffOpObject,ANY}(L, f)
+
+\S4method{Pde}{DiffOpObject,numeric}(L, f)
 }
 \arguments{
 \item{L}{a differential operator.}
 
-\item{u}{a standard R function representing the forcing term of the PDE.}
+\item{f}{a standard R function representing the forcing term of the PDE or a numeric value, in case of constant forcing term.}
 }
 \value{
 A S4 object representing a PDE.
