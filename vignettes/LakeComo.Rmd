@@ -23,10 +23,12 @@ library(femR, quietly = T)
 library(rmapshaper, quietly = T)
 ```
 
-Lake Como, nestled in the Lombardy region, is recognized as a crucial freshwater ecosystem esteemed for its biodiversity and ecological significance. Let assume that recent environmental studies suggests the potential presence and spreading of a concerning pollutant within the lake's waters. The hypothetical emergence of this pollutant raises significant concerns regarding the potential threat it may pose to the ecological balance of the aquatic environment and prompts considerations about its long-term environmental stability. The hypothetical presence of this pollutant prompts a thorough examination to understand its hypothetical nature, source, and potential implications on Lake Como's delicate ecosystem.
-Assume that several monitoring stations have been strategically established around Lake Como to track and measure pollutant concentrations in its waters. These stations serve as pivotal tools for continuous surveillance, providing crucial data to assess the levels and potential impacts of pollutants on the lake's ecosystem.
-In the following interactive figure, has been reported the comprehensive map of Lake Como includes georeferenced black points denoting the strategic placement of monitoring stations across its expanse. 
-The red points denote potential 'hotspots' where abnormal concentrations of the pollutant have been recorded. 
+Lake Como, nestled in the Lombardy region, is recognized as a crucial freshwater ecosystem esteemed for its biodiversity and ecological significance. Suppose that environmental studies have suggested the presence and spreading of a concerning pollutant within the lake’s waters. The emergence of this pollutant could raise significant concerns about its potential threat to the ecological balance of the aquatic environment and necessitates considerations about its long-term environmental stability. This hypothetical presence prompts a thorough examination to understand its nature, source, and potential implications on Lake Como's delicate ecosystem. 
+
+Assume that several monitoring stations have been strategically established around Lake Como to track and measure pollutant concentrations in its waters. These stations play a pivotal role in continuous surveillance, offering crucial data to assess pollutant levels and their potential impacts on the lake's ecosystem. 
+
+The following interactive figure shows the comprehensive map of Lake Como and includes georeferenced black points denoting the strategic placement of monitoring stations across its expanse. 
+The red points denote potential 'hotspots' where, in the hypothetical scenario under investigation, abnormal concentrations of the pollutant have been recorded. 
 ```{r, echo=FALSE}
 lake_bd <- read_sf("data/deims_sites_boundariesPolygon.shp")
 lake_bd_simp <- rmapshaper::ms_simplify(lake_bd, keep= 0.5, 
@@ -71,11 +73,10 @@ mu = 0.01
 Q <- 5
 ```
 
-To model the spreads of the pollutant, one should consider also the presence of a tributary in the northern region of the lake. Hence, a transport term has been identified, signifying the movement of the pollutant carried by the inflow towards other areas within Lake Como. Moreover, non-homogeneous Dirichlet boundary condition are prescribed on boundary regions near the locations of the stations which recorded anomalies concerning the concentration of the pollutant. On the boundary regions unaffected by the anomalies, homogeneous Dirichlet boundary conditions are prescribed.
+In modeling the spread of the pollutant, it's crucial to consider the presence of a tributary in the northern region of the lake. Consequently, a transport term has been identified to represent the movement of the pollutant carried by the inflow to other areas within Lake Como. Furthermore, non-homogeneous Dirichlet boundary conditions are applied to boundary regions near the stations that recorded anomalies in the pollutant concentration. Conversely, homogeneous Dirichlet boundary conditions are applied to boundary regions unaffected by the anomalies.
 
 ## Steady-state solution 
-In this section, we consider the solution of the steady-state problem at hand.
-Denote with $\Omega$ our domain of interest. Assume that the concentration of pollutant, denoted by $u$, spreads on $\Omega$ according to the following PDE:
+In this section, we focus on solving the steady-state problem. Let $\Omega$ represent our domain of interest. We assume that the concentration of the pollutant, denoted by $u$, spreads across $\Omega$ according to the following partial differential equation (PDE):
 
 $$
 \begin{cases}
@@ -83,9 +84,9 @@ $$
  u = g|_{\partial \Omega} \qquad         & on \ \partial \Omega,
 \end{cases}
 $$
-where $\mu \in \mathbb{R}$, $\boldsymbol{\beta} \in \mathbb{R}^2$ are the diffusion coefficient and the transport coefficient, respectively. The function $g$ exploited to impose the boundary conditions is the sum of two Gaussian-like functions centered at the locations of the stations which recorded anomalous concentrations of pollutant.
+where $\mu \in \mathbb{R}$, $\boldsymbol{\beta} \in \mathbb{R}^2$ are the diffusion coefficient and the transport coefficient, respectively. The function $g$ used to enforce the boundary conditions consists of the sum of two Gaussian-like functions centered at the locations of the stations that detected anomalous concentrations of the pollutant. 
 
-The following sections explain how to solve the problem exploiting `femR` package. 
+The upcoming sections will illustrate how to obtain a discrete solution of the problem using `femR` package. 
 ```{r, eval=FALSE}
 library(sf, quietly = T)
 library(mapview, quietly = T)
@@ -99,24 +100,27 @@ st_crs(lake_bd_simp) <- 4326
 
 ```
 
-The `femR` package implements utilities to read a `sfc` (Simple Features Collection) object, such as the boundary of the Lake, and construct meshes by specifying the `maximum_area` of each triangle and the `minimum_angle` between adjacent sides of the triangles.
+The `femR` package includes utilities  to read a `sfc` (Simple Features Collection) object, such as the boundary of the Lake, and generating meshes by specifying the `maximum_area` of each triangle and the `minimum_angle` between adjacent sides of the triangles.
 ```{r}
 # create the physical domain
 domain <- Domain(st_geometry(lake_bd_simp)) 
 # create the mesh
 mesh <- build_mesh(domain, maximum_area = 0.25e-5, minimum_angle = 20)
 ```
-In addition, the package provides utilities to convert the newly created mesh into an `sfc` object. For example, it allows us to visualize the mesh object on an interactive map using the `mapview` package, as shown in the following code chunk.
+
+Furthermore, the `Mesh` class overloads the `st_as_sfc` method, enabling visualization of the mesh object on an interactive map using the `mapview` package, as demonstrated in the following code snippet.
 ```{r}
 mesh_sf <- st_as_sfc(mesh)
 
 map.type <- "Esri.WorldTopoMap"
 mapview(lake_bd_simp, col.regions = "white", lwd = 2, 
-          alpha.regions=0.2,legend=F,map.type=map.type) +
-mapview(mesh_sf, col.region="white",alpha.regions=0.2,legend=F,  alpha=0.4,
+          alpha.regions=0.2, legend=F, map.type=map.type) +
+mapview(mesh_sf, col.region="white", alpha.regions=0.2, legend=F,  alpha=0.4,
         lwd=0.4, map.type=map.type) 
 ```
-Once, the mesh has been built, the `FunctionSpace`, to which the solution of the problem belongs, has to be defined. By the default, first order finite elements are considered when `Vh` is build. Then, we initialize `u`, the `Function` object, solution of the PDEs, as an instance of the object `Vh`.
+
+The next step involves defining the `FunctionSpace` where to find the solution of the PDE. By default, first-order finite elements are considered during the construction of `Vh`. Then, the solution of the problem is instantiated as an element of `Vh`.
+
 ```{r}
 Vh <- FunctionSpace(mesh)
 u <- Function(Vh)
@@ -129,7 +133,7 @@ beta <- c(-4.091349, -4.493403)/20
 Lu <- -mu*laplace(u) + dot(beta, grad(u))
 ```
 
-Either the forcing term of the differential problem and the boundary condition can be defined as simple R `function`s. You can use also numbers in case of either constant forcing term or constant boundary conditions. 
+Both the forcing term of the differential problem and the boundary condition can be defined either as standard R `function`s or as simple numerical values, particularly when representing constant values. 
 ```{r}
 # Dirichlet boundary conditions 
 g <- function(points){
@@ -144,7 +148,7 @@ g <- function(points){
   return(res)
 }
 ```
-Finally, we build a `pde` object passing the differential operator `L`, as first parameter and the forcing term `f`, as second parameter:
+Finally, we build a `Pde` object passing the differential operator `L`, as first parameter, and the forcing term, which is a constant in this specific case, as second parameter:
 ```{r, results="hide"}
 # build PDE object
 pde <- Pde(Lu, 0.)
@@ -155,11 +159,12 @@ We can compute the discrete solution of the problem calling the `solve` method:
 ```{r}
 pde$solve()
 ```
-Finally, it is possible to visualize the computed solution on an interactive map using the `mapview` package as the following code chunk shows.
+Finally, it is possible to visualize the computed solution on an interactive map using the `mapview` package as the following code snippet shows.
 ```{r}
-coeff <- apply(mesh$get_elements(), MARGIN=1, FUN=
-                   function(edge){
-                     mean(u$coeff[edge])})
+coeff <- apply(mesh$get_elements(), MARGIN=1, 
+               FUN= function(edge){
+                     mean(u$coeff[edge])
+         })
 U <- st_sf(data.frame(coeff = coeff), geometry= mesh_sf)
 mapview(U, alpha.regions=0.8, alpha = 0, map.type=map.type)
 ```
@@ -207,20 +212,19 @@ mapshot2(solution, url = html_fl, file = png_fl, delay=10,
 
 ## Time-dependent solution
 
-Now, we aim to estimate the evolution of pollutant concentrations in Lake Como. We consider the same Gaussian-like function $g$ of the previous section, appropriately modified to account the presence of time. We leverage this function to set both the initial condition for the pollutant concentration and to impose the boundary conditions. Hence, the partial differential equation (PDE) that models the evolution of pollutant concentration in Lake Como reads as follows:
+Now, we aim to estimate the evolution of pollutant concentrations in Lake Como. We consider a Gaussian-like function $g$ from the previous section, appropriately modified to account for the presence of time. This function will be used to define both the initial condition for the pollutant concentration and to impose the boundary conditions. Therefore, the partial differential equation modeling the evolution of the pollutant concentration in Lake Como is as follows:
 
 $$
 \begin{cases}
 \frac{\partial u}{\partial t} -\mu \Delta u + \boldsymbol{\beta} \cdot \nabla u = 0 \qquad & in \ \Omega \times (0,T) \\
  u = g            & in \ \Omega, \ t=0  \\
  u = g|_{\partial \Omega} \qquad         & on \ \partial \Omega \times (0,T),
-
 \end{cases}
 $$
 
 The following window wraps all the steps needed to estimate the evolution of the pollutant concentration relying on `femR` package.
 ```{r, results='hide'}
-time_interval <- c(0,0.3)
+time_interval <- c(0., 0.3)
 times <- seq(time_interval[1], time_interval[2], length.out=50)
 # function space
 Vh <- FunctionSpace(mesh %X% times)
@@ -251,6 +255,9 @@ pde$set_initial_condition(u0)
 pde$set_boundary_condition(fun= g, type= "dirichlet")
 # compute the discrete solution
 pde$solve()
+```
+
+```{r}
 # plot 
 plot(u)
 ```

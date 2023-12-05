@@ -5,8 +5,7 @@ output: github_document
 ```{r, echo = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>",
-  fig.path = "man/figures/README-"
+  comment = "#>"
 )
 ```
 
@@ -44,9 +43,6 @@ install.packages(".", type="source", repos=NULL)
 ```
 
 Both procedures will automatically pull the [fdaPDE-core](https://github.com/fdaPDE/fdaPDE-core) submodule dependence required by `femR`. It is not recommended to download the source code directly from Github, as this won't include any submodule dependence, making the installation procedure to fail.
-
-## Quick start ???
-
 
 ## Acknowledgment
 

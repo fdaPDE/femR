@@ -38,8 +38,6 @@ dependence required by `femR`. It is not recommended to download the
 source code directly from Github, as this won’t include any submodule
 dependence, making the installation procedure to fail.
 
-## Quick start
-
 ## Acknowledgment
 
 This project gratefully acknowledges financial
