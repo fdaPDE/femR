@@ -28,5 +28,7 @@ SystemRequirements: GNU make
 Encoding: UTF-8
 Suggests: 
     knitr,
-    rmarkdown
+    rmarkdown,
+    rmapshaper,
+    mapview
 VignetteBuilder: knitr
