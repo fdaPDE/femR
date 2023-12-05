@@ -8,8 +8,8 @@
 <meta name="description" content="Solving partial differential equations relying on the Finite Element Method.">
 <title>Solving Partial Differential Equations in R • femR</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.2.2/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.2.2/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
+<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Solving Partial Differential Equations in R">
 <meta property="og:description" content="Solving partial differential equations relying on the Finite Element Method.">
@@ -42,6 +42,7 @@
   <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false" aria-haspopup="true" id="dropdown-articles">Articles</a>
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="articles/Introduction.html">Introduction</a>
+    <a class="dropdown-item" href="articles/LakeComo.html">Spread of a pollutant in Lake Como</a>
     <a class="dropdown-item" href="articles/Parabolic.html">Solving a parabolic problem</a>
   </div>
 </li>
@@ -65,7 +66,7 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="femr">femR<a class="anchor" aria-label="anchor" href="#femr"></a>
+<div class="page-header"><h1 id="solving-partial-differential-equations-in-r">Solving Partial Differential Equations in R<a class="anchor" aria-label="anchor" href="#solving-partial-differential-equations-in-r"></a>
 </h1></div>
 <p>The R wrapper to the fdaPDE finite element solver for Partial Differential Equations</p>
 <blockquote>
@@ -81,19 +82,22 @@
 </ul>
 <p>then, to install the latest stable version of <code>femR</code>, you can either:</p>
 <ol style="list-style-type: decimal">
-<li>
-<p>use the <code>devtools</code> package. From the R console, execute</p>
-<pre><code><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"fdaPDE/femR"</span>, ref<span class="op">=</span><span class="st">"stable"</span><span class="op">)</span> </span></code></pre>
-</li>
-<li>
-<p>clone this repository and install. From a terminal, execute</p>
-<pre><code>git clone --recurse-submodules -b stable git@github.com:fdaPDE/femR.git 
-cd path/to/femR </code></pre>
-<p>and install the package from the R console</p>
-<pre><code><span>  <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"."</span>, type<span class="op">=</span><span class="st">"source"</span>, repos<span class="op">=</span><span class="cn">NULL</span><span class="op">)</span> </span></code></pre>
-</li>
+<li>use the <code>devtools</code> package. From the R console, execute</li>
 </ol>
+<!-- --><div class="sourceCode" id="cb1"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"fdaPDE/femR"</span>, <span class="at">ref=</span><span class="st">"stable"</span>) </span></code></pre></div>
+<ol start="2" style="list-style-type: decimal">
+<li>clone this repository and install. From a terminal, execute</li>
+</ol>
+<!-- --><div class="sourceCode" id="cb2"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>git clone <span class="sc">--</span>recurse<span class="sc">-</span>submodules <span class="sc">-</span>b stable git<span class="sc">@</span>github.com<span class="sc">:</span>fdaPDE<span class="sc">/</span>femR.git cd path<span class="sc">/</span>to<span class="sc">/</span>femR </span></code></pre></div>
+<p>and install the package from the R console</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"."</span>, <span class="at">type=</span><span class="st">"source"</span>, <span class="at">repos=</span><span class="cn">NULL</span>) </span></code></pre></div>
 <p>Both procedures will automatically pull the <a href="https://github.com/fdaPDE/fdaPDE-core" class="external-link">fdaPDE-core</a> submodule dependence required by <code>femR</code>. It is not recommended to download the source code directly from Github, as this won’t include any submodule dependence, making the installation procedure to fail.</p>
+</div>
+<div class="section level2">
+<h2 id="acknowledgment">Acknowledgment<a class="anchor" aria-label="anchor" href="#acknowledgment"></a>
+</h2>
+<p>This project gratefully acknowledges financial <a href="https://www.r-consortium.org/projects" class="external-link">support</a> from the</p>
+<p><a href="https://www.r-consortium.org/all-projects/awarded-projects" class="external-link"> <img src="https://raw.githubusercontent.com/RConsortium/artwork/main/r_consortium/R_Consortium-logo-horizontal-color.png" width="150"></a></p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

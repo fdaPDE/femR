@@ -13,6 +13,9 @@
     <loc>https://fdapde.github.io/femR/articles/Introduction.html</loc>
   </url>
   <url>
+    <loc>https://fdapde.github.io/femR/articles/LakeComo.html</loc>
+  </url>
+  <url>
     <loc>https://fdapde.github.io/femR/articles/Parabolic.html</loc>
   </url>
   <url>
@@ -25,19 +28,25 @@
     <loc>https://fdapde.github.io/femR/index.html</loc>
   </url>
   <url>
+    <loc>https://fdapde.github.io/femR/reference/Domain.html</loc>
+  </url>
+  <url>
+    <loc>https://fdapde.github.io/femR/reference/Domain_times_vector.html</loc>
+  </url>
+  <url>
     <loc>https://fdapde.github.io/femR/reference/Function.html</loc>
   </url>
   <url>
     <loc>https://fdapde.github.io/femR/reference/FunctionSpace.html</loc>
   </url>
   <url>
-    <loc>https://fdapde.github.io/femR/reference/MeshObject.html</loc>
+    <loc>https://fdapde.github.io/femR/reference/Mesh.html</loc>
   </url>
   <url>
-    <loc>https://fdapde.github.io/femR/reference/MeshObject_times_vector.html</loc>
+    <loc>https://fdapde.github.io/femR/reference/build_mesh.html</loc>
   </url>
   <url>
-    <loc>https://fdapde.github.io/femR/reference/contour-FunctionObject-method.html</loc>
+    <loc>https://fdapde.github.io/femR/reference/contour-Function-method.html</loc>
   </url>
   <url>
     <loc>https://fdapde.github.io/femR/reference/div.html</loc>
@@ -46,7 +55,7 @@
     <loc>https://fdapde.github.io/femR/reference/dot_product.html</loc>
   </url>
   <url>
-    <loc>https://fdapde.github.io/femR/reference/dt-FunctionObject-missing-missing-method.html</loc>
+    <loc>https://fdapde.github.io/femR/reference/dt-Function-missing-missing-method.html</loc>
   </url>
   <url>
     <loc>https://fdapde.github.io/femR/reference/grad.html</loc>
@@ -64,10 +73,10 @@
     <loc>https://fdapde.github.io/femR/reference/pde.html</loc>
   </url>
   <url>
-    <loc>https://fdapde.github.io/femR/reference/plot.FunctionObject.html</loc>
+    <loc>https://fdapde.github.io/femR/reference/plot.Function.html</loc>
   </url>
   <url>
-    <loc>https://fdapde.github.io/femR/reference/plot.MeshObject.html</loc>
+    <loc>https://fdapde.github.io/femR/reference/plot.Mesh.html</loc>
   </url>
   <url>
     <loc>https://fdapde.github.io/femR/reference/plus-DiffOpObject-DiffOpObject-method.html</loc>
@@ -76,13 +85,16 @@
     <loc>https://fdapde.github.io/femR/reference/read_mesh.html</loc>
   </url>
   <url>
-    <loc>https://fdapde.github.io/femR/reference/times-matrix-FunctionGradObject-method.html</loc>
+    <loc>https://fdapde.github.io/femR/reference/sf.html</loc>
+  </url>
+  <url>
+    <loc>https://fdapde.github.io/femR/reference/times-matrix-FunctionGrad-method.html</loc>
   </url>
   <url>
     <loc>https://fdapde.github.io/femR/reference/times-numeric-DiffOpObject-method.html</loc>
   </url>
   <url>
-    <loc>https://fdapde.github.io/femR/reference/times-numeric-FunctionObject-method.html</loc>
+    <loc>https://fdapde.github.io/femR/reference/times-numeric-Function-method.html</loc>
   </url>
   <url>
     <loc>https://fdapde.github.io/femR/reference/unit_square.html</loc>
