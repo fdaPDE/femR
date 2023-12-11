@@ -1,10 +1,10 @@
 ---
-title: "Spread of a pollutant in Lake Como"
+title: "Spread of a substance of interest in Lake Como"
 output: rmarkdown::html_vignette
 description: >
   This document explain the basic usage of femR to solve PDEs in R. 
 vignette: >
-  %\VignetteIndexEntry{Spread of a pollutant in Lake Como}
+  %\VignetteIndexEntry{Spread of a substance of interest in Lake Como}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -13,7 +13,7 @@ vignette: >
 knitr::opts_chunk$set(echo = TRUE, fig.align= "center",
                                    collapse = TRUE,
                                    comment = "#>", 
-                                   fig.width= 6,fig.height= 4.5,
+                                   fig.width= 7.3, fig.height = 5.3,
                                    message = FALSE,
                                    warning = FALSE)
                                    
@@ -23,12 +23,10 @@ library(femR, quietly = T)
 library(rmapshaper, quietly = T)
 ```
 
-Lake Como, nestled in the Lombardy region, is recognized as a crucial freshwater ecosystem esteemed for its biodiversity and ecological significance. Suppose that environmental studies have suggested the presence and spreading of a concerning pollutant within the lake’s waters. The emergence of this pollutant could raise significant concerns about its potential threat to the ecological balance of the aquatic environment and necessitates considerations about its long-term environmental stability. This hypothetical presence prompts a thorough examination to understand its nature, source, and potential implications on Lake Como's delicate ecosystem. 
-
-Assume that several monitoring stations have been strategically established around Lake Como to track and measure pollutant concentrations in its waters. These stations play a pivotal role in continuous surveillance, offering crucial data to assess pollutant levels and their potential impacts on the lake's ecosystem. 
-
+Lake Como, nestled in the Lombardy region, is recognized as a crucial freshwater ecosystem esteemed for its biodiversity and ecological significance. Environmental studies have suggested the presence and spreading of a substance of interest within the lake's waters. This hypothetical presence prompts a thorough examination to understand its nature, source, and potential implications on Lake Como's delicate ecosystem.<br>
+Assume that several monitoring stations have been strategically established around Lake Como to track and measure concentrations of the aforementioned substance of interest in its waters. These stations play a pivotal role in continuous surveillance, providing crucial data to assess levels of the substance of interest and its potential impacts on the lake's ecosystem.<br>
 The following interactive figure shows the comprehensive map of Lake Como and includes georeferenced black points denoting the strategic placement of monitoring stations across its expanse. 
-The red points denote potential 'hotspots' where, in the hypothetical scenario under investigation, abnormal concentrations of the pollutant have been recorded. 
+The red points denote potential 'hotspots' where, in the hypothetical scenario under investigation, abnormal concentrations of the substance of interest have been recorded. 
 ```{r, echo=FALSE}
 lake_bd <- read_sf("data/deims_sites_boundariesPolygon.shp")
 lake_bd_simp <- rmapshaper::ms_simplify(lake_bd, keep= 0.5, 
@@ -73,10 +71,10 @@ mu = 0.01
 Q <- 5
 ```
 
-In modeling the spread of the pollutant, it's crucial to consider the presence of a tributary in the northern region of the lake. Consequently, a transport term has been identified to represent the movement of the pollutant carried by the inflow to other areas within Lake Como. Furthermore, non-homogeneous Dirichlet boundary conditions are applied to boundary regions near the stations that recorded anomalies in the pollutant concentration. Conversely, homogeneous Dirichlet boundary conditions are applied to boundary regions unaffected by the anomalies.
+In modeling the spread of the substance of interest, it's crucial to consider the presence of a tributary in the northern region of the lake. Consequently, a transport term has been identified to represent the movement of the substance of interest carried by the inflow to other areas within Lake Como. Furthermore, non-homogeneous Dirichlet boundary conditions are applied to boundary regions near the stations that recorded anomalies in the substance of interest concentration. Conversely, homogeneous Dirichlet boundary conditions are applied to boundary regions unaffected by the anomalies.
 
 ## Steady-state solution 
-In this section, we focus on solving the steady-state problem. Let $\Omega$ represent our domain of interest. We assume that the concentration of the pollutant, denoted by $u$, spreads across $\Omega$ according to the following partial differential equation (PDE):
+In this section, we focus on solving the steady-state problem. Let $\Omega$ represent Lake Como. We assume that the concentration of the substance of interest, denoted by $u$, spreads across $\Omega$ according to the following partial differential equation (PDE):
 
 $$
 \begin{cases}
@@ -84,7 +82,7 @@ $$
  u = g|_{\partial \Omega} \qquad         & on \ \partial \Omega,
 \end{cases}
 $$
-where $\mu \in \mathbb{R}$, $\boldsymbol{\beta} \in \mathbb{R}^2$ are the diffusion coefficient and the transport coefficient, respectively. The function $g$ used to enforce the boundary conditions consists of the sum of two Gaussian-like functions centered at the locations of the stations that detected anomalous concentrations of the pollutant. 
+where $\mu \in \mathbb{R}$, $\boldsymbol{\beta} \in \mathbb{R}^2$ are the diffusion coefficient and the transport coefficient, respectively. The function $g$ used to enforce the boundary conditions consists of the sum of two Gaussian-like functions centered at the locations of the stations that detected anomalous concentrations of the substance of interest. 
 
 The upcoming sections will illustrate how to obtain a discrete solution of the problem using `femR` package. 
 ```{r, eval=FALSE}
@@ -159,7 +157,7 @@ We can compute the discrete solution of the problem calling the `solve` method:
 ```{r}
 pde$solve()
 ```
-Finally, it is possible to visualize the computed solution on an interactive map using the `mapview` package as the following code snippet shows.
+It is possible to visualize the computed solution on an interactive map using the `mapview` package as the following code snippet shows.
 ```{r}
 coeff <- apply(mesh$get_elements(), MARGIN=1, 
                FUN= function(edge){
@@ -189,15 +187,31 @@ mapshot2(mappa_mesh, url = html_fl, file = png_fl, delay=10,
 
 html_fl = paste0(folder.name, "mappa_completa.html")
 png_fl = paste0(folder.name, "mappa_completa.png")
-mappa_completa@map <- mappa_completa@map %>% setView(cntr_crds[1], cntr_crds[2], zoom = 10)
+mappa_completa@map <- mappa_completa@map %>% setView(cntr_crds[1], cntr_crds[2], zoom = 10) 
 mapshot2(mappa_completa, url = html_fl, file = png_fl, delay=10, 
+         cliprect = c(190,135, 600,500), zoom=1.5)
+
+rect_coords <- data.frame(lng1=9.24706, lat1=46.17883,
+                          lng2=9.42630, lat2=46.06229)
+
+mappa_rect <- mappa_completa
+mappa_rect@map <- mappa_rect@map %>% addRectangles(lng1=rect_coords$lng1,
+                                     lat1=rect_coords$lat1,
+                                     lng2=rect_coords$lng2,
+                                     lat2=rect_coords$lat2, weight=2,
+                                     opacity=1, group="rect",
+                                     color = "red", 
+                                     fillColor = "transparent")
+html_fl = paste0(folder.name, "mappa_rect.html")
+png_fl = paste0(folder.name, "mappa_rect.png")
+mapshot2(mappa_rect, url = html_fl, file = png_fl, delay=10, 
          cliprect = c(190,135, 600,500), zoom=1.5)
 
 
 html_fl = paste0(folder.name, "solution_zoom.html")
 png_fl = paste0(folder.name, "solution_zoom.png")
-solution@map <- solution@map %>% setView(as.numeric(st_geometry(stations)[17][[1]])[1], 
-                                         as.numeric(st_geometry(stations)[17][[1]])[2], zoom = 10.6)
+solution@map <- solution@map %>% setView(as.numeric(st_geometry(stations)[9][[1]])[1], 
+                                         as.numeric(st_geometry(stations)[9][[1]])[2], zoom = 12)
 mapshot2(solution, url = html_fl, file = png_fl, delay=10, 
          cliprect = c(190,135, 600,500), zoom=1.5)
 
@@ -212,7 +226,7 @@ mapshot2(solution, url = html_fl, file = png_fl, delay=10,
 
 ## Time-dependent solution
 
-Now, we aim to estimate the evolution of pollutant concentrations in Lake Como. We consider a Gaussian-like function $g$ from the previous section, appropriately modified to account for the presence of time. This function will be used to define both the initial condition for the pollutant concentration and to impose the boundary conditions. Therefore, the partial differential equation modeling the evolution of the pollutant concentration in Lake Como is as follows:
+Now, we aim to estimate the evolution of substance of interest concentrations in Lake Como. We consider a Gaussian-like function $g$ from the previous section, appropriately modified to account for the presence of time. This function will be used to define both the initial condition for the substance of interest concentration and to impose the boundary conditions. Therefore, the partial differential equation modeling the evolution of the substance of interest concentration in Lake Como is as follows:
 
 $$
 \begin{cases}
@@ -222,7 +236,7 @@ $$
 \end{cases}
 $$
 
-The following window wraps all the steps needed to estimate the evolution of the pollutant concentration relying on `femR` package.
+The following window wraps all the steps needed to estimate the evolution of the substance of interest concentration relying on `femR` package.
 ```{r, results='hide'}
 time_interval <- c(0., 0.3)
 times <- seq(time_interval[1], time_interval[2], length.out=50)
