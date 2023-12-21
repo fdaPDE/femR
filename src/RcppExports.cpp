@@ -13,14 +13,18 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 
-RcppExport SEXP _rcpp_module_boot_Mesh_2D();
-RcppExport SEXP _rcpp_module_boot_PDE_2D_ORDER_1();
-RcppExport SEXP _rcpp_module_boot_PDE_2D_ORDER_2();
+RcppExport SEXP _rcpp_module_boot_cpp_lagrange_basis_2d_fe1();
+RcppExport SEXP _rcpp_module_boot_cpp_lagrange_basis_2d_fe2();
+RcppExport SEXP _rcpp_module_boot_cpp_2d_domain();
+RcppExport SEXP _rcpp_module_boot_cpp_pde_2d_fe1();
+RcppExport SEXP _rcpp_module_boot_cpp_pde_2d_fe2();
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_rcpp_module_boot_Mesh_2D", (DL_FUNC) &_rcpp_module_boot_Mesh_2D, 0},
-    {"_rcpp_module_boot_PDE_2D_ORDER_1", (DL_FUNC) &_rcpp_module_boot_PDE_2D_ORDER_1, 0},
-    {"_rcpp_module_boot_PDE_2D_ORDER_2", (DL_FUNC) &_rcpp_module_boot_PDE_2D_ORDER_2, 0},
+    {"_rcpp_module_boot_cpp_lagrange_basis_2d_fe1", (DL_FUNC) &_rcpp_module_boot_cpp_lagrange_basis_2d_fe1, 0},
+    {"_rcpp_module_boot_cpp_lagrange_basis_2d_fe2", (DL_FUNC) &_rcpp_module_boot_cpp_lagrange_basis_2d_fe2, 0},
+    {"_rcpp_module_boot_cpp_2d_domain", (DL_FUNC) &_rcpp_module_boot_cpp_2d_domain, 0},
+    {"_rcpp_module_boot_cpp_pde_2d_fe1", (DL_FUNC) &_rcpp_module_boot_cpp_pde_2d_fe1, 0},
+    {"_rcpp_module_boot_cpp_pde_2d_fe2", (DL_FUNC) &_rcpp_module_boot_cpp_pde_2d_fe2, 0},
     {NULL, NULL, 0}
 };
 

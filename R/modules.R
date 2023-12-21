@@ -6,11 +6,9 @@
 #' @import Matrix
 NULL
 
-# #' @exportPattern "^[[:alpha:]]+"
-
-
 ## load required modules
-Rcpp::loadModule("PDE_2D_ORDER_1", TRUE)
-Rcpp::loadModule("PDE_2D_ORDER_2", TRUE)
-Rcpp::loadModule("Mesh_2D", TRUE)
-
+Rcpp::loadModule("cpp_2d_domain", TRUE)
+Rcpp::loadModule("cpp_lagrange_basis_2d_fe1", TRUE)
+Rcpp::loadModule("cpp_lagrange_basis_2d_fe2", TRUE)
+Rcpp::loadModule("cpp_pde_2d_fe1",     TRUE)
+Rcpp::loadModule("cpp_pde_2d_fe2",     TRUE)

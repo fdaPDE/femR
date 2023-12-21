@@ -3,24 +3,24 @@
 .MeshCtr <- setRefClass(
   Class = "Mesh", contains = "Domain",
   fields = c(
-    data  = "ANY",
-    m = "integer",   # local dim
-    n = "integer",   # embedding dim
+    cpp_handler = "ANY",       ## cpp backend
+    m = "integer",             ## local dim
+    n = "integer",             ## embedding dim
     times = "numeric",
     deltaT = "numeric" # for parabolic problems
   ),
   methods = c(
     get_nodes = function(){
-      data$nodes()
+      cpp_handler$nodes()
     },
     get_elements = function(){
-      data$elements()+1
+      cpp_handler$elements()+1
     },
     get_boundary = function(){
-      data$boundary()
+      cpp_handler$boundary()
     },
     get_neighbors = function(){
-      data$neighbors()
+      cpp_handler$neighbors()
     },
     get_times = function(){
       return(times)
@@ -67,7 +67,7 @@ setMethod("Mesh", signature = c(domain="list"),
             m <- ncol(domain$elements) - 1
             n <- ncol(domain$nodes) 
             if(m == 2 & n == 2)
-              .MeshCtr(data=new(Mesh_2D, domain), m=as.integer(m),n=as.integer(n), 
+              .MeshCtr(cpp_handler=new(cpp_2d_domain, domain), m=as.integer(m),n=as.integer(n), 
                        times=vector(mode="double"))                                                  
             else
               stop("wrong input argument provided.")
@@ -79,16 +79,8 @@ setMethod("Mesh", signature = c(domain="list"),
 setMethod("Mesh", signature=c(domain="triangulation"),
           function(domain){
             nodes <- domain$P
-            #nodes_group <- as.integer(domain$PB)
-            #edges <- domain$S
-            #edges_group <- as.integer(domain$SB)
-            #geometry <- list(nodes = nodes, edges = edges,
-            #                 nodes_group = nodes_group, edges_group = edges_group)
             elements <- domain$T - 1
             boundary <- domain$PB
-            ## 1   exterior boundary edges
-            ## < 0 interior boundary edges (holes)
-            #boundary[as.vector(domain$E[(domain$EB == 1 | domain$EB < 0),]),] = 1
             
             storage.mode(elements) <- "integer"
             storage.mode(nodes) <- "numeric"
@@ -99,7 +91,7 @@ setMethod("Mesh", signature=c(domain="triangulation"),
             
             domain <- list(elements = elements, nodes = nodes, boundary = boundary)
             if(m == 2 & n == 2)
-              .MeshCtr(data=new(Mesh_2D, domain), m=as.integer(m),n=as.integer(n), 
+              .MeshCtr(cpp_handler=new(Mesh_2D, domain), m=as.integer(m),n=as.integer(n), 
                        times=vector(mode="double"),
                        time_interval = vector(mode="numeric", length = 0), crs = NA_crs_)                                                  
             else
@@ -128,7 +120,7 @@ setMethod("%X%", signature=c(op1="Mesh", op2="numeric"),
 
 ## Mesh - auxiliary methods
 unroll_edges_aux <- function(Mesh){
-  mesh <- Mesh$data
+  mesh <- Mesh$cpp_handler
   edges <- matrix(nrow=3*nrow(mesh$elements()), ncol=2)
   for(i in 1:nrow(mesh$elements())){
     edges[(3*(i-1) + 1),]   = mesh$elements()[i,c(1,2)] + 1
@@ -146,18 +138,18 @@ setMethod("unroll_edges", "Mesh", function(Mesh){
 plot_mesh_aux <- function(x, ...){
   edges <- unroll_edges(x)
   plot_ly(...) %>% 
-    add_markers(x = x$data$nodes()[,1],
-                y = x$data$nodes()[,2],
+    add_markers(x = x$cpp_handler$nodes()[,1],
+                y = x$cpp_handler$nodes()[,2],
                 color = I('black'), size = I(1),
                 hoverinfo = 'text',
-                text = paste('</br><b> Coordinates:', round(x$data$nodes()[,1],2),
-                             round(x$data$nodes()[,2],2)),
+                text = paste('</br><b> Coordinates:', round(x$cpp_handler$nodes()[,1],2),
+                             round(x$cpp_handler$nodes()[,2],2)),
                 showlegend = T,
                 visible = T) %>%
-    add_segments(x = x$data$nodes()[edges[,1],1],
-                 y = x$data$nodes()[edges[,1],2],
-                 xend = x$data$nodes()[edges[,2],1],
-                 yend = x$data$nodes()[edges[,2],2], 
+    add_segments(x = x$cpp_handler$nodes()[edges[,1],1],
+                 y = x$cpp_handler$nodes()[edges[,1],2],
+                 xend = x$cpp_handler$nodes()[edges[,2],1],
+                 yend = x$cpp_handler$nodes()[edges[,2],2], 
                  color = I('black'), size = I(1),
                  showlegend = F) %>%
     layout(

@@ -1,8 +1,59 @@
-.FunctionSpaceCtr <- setRefClass(
-  Class = "FunctionSpace",
+# .CppFunctionSpace <- setRefClass(
+#   Class = "CppFunctionSpace",
+#   fields = c(
+#     cpp_handler = "ANY"  ## pointer to cpp backend
+#   ),
+#   methods = c(
+#     ## evaluates the basis system on the given set of locations
+#     eval = function(type = c("pointwise", "areal"), locations) {
+#       type <- match.arg(type)
+#       return(cpp_handler$eval(match(type, c("pointwise", "areal")) - 1, locations))
+#     }
+#   )
+# )
+
+.BasisFunctionCtr <- setRefClass(
+  Class = "BasisFunction",
   fields = c(
-    mesh  = "ANY", 
-    fe_order="integer"
+    cpp_handler = "ANY"  ## pointer to cpp backend
+  ),
+  methods = c(
+    ## evaluates the basis system on the given set of locations
+    eval = function(locations) {
+      return(cpp_handler$eval(0L, locations))
+    },
+    ## integrates a function expressed as basis expansion with respect to this basis system over the
+    ## whole domain of definition
+    integrate = function(func) {
+      if (!(is.function(func) || is.vector(func))) stop("invalid argument, should be either a function or a vector")
+      ## required dof coordinates...
+      c <- func
+      if (is.function(func)) { ## recover fem expansion
+        c <- func(mesh$cpp_handler$nodes())
+      }
+      return(cpp_handler$integrate(c))
+    }
+  )
+)
+
+setGeneric("BasisFunction", function(mesh, fe_order) standardGeneric("BasisFunction"))
+
+setMethod("BasisFunction", signature = signature("Mesh","integer"),
+          function(mesh, fe_order){
+            basis_function <- .BasisFunctionCtr(cpp_handler = 
+                                                  new(eval(parse(text = paste("cpp_lagrange_basis_2d_fe", 
+                                                                              as.character(fe_order), sep = ""))), mesh$cpp_handler, 0))
+})
+
+.FunctionSpaceCtr <- setRefClass(
+  Class = "FunctionSpaceObject",
+  fields = c(
+    mesh = "ANY",
+    basis_function = "BasisFunction",     ## cpp backend
+    fe_order = "integer"                  ## this is specific for fem, must be generalized
+  ),
+  methods = c(
+    get_basis = function() { return(basis_function) }
   )
 )
 
@@ -23,15 +74,16 @@ setGeneric("FunctionSpace", function(mesh,fe_order) standardGeneric("FunctionSpa
 #' mesh <- Mesh(unit_square)
 #' Vh <- FunctionSpace(mesh = mesh, fe_order = 1)
 #' }
-setMethod("FunctionSpace", signature = c(mesh="ANY", fe_order="numeric"),
-          function(mesh,fe_order){
-            if(fe_order == 1){
-              return(.FunctionSpaceCtr(mesh=mesh, fe_order=1L))
-            }else if(fe_order == 2){
-              return(.FunctionSpaceCtr(mesh=mesh, fe_order=2L))
-            }
-                                                  
-})
+setMethod("FunctionSpace",
+          signature = c(mesh = "ANY", fe_order = "numeric"),
+          function(mesh, fe_order) {
+            .FunctionSpaceCtr(
+              basis_function = BasisFunction(mesh,fe_order),
+              mesh = mesh,
+              fe_order = as.integer(fe_order)
+            )
+          }
+)
 
 #' @rdname FunctionSpace
 #' @examples
@@ -55,7 +107,7 @@ setMethod("FunctionSpace", signature = c(mesh="ANY", fe_order="missing"),
     pde = "ANY"
   ),
   methods = list(
-    eval_at = function(X) {
+    eval = function(X) {
       M = dim(FunctionSpace$mesh$get_nodes())[2]
       if(is.vector(X)) X <- t(as.matrix(X)) 
       
@@ -64,11 +116,13 @@ setMethod("FunctionSpace", signature = c(mesh="ANY", fe_order="missing"),
       }
       evals <- NULL  
       if(length(FunctionSpace$mesh$times) == 0){
-        evals <- pde$eval(FunctionSpace$mesh$data, coeff, as.matrix(X))
+        evals <- apply(FunctionSpace$basis_function$eval(as.matrix(X)) %*% coeff, 
+                       MARGIN=1, FUN=sum)
       }else{
         evals <- matrix(nrow=nrow(X),ncol=length(FunctionSpace$mesh$times))
         for(t in 1:length(FunctionSpace$mesh$times)){
-          evals[,t] <- pde$eval(FunctionSpace$mesh$data, as.matrix(coeff[,t]), as.matrix(X)) 
+          evals[,t] <- apply(FunctionSpace$basis_function$eval(as.matrix(X)) %*% coeff[,t], 
+                             MARGIN=1, FUN=sum) 
         }  
       }
       return(evals)
@@ -196,7 +250,7 @@ setMethod("contour", signature=c(x="Function"), function(x, ...){
   eval_x <- seq(from=xrange[1], to=xrange[2], length.out=Nx)
   eval_y <- seq(from=yrange[1], to=yrange[2], length.out=Ny)
   eval_points <- expand.grid(eval_x, eval_y)
-  Z <- matrix(x$eval_at(eval_points), nrow=Nx,ncol=Ny)
+  Z <- matrix(x$eval(eval_points), nrow=Nx,ncol=Ny)
   fig <- plot_ly(type="contour", x=eval_x, y=eval_y, z=Z, 
                  intensity=Z, color = Z,
                  contours=list(showlabels = TRUE),
@@ -218,7 +272,7 @@ setMethod("contour", signature=c(x="Function"), function(x, ...){
     eval_points <- expand.grid(eval_x, eval_y)
     X <- rep(eval_points[,1], times=length(times))
     Y <- rep(eval_points[,2], times=length(times))
-    Z <- x$eval_at(eval_points)
+    Z <- x$eval(eval_points)
 
     plot_data <- data.frame(X=X, Y=Y,Z=as.vector(Z),
                             times = rep(times, each=nrow(eval_points)))
