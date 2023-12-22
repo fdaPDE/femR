@@ -56,7 +56,7 @@ struct PDEWrapper {
 template <int M, int N, int R> class R_PDE : public PDEWrapper {
    private:
     using DomainType = Mesh<M, N>;
-    using QuadratureRule = Integrator<DomainType::local_dimension, R>;
+    using QuadratureRule = Integrator<FEM, DomainType::local_dimension, R>;
     template <typename L> using PDEType = PDE<DomainType, L, DMatrix<double>, FEM, fem_order<R>>;
 
     // internal data

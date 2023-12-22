@@ -8,7 +8,7 @@ class(mesh)
 plot(mesh)
 
 # create Functional Space
-fe_order = 1L
+fe_order = 2
 Vh <- FunctionSpace(mesh, fe_order)
 
 exact_solution <- function(points){
@@ -64,3 +64,14 @@ Psi <- basis_function$eval(pde$get_dofs_coordinates())
 dim(Psi)
 
 A  <- basis_function$eval(as.matrix(points))
+dim(A)
+
+R0 <- pde$get_mass()
+R1 <- pde$get_stiff()
+
+lambda <- 1.
+row_1 <- cbind( 1/n * t(Psi)%*%Psi, lambda*t(R1))
+row_2 <- cbind(lambda*R1, R0)
+
+M <- rbind(row_1,
+           row_2)

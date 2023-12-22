@@ -1,16 +1,3 @@
-# .CppFunctionSpace <- setRefClass(
-#   Class = "CppFunctionSpace",
-#   fields = c(
-#     cpp_handler = "ANY"  ## pointer to cpp backend
-#   ),
-#   methods = c(
-#     ## evaluates the basis system on the given set of locations
-#     eval = function(type = c("pointwise", "areal"), locations) {
-#       type <- match.arg(type)
-#       return(cpp_handler$eval(match(type, c("pointwise", "areal")) - 1, locations))
-#     }
-#   )
-# )
 
 .BasisFunctionCtr <- setRefClass(
   Class = "BasisFunction",
@@ -78,7 +65,7 @@ setMethod("FunctionSpace",
           signature = c(mesh = "ANY", fe_order = "numeric"),
           function(mesh, fe_order) {
             .FunctionSpaceCtr(
-              basis_function = BasisFunction(mesh,fe_order),
+              basis_function = BasisFunction(mesh,as.integer(fe_order)),
               mesh = mesh,
               fe_order = as.integer(fe_order)
             )
