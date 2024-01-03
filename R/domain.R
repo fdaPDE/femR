@@ -1,11 +1,28 @@
-.DomainCtr <- setRefClass("Domain", 
-                          fields=c(
-                            geometry = "ANY",
-                            coords = "data.frame",         # (x,y,boundary)
-                            time_interval = "numeric",
-                            crs ="ANY"
-                           )
+.DomainCtr <- R6Class("Domain", 
+                      public = list(
+                        geometry = "ANY",
+                        coords = "data.frame",         # (x,y,boundary)
+                        time_interval = vector(mode="numeric", length = 0),
+                        crs = "ANY",
+                        initialize = function(geometry, coords, crs){
+                                      self$geometry <- geometry 
+                                      self$coords <- coords 
+                                      self$crs <- crs
+                                    }
+                      )
 )
+
+#' @name Domain
+#'
+#' @exportClass Domain
+setOldClass(c("Domain", "R6"))
+
+#' Mesh 
+#'
+#' @name Mesh
+#'
+#' @exportClass Mesh
+setOldClass(c("Mesh","Domain"))
 
 #' S4 class representing a spatial (spatio-temporal) domain
 #' 
@@ -36,9 +53,10 @@ setMethod("Domain", signature = "list", function(x){
     
     coords <- data.frame(x=x$nodes[,1], y=x$nodes[,2], boundary=x$nodes_boundary)
   crs = NA
-  .DomainCtr(geometry = geometry, time_interval = vector(mode="numeric", length = 0), 
-             coords=coords, crs = crs)
+  .DomainCtr$new(geometry = geometry, coords=coords, crs = crs)
 })
+
+setOldClass("pslg")
 
 #' @rdname Domain
 setMethod("Domain", signature = "pslg", function(x){
@@ -62,8 +80,7 @@ setMethod("Domain", signature = "pslg", function(x){
   
   coords <- data.frame(x=nodes[,1], y=nodes[,2], boundary=nodes_boundary)
   
-  .DomainCtr(geometry = geometry, time_interval = vector(mode="numeric", length = 0),
-             coords=coords, crs = NA)
+  .DomainCtr$new(geometry = geometry, coords=coords, crs = NA)
 })
 
 #' @rdname Domain
@@ -206,8 +223,7 @@ setMethod("Domain", signature="sfc", function(x){
   
   crs <- NA
   if(!is.na(st_crs(x))) crs <- st_crs(x)$input
-      .DomainCtr(geometry = geometry, time_interval = vector(mode="numeric", length = 0), 
-                coords=coords, crs = crs)
+      .DomainCtr$new(geometry = geometry, coords=coords, crs = crs)
 })
 
 # setMethod("Domain", signature = "sfc", function(x){
@@ -222,7 +238,7 @@ setMethod("Domain", signature="sfc", function(x){
 #                    nodes_group = nodes_group, edges_group = edges_group)
 #   crs <- NA_crs_
 #   if(!is.na(st_crs(x))) crs <- st_crs(x)
-#   .DomainCtr(geometry = geometry, time_interval = vector(mode="numeric", length = 0), 
+#   .DomainCtr$new(geometry = geometry, time_interval = vector(mode="numeric", length = 0), 
 #              coords=geometry$nodes, crs = crs)
 # })
 

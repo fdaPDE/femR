@@ -15,7 +15,7 @@ Authors@R: c( person("Aldo", "Clemente", role = c("aut", "cre"),
 	                                        email = "laura.sangalli@polimi.it"))
 Maintainer: Aldo Clemente <aldo.clemente@polimi.it>
 Depends: 
-    R (>= 3.5.0),
+    R (>= 3.5.0), R6,
     plotly, Matrix, methods,
     RTriangle, sf
 Description: Solving partial differential equations relying on the Finite Element Method.

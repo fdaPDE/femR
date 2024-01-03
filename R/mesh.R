@@ -1,37 +1,40 @@
 
 ## Mesh Class Definition
-.MeshCtr <- setRefClass(
-  Class = "Mesh", contains = "Domain",
-  fields = c(
-    cpp_handler = "ANY",       ## cpp backend
-    m = "integer",             ## local dim
-    n = "integer",             ## embedding dim
-    times = "numeric",
-    deltaT = "numeric" # for parabolic problems
-  ),
-  methods = c(
-    get_nodes = function(){
-      cpp_handler$nodes()
-    },
-    get_elements = function(){
-      cpp_handler$elements()+1
-    },
-    get_boundary = function(){
-      cpp_handler$boundary()
-    },
-    get_neighbors = function(){
-      cpp_handler$neighbors()
-    },
-    get_times = function(){
-      return(times)
-    },
-    set_deltaT = function(deltaT){
-      if(length(time_interval)==0)
-        stop("Error!")
-      deltaT <<- deltaT
-      times <<- seq(time_interval[1], time_interval[2], by=deltaT)
-    }
-  )
+#' @export 
+.MeshCtr <- R6Class("Mesh", inherit = .DomainCtr,
+                    public = list(
+                      cpp_handler = "ANY",       ## cpp backend
+                      m = 0L,             ## local dim
+                      n = 0L,             ## embedding dim
+                      times = vector(mode="double", length = 0L),
+                      deltaT = NA, # for parabolic problems
+                      initialize = function(cpp_handler, m, n){
+                        self$cpp_handler <- cpp_handler
+                        self$m <- m
+                        self$n <- n
+                      },
+                      get_nodes = function(){
+                        self$cpp_handler$nodes()
+                      },
+                      get_elements = function(){
+                        self$cpp_handler$elements()+1
+                      },
+                      get_boundary = function(){
+                        self$cpp_handler$boundary()
+                      },
+                      get_neighbors = function(){
+                        self$cpp_handler$neighbors()
+                      },
+                      get_times = function(){
+                        return(self$times)
+                      },
+                      set_deltaT = function(deltaT){
+                        if(length(self$time_interval)==0)
+                          stop("Error!")
+                        self$deltaT <- deltaT
+                        self$times <- seq(self$time_interval[1], self$time_interval[2], by=deltaT)
+                      }
+                    )
 )
 
 #' Create mesh object
@@ -67,13 +70,12 @@ setMethod("Mesh", signature = c(domain="list"),
             m <- ncol(domain$elements) - 1
             n <- ncol(domain$nodes) 
             if(m == 2 & n == 2)
-              .MeshCtr(cpp_handler=new(cpp_2d_domain, domain), m=as.integer(m),n=as.integer(n), 
-                       times=vector(mode="double"))                                                  
+              .MeshCtr$new(cpp_handler=new(cpp_2d_domain, domain), m=as.integer(m),n=as.integer(n))                                                  
             else
               stop("wrong input argument provided.")
 })
 
-# @importClassesFrom RTriangle triangulation
+setOldClass("triangulation")
 
 #' @rdname Mesh
 setMethod("Mesh", signature=c(domain="triangulation"),
@@ -91,9 +93,7 @@ setMethod("Mesh", signature=c(domain="triangulation"),
             
             domain <- list(elements = elements, nodes = nodes, boundary = boundary)
             if(m == 2 & n == 2)
-              .MeshCtr(cpp_handler=new(Mesh_2D, domain), m=as.integer(m),n=as.integer(n), 
-                       times=vector(mode="double"),
-                       time_interval = vector(mode="numeric", length = 0), crs = NA_crs_)                                                  
+              .MeshCtr$new(cpp_handler=new(cpp_2d_domain, domain), m=as.integer(m),n=as.integer(n))                                                  
             else
               stop("wrong input argument provided.")
 })

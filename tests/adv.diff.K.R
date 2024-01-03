@@ -34,7 +34,7 @@ f <- Function(Vh)
 #L <- -1*laplace(f) + dot(c(alpha_,0), grad(f)) # OK
 I <- matrix(c(1,0,0,1), byrow=T, nrow=2,ncol=2)
 L <- -div(I*grad(f)) + dot(c(alpha_,0), grad(f))
-
+# L <- -div(grad(f)) + dot(c(alpha_,0), grad(f))
 ## forcing term
 u <- function(points){
   return(gamma_ * sin(pi * points[,2])) 
@@ -53,18 +53,18 @@ pde$solve()
 
 ## compute L2 norm of the error
 u_ex <- as.matrix(exact_solution(pde$get_dofs_coordinates()))
-error.L2 <- sqrt(sum(pde$get_mass() %*% (u_ex - pde$get_solution())^2))
+error.L2 <- sqrt(sum(pde$get_mass() %*% (u_ex - f$coeff)^2))
 cat("L2 error = ", error.L2, "\n")
 
 ## perform evaluation at single point
 point = c(0.2, 0.5)
-f$eval_at(point)
+f$eval(point)
 
 ## evaluate over a 10x10 grid
 x <- seq(0, 1, length.out = 50)
 y <- x
 points <- expand.grid(x, y)
-max(abs( f$eval_at(points) - as.matrix(exact_solution(points))))
+max(abs( f$eval(points) - as.matrix(exact_solution(points))))
 
 # plot solution 
 options(warn=-1)

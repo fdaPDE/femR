@@ -33,7 +33,7 @@ u <- Function(Vh)
 ## define differential operator in its strong formulation
 #L <- dt(f) + (-1)*laplace(f) 
 
-L <- dt(u) - laplace(u) + dot(c(0,10),grad(u))
+L <- dt(u) - laplace(u) + dot(c(0,1),grad(u))
 
 ## forcing term
 f <- function(points,times){
@@ -60,6 +60,7 @@ pde$set_initial_condition(u0)
 
 pde$set_boundary_condition(g(pde$get_dofs_coordinates(),times))
 pde$set_initial_condition(u0(pde$get_dofs_coordinates()))
+
 pde$solve()
 
 ## compute L2 norm of the error
@@ -67,20 +68,20 @@ u_ex <- exact_solution(pde$get_dofs_coordinates(), times)
  
 error.L2 <- matrix(0, nrow=length(times), ncol=1)
 for( t in 1:length(times)){
-  error.L2[t] <- sqrt(sum(pde$get_mass() %*% (u_ex[,t] - pde$get_solution()[,t])^2))
+  error.L2[t] <- sqrt(sum(pde$get_mass() %*% (u_ex[,t] - u$coeff[,t])^2))
   cat(paste0("L2 error at time ",times[t]," ", error.L2[t], "\n"))
 }
 # ------------------------------------------------------------------------------
 ## perform evaluation at single point
 point = c(0.2, 0.5)
-u$eval_at(point)
+u$eval(point)
 # 
 # ## evaluate over a 10x10 grid 
 x <- seq(0, 1, length.out = 50)
 y <- x
 points <- expand.grid(x, y)
-dim( u$eval_at(points) )
-max(abs( u$eval_at(points) - as.matrix(exact_solution(points))))
+dim( u$eval(points) )
+max(abs( u$eval(points) - as.matrix(exact_solution(points))))
 # 
 # ## plot solution 
 options(warn=-1)

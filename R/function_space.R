@@ -1,48 +1,67 @@
-
-.BasisFunctionCtr <- setRefClass(
-  Class = "BasisFunction",
-  fields = c(
-    cpp_handler = "ANY"  ## pointer to cpp backend
-  ),
-  methods = c(
-    ## evaluates the basis system on the given set of locations
-    eval = function(locations) {
-      return(cpp_handler$eval(0L, locations))
-    },
-    ## integrates a function expressed as basis expansion with respect to this basis system over the
-    ## whole domain of definition
-    integrate = function(func) {
-      if (!(is.function(func) || is.vector(func))) stop("invalid argument, should be either a function or a vector")
-      ## required dof coordinates...
-      c <- func
-      if (is.function(func)) { ## recover fem expansion
-        c <- func(mesh$cpp_handler$nodes())
-      }
-      return(cpp_handler$integrate(c))
-    }
+.BasisFunctionCtr <- R6Class("BasisFunction",
+                              public = list(
+                                cpp_handler = "ANY",  ## pointer to cpp backend
+                                mesh = "Mesh",
+                                initialize = function(cpp_handler, mesh){
+                                  self$cpp_handler = cpp_handler
+                                  self$mesh = mesh
+                                },
+                                ## evaluates the basis system on the given set of locations
+                                eval = function(locations) {
+                                  return(self$cpp_handler$eval(0L, locations))
+                                },
+                                ## integrates a function expressed as basis expansion with respect to this basis system over the
+                                ## whole domain of definition
+                                integrate = function(func) {
+                                  if (!(is.function(func) || is.vector(func))) stop("invalid argument, should be either a function or a vector")
+                                  ## required dof coordinates...
+                                  c <- func
+                                  if (is.function(func)) { ## recover fem expansion
+                                    c <- func(self$mesh$cpp_handler$nodes())
+                                  }
+                                  return(cpp_handler$integrate(c))
+                                }
   )
 )
+
+#' Finite Element Basis 
+#'
+#' @name Basis
+#'
+#' @exportClass BasisFunction
+setOldClass(c("BasisFunction", "R6"))
 
 setGeneric("BasisFunction", function(mesh, fe_order) standardGeneric("BasisFunction"))
 
 setMethod("BasisFunction", signature = signature("Mesh","integer"),
           function(mesh, fe_order){
-            basis_function <- .BasisFunctionCtr(cpp_handler = 
+            basis_function <- .BasisFunctionCtr$new(cpp_handler = 
                                                   new(eval(parse(text = paste("cpp_lagrange_basis_2d_fe", 
-                                                                              as.character(fe_order), sep = ""))), mesh$cpp_handler, 0))
+                                                                              as.character(fe_order), sep = ""))), mesh$cpp_handler, 0),
+                                                  mesh=mesh)
 })
 
-.FunctionSpaceCtr <- setRefClass(
-  Class = "FunctionSpaceObject",
-  fields = c(
-    mesh = "ANY",
-    basis_function = "BasisFunction",     ## cpp backend
-    fe_order = "integer"                  ## this is specific for fem, must be generalized
-  ),
-  methods = c(
-    get_basis = function() { return(basis_function) }
-  )
+#' @export 
+.FunctionSpaceCtr <- R6Class("FunctionSpace",
+                              public = list(
+                                mesh = "ANY",
+                                basis_function = "BasisFunction",     ## cpp backend
+                                fe_order = "integer",                  ## this is specific for fem, must be generalized
+                                initialize = function(mesh, basis_function, fe_order){
+                                  self$mesh <- mesh 
+                                  self$basis_function <- basis_function
+                                  self$fe_order <- fe_order
+                                },
+                                get_basis = function() { return(self$basis_function) }
+                              )
 )
+
+#' Finite Element Functional Space
+#'
+#' @name FunctionSpace
+#'
+#' @exportClass FunctionSpace
+setOldClass(c("FunctionSpace", "R6"))
 
 #' Create FunctionSpace object
 #'
@@ -51,7 +70,7 @@ setMethod("BasisFunction", signature = signature("Mesh","integer"),
 #' @return An S4 object representing a Function Space.
 #' @export 
 #' @rdname FunctionSpace
-setGeneric("FunctionSpace", function(mesh,fe_order) standardGeneric("FunctionSpace"))
+setGeneric("FunctionSpace", function(mesh, fe_order) standardGeneric("FunctionSpace"))
 
 #' @rdname FunctionSpace
 #' @examples
@@ -62,11 +81,11 @@ setGeneric("FunctionSpace", function(mesh,fe_order) standardGeneric("FunctionSpa
 #' Vh <- FunctionSpace(mesh = mesh, fe_order = 1)
 #' }
 setMethod("FunctionSpace",
-          signature = c(mesh = "ANY", fe_order = "numeric"),
+          signature = c(mesh = "Mesh", fe_order = "numeric"),
           function(mesh, fe_order) {
-            .FunctionSpaceCtr(
-              basis_function = BasisFunction(mesh,as.integer(fe_order)),
+            .FunctionSpaceCtr$new(
               mesh = mesh,
+              basis_function = BasisFunction(mesh, as.integer(fe_order)),
               fe_order = as.integer(fe_order)
             )
           }
@@ -80,45 +99,54 @@ setMethod("FunctionSpace",
 #' mesh <- Mesh(unit_square)
 #' Vh <- FunctionSpace(mesh)
 #' }
-setMethod("FunctionSpace", signature = c(mesh="ANY", fe_order="missing"),
+setMethod("FunctionSpace", signature = c(mesh="Mesh", fe_order="missing"),
           function(mesh){
-              return(.FunctionSpaceCtr(mesh=mesh, fe_order=1L))
+              return(.FunctionSpaceCtr$new(mesh=mesh, 
+                                           basis_function = BasisFunction(mesh, 1L), 
+                                           fe_order=1L))
 })
 
 ## finite element function
-.FunctionCtr <- setRefClass(
-  Class = "Function",
-  fields = c(
-    FunctionSpace  = "ANY", 
-    coeff = "matrix",
-    pde = "ANY"
-  ),
-  methods = list(
-    eval = function(X) {
-      M = dim(FunctionSpace$mesh$get_nodes())[2]
-      if(is.vector(X)) X <- t(as.matrix(X)) 
-      
-      if(dim(X)[2] != M) {
-        stop(paste("matrix of evaluation points should be a 2 columns matrix"))
-      }
-      evals <- NULL  
-      if(length(FunctionSpace$mesh$times) == 0){
-        evals <- apply(FunctionSpace$basis_function$eval(as.matrix(X)) %*% coeff, 
-                       MARGIN=1, FUN=sum)
-      }else{
-        evals <- matrix(nrow=nrow(X),ncol=length(FunctionSpace$mesh$times))
-        for(t in 1:length(FunctionSpace$mesh$times)){
-          evals[,t] <- apply(FunctionSpace$basis_function$eval(as.matrix(X)) %*% coeff[,t], 
-                             MARGIN=1, FUN=sum) 
-        }  
-      }
-      return(evals)
-    },
-    set_coeff = function(coefficients){
-      coeff <<- coefficients
-    }
-  )
+.FunctionCtr <- R6Class("Function",
+                        public = list(
+                          FunctionSpace  = "FunctionSpace", 
+                          coeff = "matrix",
+                          initialize = function(FunctionSpace, coeff){
+                            self$FunctionSpace <- FunctionSpace
+                            self$coeff <- coeff
+                          },
+                          eval = function(X) {
+                            M = dim(self$FunctionSpace$mesh$get_nodes())[2]
+                            if(is.vector(X)) X <- t(as.matrix(X)) 
+                            
+                            if(dim(X)[2] != M) {
+                              stop(paste("matrix of evaluation points should be a 2 columns matrix"))
+                            }
+                            evals <- NULL  
+                            if(length(self$FunctionSpace$mesh$times) == 0){
+                              evals <- apply(self$FunctionSpace$basis_function$eval(as.matrix(X)) %*% self$coeff, 
+                                             MARGIN=1, FUN=sum)
+                            }else{
+                              evals <- matrix(nrow=nrow(X),ncol=length(self$FunctionSpace$mesh$times))
+                              for(t in 1:length(self$FunctionSpace$mesh$times)){
+                                evals[,t] <- apply(self$FunctionSpace$basis_function$eval(as.matrix(X)) %*% self$coeff[,t], 
+                                                   MARGIN=1, FUN=sum) 
+                              }  
+                            }
+                            return(evals)
+                          },
+                          set_coeff = function(coefficients){
+                            self$coeff <- coefficients
+                          }
+                        )
 )
+
+#' Finite Element Function
+#'
+#' @name Function
+#'
+#' @exportClass Function
+setOldClass(c("Function", "R6"))
 
 ## constructor
 
@@ -137,7 +165,7 @@ setMethod("FunctionSpace", signature = c(mesh="ANY", fe_order="missing"),
 #' }
 Function <- function(FunctionSpace) {
   coeff = matrix(ncol = 1, nrow = 0)
-  .FunctionCtr(coeff = coeff, FunctionSpace = FunctionSpace)
+  .FunctionCtr$new(coeff = coeff, FunctionSpace = FunctionSpace)
 }
 
 ## Function plot overload
