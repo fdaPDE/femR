@@ -224,7 +224,7 @@ Lu <- -laplace(u) # L <- -div(I*grad(u))
                   # In general:
                   # L <- -mu*laplace(u) + dot(b,grad(u)) + a*u
 ```
-Note that, according to the well-known identity $div(\nabla u) = \Delta u$, we could have written `L<--div(I*grad(u))`, where `I` is the 2-dimensional identity matrix. Indeed, `femR` package let you define every term of a generic second-order linear differential operator $Lu= -div(K\nabla u) + \mathbf{b}\cdot \nabla u + a u$ as follows:
+Note that, according to the well-known identity $div(\nabla u) = \Delta u$, we could have written `L<--div(grad(u))` or `L<--div(I*grad(u))`, where `I` is the 2-dimensional identity matrix. Indeed, `femR` package let you define every term of a generic second-order linear differential operator $Lu= -div(K\nabla u) + \mathbf{b}\cdot \nabla u + a u$ as follows:
 
   * Diffusion: `-div(K*grad(u))` or `-mu*laplacian(u)`, where either `K` or `mu` represents the diffusion matrix in an anisotropic problem or the diffusion coefficient in a isotropic problem, implements the first term of the differential operator according to the problem at hand. 
   
@@ -269,7 +269,7 @@ exact_solution <- function(points){
     return( sin(2.*pi*points[,1])*sin(2.*pi*points[,2]))
 }
 u_ex <- as.matrix(exact_solution(pde$get_dofs_coordinates()))
-error.L2 <- sqrt(sum(pde$get_mass()%*%(u_ex-pde$get_solution())^2))
+error.L2 <- sqrt(sum(pde$get_mass()%*%(u_ex-u$coeff)^2))
 cat("L2 error = ", error.L2, "\n")
 ```
 
@@ -289,4 +289,62 @@ Note that, the `base::plot` function and `graphics::contour`function have both b
 \textit{If you can dream it, you can do it. Walt Disney}
 ```{r Using Plotly}
 plot(u, colorscale="Jet") %>% layout(scene=list(aspectmode="cube"))
+```
+
+# Solving a parabolic problem
+
+Let $\Omega$ be the unit square $[0,1]^2$.
+Consider the following problem  defined over $\Omega \times [0,T]$:
+
+$$
+\begin{cases}
+\frac{\partial u}{\partial t}-\Delta u  = f  &in \ \Omega \times [0,T] \\
+      \quad u = u_0  &in \ \Omega, \ t=0 \\ 
+      \quad u = 0     &on \ \partial \Omega,\  t>0
+\end{cases}
+$$
+
+
+where $u_0 = \sin( 2\pi x)\sin(2\pi y)$ is the initial condition, $f(x,y) = 8\pi^2 \sin( 2\pi x)\sin(2\pi y) e^{-t}$ is the forcing term and $\partial \Omega$ is the boundary of $\Omega$ where we have prescribed homogeneous Dirichelet boundary condition for all $t$ grater than $0$.
+The exact solution of the previous problem is $u_{ex}(x,y) = \sin(2\pi x) \sin(2 \pi y) e^{-t}$. The following window wraps all the steps needed to solve the problem.
+
+```{r}
+## spatio-temporal domain
+nodes <- rbind(c(0,0), c(1,0), c(1,1), c(0,1))
+edges <- cbind(1:nrow(nodes), c(2:nrow(nodes),1))
+domain <- Domain(list(nodes=nodes, edges=edges))
+domain <- domain %X% c(0,1)
+
+## build mesh
+mesh <- build_mesh(domain, maximum_area = 0.00125, minimum_angle = 20)
+# time step
+dT = 1e-2
+mesh$set_deltaT(dT)
+## create Functional Space
+Vh <- FunctionSpace(mesh)
+## define differential operator in its strong formulation
+u <- Function(Vh)
+## define differential operator in its strong formulation
+Lu <- dt(u) -laplace(u)
+## forcing term
+f <- function(points,times){
+  res <- matrix(0, nrow=nrow(points), ncol=length(times))
+  for( t in 1:length(times)){
+    res[,t] = (8*pi^2 -1) * sin( 2.* pi * points[,1]) * sin(2.*pi* points[,2]) * exp(-times[t])
+  }
+  return(res) 
+}
+## initial condition 
+u0 <- function(points){
+ return(sin( 2.* pi * points[,1]) * sin(2.*pi* points[,2]))
+}
+## create pde
+pde <- Pde(Lu, f)
+# set initial condition and dirichlet BC
+pde$set_initial_condition(u0)
+pde$set_boundary_condition(fun= 0.0, type="dirichlet")
+## solve problem
+pde$solve()
+## plot solution
+plot(u)
 ```
