@@ -2,15 +2,15 @@
 % Please edit documentation in R/function_space.R
 \name{FunctionSpace}
 \alias{FunctionSpace}
-\alias{FunctionSpace,ANY,numeric-method}
-\alias{FunctionSpace,ANY,missing-method}
-\title{Create FunctionSpace object}
+\alias{FunctionSpace,Mesh,numeric-method}
+\alias{FunctionSpace,Mesh,missing-method}
+\title{Finite Element Functional Space}
 \usage{
 FunctionSpace(mesh, fe_order)
 
-\S4method{FunctionSpace}{ANY,numeric}(mesh, fe_order)
+\S4method{FunctionSpace}{Mesh,numeric}(mesh, fe_order)
 
-\S4method{FunctionSpace}{ANY,missing}(mesh)
+\S4method{FunctionSpace}{Mesh,missing}(mesh)
 }
 \arguments{
 \item{mesh}{A mesh object created by \code{Mesh}:}
@@ -21,6 +21,8 @@ FunctionSpace(mesh, fe_order)
 An S4 object representing a Function Space.
 }
 \description{
+Finite Element Functional Space
+
 Create FunctionSpace object
 }
 \examples{

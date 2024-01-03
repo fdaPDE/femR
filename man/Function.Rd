@@ -2,7 +2,7 @@
 % Please edit documentation in R/function_space.R
 \name{Function}
 \alias{Function}
-\title{Create Function object}
+\title{Finite Element Function}
 \usage{
 Function(FunctionSpace)
 }
@@ -13,6 +13,8 @@ Function(FunctionSpace)
 An S4 object representing a Function belonging to the FunctionSpace passed as parameter.
 }
 \description{
+Finite Element Function
+
 Create Function object
 }
 \examples{

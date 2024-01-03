@@ -3,7 +3,7 @@
 \name{grad}
 \alias{grad}
 \alias{grad,Function-method}
-\title{compute gradient of Function}
+\title{Function gradient}
 \usage{
 grad(f)
 
@@ -16,6 +16,8 @@ grad(f)
 An S4 object representing the gradient of the Function passed as parameter.
 }
 \description{
+Function gradient
+
 compute gradient of Function
 }
 \examples{
