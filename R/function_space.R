@@ -6,6 +6,12 @@
                                   self$cpp_handler = cpp_handler
                                   self$mesh = mesh
                                 },
+                                size = function(){
+                                  self$cpp_handler$size()
+                                },
+                                get_dofs_coordinates = function(){
+                                  self$cpp_handler$get_dofs_coordinates()
+                                },
                                 ## evaluates the basis system on the given set of locations
                                 eval = function(locations) {
                                   return(self$cpp_handler$eval(0L, locations))
@@ -17,9 +23,9 @@
                                   ## required dof coordinates...
                                   c <- func
                                   if (is.function(func)) { ## recover fem expansion
-                                    c <- func(self$mesh$cpp_handler$nodes())
+                                    c <- func(self$cpp_handler$get_dofs_coordinates())
                                   }
-                                  return(cpp_handler$integrate(c))
+                                  return(self$cpp_handler$integrate(c))
                                 }
   )
 )

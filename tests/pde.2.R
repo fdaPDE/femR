@@ -60,7 +60,7 @@ contour(f)
 ### 
 
 basis_function <- Vh$get_basis()
-Psi <- basis_function$eval(pde$get_dofs_coordinates())
+Psi <- basis_function$eval(basis_function$get_dofs_coordinates())
 dim(Psi)
 
 A  <- basis_function$eval(as.matrix(points))
@@ -68,10 +68,11 @@ dim(A)
 
 R0 <- pde$get_mass()
 R1 <- pde$get_stiff()
-
+n <- basis_function$size()
 lambda <- 1.
 row_1 <- cbind( 1/n * t(Psi)%*%Psi, lambda*t(R1))
 row_2 <- cbind(lambda*R1, R0)
 
 M <- rbind(row_1,
            row_2)
+dim(M)
