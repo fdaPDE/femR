@@ -12,7 +12,7 @@ times = seq(t0,t_max,length=M)
 # Spatio-temporal domain ( Mesh inherits from DOMAIN :)  )
 mesh = Mesh(unit_square) %X% c(t0, t_max)  #times
 
-mesh$set_deltaT(dT) # NUOVO
+mesh$set_time_step(dT) # NUOVO
 class(mesh)
 plot(mesh)
 
@@ -31,9 +31,9 @@ exact_solution <- function(points,t){
 u <- Function(Vh)
 
 ## define differential operator in its strong formulation
-#L <- dt(f) + (-1)*laplace(f) 
+L <- dt(u) -laplace(u) 
 
-L <- dt(u) - laplace(u) + dot(c(0,1),grad(u))
+#L <- dt(u) - laplace(u) + dot(c(0,1),grad(u))
 
 ## forcing term
 f <- function(points,times){

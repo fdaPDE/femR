@@ -1,13 +1,17 @@
 .DomainCtr <- R6Class("Domain", 
-                      public = list(
+                      private = list(
                         geometry = "ANY",
-                        coords = "data.frame",         # (x,y,boundary)
+                        coords = "matrix",         # (x,y)
+                        boundary = "matrix",        # 
                         time_interval = vector(mode="numeric", length = 0),
-                        crs = "ANY",
-                        initialize = function(geometry, coords, crs){
-                                      self$geometry <- geometry 
-                                      self$coords <- coords 
-                                      self$crs <- crs
+                        crs = "ANY"
+                      ),
+                      public = list(
+                        initialize = function(geometry, coords, boundary, crs){
+                                      private$geometry <- geometry 
+                                      private$coords <- coords 
+                                      private$boundary <- boundary
+                                      private$crs <- crs
                                     }
                       )
 )
@@ -51,9 +55,10 @@ setMethod("Domain", signature = "list", function(x){
                           edges=x$edges, edges_group=x$edges_group, edges_boundary=x$edges_boundary,
                           edges_ring = x$edges_ring) 
     
-    coords <- data.frame(x=x$nodes[,1], y=x$nodes[,2], boundary=x$nodes_boundary)
-  crs = NA
-  .DomainCtr$new(geometry = geometry, coords=coords, crs = crs)
+    coords <- cbind(x$nodes[,1], x$nodes[,2])
+    boundary <- x$nodes_boundary
+    crs = NA
+  .DomainCtr$new(geometry = geometry, coords=coords, boundary = boundary, crs = crs)
 })
 
 setOldClass("pslg")
@@ -78,9 +83,10 @@ setMethod("Domain", signature = "pslg", function(x){
                         edges=edges, edges_group=edges_group, edges_boundary=edges_boundary,
                         edges_ring=edges_ring) 
   
-  coords <- data.frame(x=nodes[,1], y=nodes[,2], boundary=nodes_boundary)
+  coords <- cbind(nodes[,1], nodes[,2])
+  boundary <- nodes_boundary
   
-  .DomainCtr$new(geometry = geometry, coords=coords, crs = NA)
+  .DomainCtr$new(geometry = geometry, coords=coords, boundary=boundary, crs = NA)
 })
 
 #' @rdname Domain
@@ -216,31 +222,17 @@ setMethod("Domain", signature="sfc", function(x){
                                edges_ring = edges_ring)
     
   }
-  # da salvare
+  
   coords <- unique(st_coords[order(st_coords[,(ncol(st_coords)-1)]),][,c(1:2,ncol(st_coords))])
-  coords <- as.data.frame(coords)
-  storage.mode(coords$boundary) <- "integer"
+  
+  boundary <- coords[,3]
+  storage.mode(boundary) <- "integer"
+  coords <- coords[,1:2]
   
   crs <- NA
   if(!is.na(st_crs(x))) crs <- st_crs(x)$input
-      .DomainCtr$new(geometry = geometry, coords=coords, crs = crs)
+      .DomainCtr$new(geometry = geometry, coords=coords, boundary=boundary, crs = crs)
 })
-
-# setMethod("Domain", signature = "sfc", function(x){
-#   if(!any(class(x) %in% c("sfc_POLYGON", "sfc_MULTIPOLYGON")))
-#     stop("Error!")
-#   x_boundary <- x %>% st_union()             # return a sfc_POLYGON with 1 feature
-#   nodes <- unique(st_coordinates(x_boundary))[,1:2]
-#   edges <- cbind(1:nrow(nodes),c(2:nrow(nodes),1))
-#   nodes_group <- rep(1, times=nrow(nodes))
-#   edges_group <- rep(1, times=nrow(edges))
-#   geometry <- list(coords = nodes, edges = edges,
-#                    nodes_group = nodes_group, edges_group = edges_group)
-#   crs <- NA_crs_
-#   if(!is.na(st_crs(x))) crs <- st_crs(x)
-#   .DomainCtr$new(geometry = geometry, time_interval = vector(mode="numeric", length = 0), 
-#              coords=geometry$nodes, crs = crs)
-# })
 
 #' Delaunay triangulation of the spatial domain
 #' 
@@ -262,39 +254,39 @@ setMethod("build_mesh", signature=c("Domain", "numeric", "numeric"),
   SB = matrix(nrow=0, ncol=1)
   H = matrix(nrow=0, ncol=2)
   
-  for( sub_id in 1:length(domain$geometry)){
-    groups_id <- unique(domain$geometry[[sub_id]]$edges_ring)
+  for( sub_id in 1:length(extract_private(domain)$geometry)){
+    groups_id <- unique(extract_private(domain)$geometry[[sub_id]]$edges_ring)
     holes_id <- groups_id[ groups_id < 0 ]
     num_holes <- length(holes_id)
     
     if(num_holes > 0){
       for(i in 1:num_holes){
-        edges_id <- which(domain$geometry[[sub_id]]$edges_ring==holes_id[i])
-        if( ! all(as.integer(domain$geometry[[sub_id]]$edges_boundary[edges_id])) ){ # NON VERO buco
+        edges_id <- which(extract_private(domain)$geometry[[sub_id]]$edges_ring==holes_id[i])
+        if( ! all(as.integer(extract_private(domain)$geometry[[sub_id]]$edges_boundary[edges_id])) ){ # NON VERO buco
           next
         } 
-        path  <- t(domain$geometry[[sub_id]]$edges[edges_id,])[1,]
+        path  <- t(extract_private(domain)$geometry[[sub_id]]$edges[edges_id,])[1,]
         path  <- c(path,path[1]) 
-        nodes <- as.matrix(domain$coords[path,1:2])
+        nodes <- as.matrix(extract_private(domain)$coords[path,1:2])
         holes <- st_point_on_surface(st_polygon(list(nodes)))
         H = rbind(H, holes)
       }
     }
-    S = rbind(S, domain$geometry[[sub_id]]$edges)
-    SB = rbind(SB, as.matrix(domain$geometry[[sub_id]]$edges_boundary))
+    S = rbind(S, extract_private(domain)$geometry[[sub_id]]$edges)
+    SB = rbind(SB, as.matrix(extract_private(domain)$geometry[[sub_id]]$edges_boundary))
   }
   
   if(nrow(H)==0){
     H = NA
   }
-  pslg <- pslg(P = as.matrix(domain$coords[,1:2]), PB = as.matrix(domain$coords[,3]),
+  pslg <- pslg(P = extract_private(domain)$coords[,1:2], PB = as.matrix(extract_private(domain)$boundary),
                S = S, SB = SB, H = H) 
   triangulation <- triangulate(p = pslg, a = maximum_area, q = minimum_angle)
   
   res <- Mesh(triangulation)
-  res$geometry <- domain$geometry
-  res$time_interval <- domain$time_interval
-  res$crs <- domain$crs
+  set_geometry(res, extract_private(domain)$geometry)
+  set_time_interval(res, extract_private(domain)$time_interval)
+  set_crs(res, extract_private(domain)$crs)
   return(res)
 })
 
@@ -312,6 +304,6 @@ setMethod("%X%", signature=c(op1="Domain", op2="numeric"),
           function(op1, op2){
             if(op2[1] > op2[length(op2)])
               stop("Error! First time instant is greater than last time instant.")
-            op1$time_interval <- op2
+            set_time_interval(op1, op2)
             op1          
 })

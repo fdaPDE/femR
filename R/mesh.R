@@ -2,37 +2,39 @@
 ## Mesh Class Definition
 #' @export 
 .MeshCtr <- R6Class("Mesh", inherit = .DomainCtr,
+                    private = list(
+                      cpp_handler = "ANY",                        ## cpp backend
+                      m = 0L,                                     ## local dim
+                      n = 0L,                                     ## embedding dim
+                      times = vector(mode="double", length = 0L), ## time mesh for parabolic problems
+                      time_step = NA                              ## time step for parabolic problems
+                    ),
                     public = list(
-                      cpp_handler = "ANY",       ## cpp backend
-                      m = 0L,             ## local dim
-                      n = 0L,             ## embedding dim
-                      times = vector(mode="double", length = 0L),
-                      deltaT = NA, # for parabolic problems
                       initialize = function(cpp_handler, m, n){
-                        self$cpp_handler <- cpp_handler
-                        self$m <- m
-                        self$n <- n
+                        private$cpp_handler <- cpp_handler
+                        private$m <- m
+                        private$n <- n
                       },
                       get_nodes = function(){
-                        self$cpp_handler$nodes()
+                        private$cpp_handler$nodes()
                       },
                       get_elements = function(){
-                        self$cpp_handler$elements()+1
+                        private$cpp_handler$elements()+1
                       },
                       get_boundary = function(){
-                        self$cpp_handler$boundary()
+                        private$cpp_handler$boundary()
                       },
                       get_neighbors = function(){
-                        self$cpp_handler$neighbors()
+                        private$cpp_handler$neighbors()
                       },
                       get_times = function(){
-                        return(self$times)
+                        private$times
                       },
-                      set_deltaT = function(deltaT){
-                        if(length(self$time_interval)==0)
+                      set_time_step = function(time_step){
+                        if(length(private$time_interval)==0)
                           stop("Error!")
-                        self$deltaT <- deltaT
-                        self$times <- seq(self$time_interval[1], self$time_interval[2], by=deltaT)
+                        private$time_step <- time_step
+                        private$times <- seq(private$time_interval[1], private$time_interval[2], by=time_step)
                       }
                     )
 )
@@ -112,44 +114,50 @@ setMethod("%X%", signature=c(op1="Mesh", op2="numeric"),
           function(op1, op2){
             if(op2[1] > op2[length(op2)])
               stop("Error! First time instant is greater than last time instant.")
-            op1$times <- times
-            op1$time_interval <- c(times[1], times[length(times)])
-            op1$deltaT <- times[2] - times[1]
+            set_times(op1, op2)
+            set_time_interval(op1, c(op2[1], op2[length(op2)]))
+            set_time_step(op1, (op2[2] - op2[1]))
             op1
 })
 
 ## Mesh - auxiliary methods
-unroll_edges_aux <- function(Mesh){
-  mesh <- Mesh$cpp_handler
-  edges <- matrix(nrow=3*nrow(mesh$elements()), ncol=2)
-  for(i in 1:nrow(mesh$elements())){
-    edges[(3*(i-1) + 1),]   = mesh$elements()[i,c(1,2)] + 1
-    edges[(3*(i-1) + 2),]   = mesh$elements()[i,c(2,3)] + 1
-    edges[(3*(i-1) + 3),]   = mesh$elements()[i,c(3,1)] + 1
+# unroll_edges_aux <- function(mesh){
+#   edges <- matrix(nrow=3*nrow(mesh$get_elements()), ncol=2)
+#   for(i in 1:nrow(mesh$get_elements())){
+#     edges[(3*(i-1) + 1),]   = mesh$get_elements()[i,c(1,2)] 
+#     edges[(3*(i-1) + 2),]   = mesh$get_elements()[i,c(2,3)] 
+#     edges[(3*(i-1) + 3),]   = mesh$get_elements()[i,c(3,1)] 
+#   }
+#   edges
+# }
+
+setGeneric("unroll_edges", function(mesh) standardGeneric("unroll_edges"))
+setMethod("unroll_edges", "Mesh", function(mesh){
+  #unroll_edges_aux(mesh)
+  edges <- matrix(nrow=3*nrow(mesh$get_elements()), ncol=2)
+  for(i in 1:nrow(mesh$get_elements())){
+    edges[(3*(i-1) + 1),]   = mesh$get_elements()[i,c(1,2)] 
+    edges[(3*(i-1) + 2),]   = mesh$get_elements()[i,c(2,3)] 
+    edges[(3*(i-1) + 3),]   = mesh$get_elements()[i,c(3,1)] 
   }
   edges
-}
-
-setGeneric("unroll_edges", function(Mesh) standardGeneric("unroll_edges"))
-setMethod("unroll_edges", "Mesh", function(Mesh){
-  unroll_edges_aux(Mesh)
 })
 
 plot_mesh_aux <- function(x, ...){
   edges <- unroll_edges(x)
   plot_ly(...) %>% 
-    add_markers(x = x$cpp_handler$nodes()[,1],
-                y = x$cpp_handler$nodes()[,2],
+    add_markers(x = x$get_nodes()[,1],
+                y = x$get_nodes()[,2],
                 color = I('black'), size = I(1),
                 hoverinfo = 'text',
-                text = paste('</br><b> Coordinates:', round(x$cpp_handler$nodes()[,1],2),
-                             round(x$cpp_handler$nodes()[,2],2)),
+                text = paste('</br><b> Coordinates:', round(x$get_nodes()[,1],2),
+                             round(x$get_nodes()[,2],2)),
                 showlegend = T,
                 visible = T) %>%
-    add_segments(x = x$cpp_handler$nodes()[edges[,1],1],
-                 y = x$cpp_handler$nodes()[edges[,1],2],
-                 xend = x$cpp_handler$nodes()[edges[,2],1],
-                 yend = x$cpp_handler$nodes()[edges[,2],2], 
+    add_segments(x = x$get_nodes()[edges[,1],1],
+                 y = x$get_nodes()[edges[,1],2],
+                 xend = x$get_nodes()[edges[,2],1],
+                 yend = x$get_nodes()[edges[,2],2], 
                  color = I('black'), size = I(1),
                  showlegend = F) %>%
     layout(
@@ -166,11 +174,6 @@ plot_mesh_aux <- function(x, ...){
         showticklabels = F
       ))
 }
-
-
-# setMethod("plot", signature=c(x="Mesh"), function(x, ...){
-#   plot_mesh_aux(x, ...)  
-# })
 
 #' Plot a Mesh object
 #'

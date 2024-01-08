@@ -21,7 +21,7 @@
 using cpp_pde_2d_fe1 = R_PDE<2,2,1>;
 RCPP_MODULE(cpp_pde_2d_fe1) {
     Rcpp::class_<R_PDE<2,2,1>>("cpp_pde_2d_fe1")
-      .constructor<Rcpp::Environment, int, Rcpp::Nullable<Rcpp::List>, Rcpp::Environment>()
+      .constructor<Rcpp::Environment, int, Rcpp::Nullable<Rcpp::List>>()
       .method("get_quadrature_nodes" , &R_PDE<2,2,1>::get_quadrature_nodes )
       .method("get_dofs_coordinates" , &R_PDE<2,2,1>::get_dofs_coordinates )
       .method("mass"                 , &R_PDE<2,2,1>::mass                 )
@@ -31,12 +31,13 @@ RCPP_MODULE(cpp_pde_2d_fe1) {
       .method("set_forcing"          , &R_PDE<2,2,1>::set_forcing          )
       .method("set_initial_condition", &R_PDE<2,2,1>::set_initial_condition)
       .method("init"                 , &R_PDE<2,2,1>::init                 )
-      .method("solve"                , &R_PDE<2,2,1>::solve                );
+      .method("solve"                , &R_PDE<2,2,1>::solve                )
+      .method("solution"             , &R_PDE<2,2,1>::solution             );
 }
 using cpp_pde_2d_fe2 = R_PDE<2,2,2>;
 RCPP_MODULE(cpp_pde_2d_fe2) {
     Rcpp::class_<R_PDE<2,2,2>>("cpp_pde_2d_fe2")
-      .constructor<Rcpp::Environment, int, Rcpp::Nullable<Rcpp::List>, Rcpp::Environment>()
+      .constructor<Rcpp::Environment, int, Rcpp::Nullable<Rcpp::List>>()
       .method("get_quadrature_nodes" , &R_PDE<2,2,2>::get_quadrature_nodes )
       .method("get_dofs_coordinates" , &R_PDE<2,2,2>::get_dofs_coordinates )
       .method("mass"                 , &R_PDE<2,2,2>::mass                 )
@@ -46,5 +47,6 @@ RCPP_MODULE(cpp_pde_2d_fe2) {
       .method("set_forcing"          , &R_PDE<2,2,2>::set_forcing          )
       .method("set_initial_condition", &R_PDE<2,2,2>::set_initial_condition)
       .method("init"                 , &R_PDE<2,2,2>::init                 )
-      .method("solve"                , &R_PDE<2,2,2>::solve                );
+      .method("solve"                , &R_PDE<2,2,2>::solve                )
+      .method("solution"             , &R_PDE<2,2,2>::solution             );
 }

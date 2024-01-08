@@ -63,11 +63,10 @@ template <int M, int N, int R> class R_PDE : public PDEWrapper {
     DomainType domain_ {};           // triangulation
     QuadratureRule integrator_ {};   // quadrature rule (exact for the provided fem order)
     int pde_type_;                   // one of the pde_type enum values
-    Rcpp::Environment solution_;
    public:
     // constructor
-    R_PDE(Rcpp::Environment mesh, int pde_type, const Rcpp::Nullable<Rcpp::List>& pde_parameters, Rcpp::Environment solution) :
-        pde_type_(pde_type), solution_(solution){
+    R_PDE(Rcpp::Environment mesh, int pde_type, const Rcpp::Nullable<Rcpp::List>& pde_parameters) :
+        pde_type_(pde_type){
         // set domain
         SEXP meshptr = mesh[".pointer"];
         R_Mesh<M, N>* ptr = reinterpret_cast<R_Mesh<M, N>*>(R_ExternalPtrAddr(meshptr));
@@ -114,10 +113,9 @@ template <int M, int N, int R> class R_PDE : public PDEWrapper {
     // initialize internal pde status
     void init() { pde_.init(); }
     //solve 
-    void solve() { 
-    		pde_.solve();
-   		solution_["coeff"] = pde_.solution();
-    }
+    void solve() { pde_.solve(); }
+    // returns solution
+    const DMatrix<double>& solution() const { return pde_.solution(); }
     // destructor
     ~R_PDE() = default;
 };
