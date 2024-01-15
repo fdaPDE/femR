@@ -22,7 +22,7 @@ Mesh(domain)
 }}
 }
 \value{
-An S4 object representing a Mesh.
+A R6 class representing a Mesh.
 }
 \description{
 Mesh

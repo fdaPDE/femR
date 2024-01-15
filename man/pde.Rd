@@ -9,7 +9,7 @@
 \usage{
 Pde(DifferentialOp, f)
 
-\S4method{Pde}{DiffOpObject,`function`}(DifferentialOp, f)
+\S4method{Pde}{DiffOpObject,function}(DifferentialOp, f)
 
 \S4method{Pde}{DiffOpObject,numeric}(DifferentialOp, f)
 }

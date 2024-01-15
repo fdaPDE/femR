@@ -5,12 +5,12 @@
 \alias{grad,Function-method}
 \title{Function gradient}
 \usage{
-grad(f)
+grad(Function)
 
-\S4method{grad}{Function}(f)
+\S4method{grad}{Function}(Function)
 }
 \arguments{
-\item{f}{a Function created by \code{Function}:}
+\item{Function}{a Function created by \code{Function}:}
 }
 \value{
 An S4 object representing the gradient of the Function passed as parameter.

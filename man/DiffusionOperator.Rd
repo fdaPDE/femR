@@ -5,12 +5,12 @@
 \alias{div}
 \title{laplace operator for Function class}
 \usage{
-laplace(f)
+laplace(Function)
 
-div(f)
+div(Function)
 }
 \arguments{
-\item{f}{a Function.}
+\item{Function}{a Function.}
 }
 \value{
 A S4 object representing the laplace operator applied to the function passed as parameter.
