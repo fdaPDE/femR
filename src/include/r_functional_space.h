@@ -109,7 +109,7 @@ template <int M, int N, int R> class R_FunctionalSpace {
     }
     
     // returns the coordinates of the dofs
-    DMatrix<double> get_dofs_coordinates() { return fun_space_.dofs_coords(); }
+    DMatrix<double> dofs_coordinates() { return fun_space_.dofs_coords(); }
     
     // destructor
     ~R_FunctionalSpace() = default;

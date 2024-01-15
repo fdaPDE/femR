@@ -6,3 +6,10 @@
 #'
 #' @name unit_square
 NULL
+
+#' Lake Como boundary
+#'
+#' sf object storing the boundary of Lake Como.
+#'
+#' @name lake_como_boundary
+NULL

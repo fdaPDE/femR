@@ -1,17 +1,17 @@
 .DomainCtr <- R6Class("Domain", 
                       private = list(
-                        geometry = "ANY",
-                        coords = "matrix",         # (x,y)
-                        boundary = "matrix",        # 
-                        time_interval = vector(mode="numeric", length = 0),
-                        crs = "ANY"
+                        geometry_ = "ANY",
+                        coords_ = "matrix",         # (x,y)
+                        boundary_ = "matrix",        # 
+                        time_interval_ = vector(mode="numeric", length = 0),
+                        crs_ = "ANY"
                       ),
                       public = list(
                         initialize = function(geometry, coords, boundary, crs){
-                                      private$geometry <- geometry 
-                                      private$coords <- coords 
-                                      private$boundary <- boundary
-                                      private$crs <- crs
+                                      private$geometry_ <- geometry 
+                                      private$coords_ <- coords 
+                                      private$boundary_ <- boundary
+                                      private$crs_ <- crs
                                     }
                       )
 )
@@ -254,39 +254,39 @@ setMethod("build_mesh", signature=c("Domain", "numeric", "numeric"),
   SB = matrix(nrow=0, ncol=1)
   H = matrix(nrow=0, ncol=2)
   
-  for( sub_id in 1:length(extract_private(domain)$geometry)){
-    groups_id <- unique(extract_private(domain)$geometry[[sub_id]]$edges_ring)
+  for( sub_id in 1:length(extract_private(domain)$geometry_)){
+    groups_id <- unique(extract_private(domain)$geometry_[[sub_id]]$edges_ring)
     holes_id <- groups_id[ groups_id < 0 ]
     num_holes <- length(holes_id)
     
     if(num_holes > 0){
       for(i in 1:num_holes){
-        edges_id <- which(extract_private(domain)$geometry[[sub_id]]$edges_ring==holes_id[i])
-        if( ! all(as.integer(extract_private(domain)$geometry[[sub_id]]$edges_boundary[edges_id])) ){ # NON VERO buco
+        edges_id <- which(extract_private(domain)$geometry_[[sub_id]]$edges_ring==holes_id[i])
+        if( ! all(as.integer(extract_private(domain)$geometry_[[sub_id]]$edges_boundary[edges_id])) ){ # NON VERO buco
           next
         } 
-        path  <- t(extract_private(domain)$geometry[[sub_id]]$edges[edges_id,])[1,]
+        path  <- t(extract_private(domain)$geometry_[[sub_id]]$edges[edges_id,])[1,]
         path  <- c(path,path[1]) 
-        nodes <- as.matrix(extract_private(domain)$coords[path,1:2])
+        nodes <- as.matrix(extract_private(domain)$coords_[path,1:2])
         holes <- st_point_on_surface(st_polygon(list(nodes)))
         H = rbind(H, holes)
       }
     }
-    S = rbind(S, extract_private(domain)$geometry[[sub_id]]$edges)
-    SB = rbind(SB, as.matrix(extract_private(domain)$geometry[[sub_id]]$edges_boundary))
+    S = rbind(S, extract_private(domain)$geometry_[[sub_id]]$edges)
+    SB = rbind(SB, as.matrix(extract_private(domain)$geometry_[[sub_id]]$edges_boundary))
   }
   
   if(nrow(H)==0){
     H = NA
   }
-  pslg <- pslg(P = extract_private(domain)$coords[,1:2], PB = as.matrix(extract_private(domain)$boundary),
+  pslg <- pslg(P = extract_private(domain)$coords_[,1:2], PB = as.matrix(extract_private(domain)$boundary_),
                S = S, SB = SB, H = H) 
   triangulation <- triangulate(p = pslg, a = maximum_area, q = minimum_angle)
   
   res <- Mesh(triangulation)
-  set_geometry(res, extract_private(domain)$geometry)
-  set_time_interval(res, extract_private(domain)$time_interval)
-  set_crs(res, extract_private(domain)$crs)
+  set_private(res, "geometry_"     , extract_private(domain)$geometry_  )
+  set_private(res, "time_interval_", extract_private(domain)$time_interval_)
+  set_private(res, "crs_"          , extract_private(domain)$crs_       )
   return(res)
 })
 
@@ -304,6 +304,6 @@ setMethod("%X%", signature=c(op1="Domain", op2="numeric"),
           function(op1, op2){
             if(op2[1] > op2[length(op2)])
               stop("Error! First time instant is greater than last time instant.")
-            set_time_interval(op1, op2)
+            set_private(op1, "time_interval_", op2)
             op1          
 })

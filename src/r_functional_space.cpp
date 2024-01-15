@@ -22,18 +22,18 @@ using cpp_lagrange_basis_2d_fe1 = R_FunctionalSpace<2,2,1>;
 RCPP_MODULE(cpp_lagrange_basis_2d_fe1) {
     Rcpp::class_<R_FunctionalSpace<2,2,1>>("cpp_lagrange_basis_2d_fe1")
       .constructor<Rcpp::Environment, int>()
-      .method("size"      	    , &R_FunctionalSpace<2,2,1>::size     )
-      .method("eval"       	    , &R_FunctionalSpace<2,2,1>::eval     )
-      .method("integrate" 	    , &R_FunctionalSpace<2,2,1>::integrate)
-      .method("get_dofs_coordinates", &R_FunctionalSpace<2,2,1>::get_dofs_coordinates);
+      .method("size"      	    , &R_FunctionalSpace<2,2,1>::size            )
+      .method("eval"       	    , &R_FunctionalSpace<2,2,1>::eval            )
+      .method("integrate" 	    , &R_FunctionalSpace<2,2,1>::integrate       )
+      .method("dofs_coordinates", &R_FunctionalSpace<2,2,1>::dofs_coordinates);
 }
 
 using cpp_lagrange_basis_2d_fe2 = R_FunctionalSpace<2,2,2>;
 RCPP_MODULE(cpp_lagrange_basis_2d_fe2) {
     Rcpp::class_<R_FunctionalSpace<2,2,2>>("cpp_lagrange_basis_2d_fe2")
       .constructor<Rcpp::Environment, int>()
-      .method("size"                , &R_FunctionalSpace<2,2,2>::size     )
-      .method("eval"      	    , &R_FunctionalSpace<2,2,2>::eval     )
-      .method("integrate" 	    , &R_FunctionalSpace<2,2,2>::integrate)
-      .method("get_dofs_coordinates", &R_FunctionalSpace<2,2,2>::get_dofs_coordinates);
+      .method("size"            , &R_FunctionalSpace<2,2,2>::size            )
+      .method("eval"      	    , &R_FunctionalSpace<2,2,2>::eval            )
+      .method("integrate" 	    , &R_FunctionalSpace<2,2,2>::integrate       )
+      .method("dofs_coordinates", &R_FunctionalSpace<2,2,2>::dofs_coordinates);
 }

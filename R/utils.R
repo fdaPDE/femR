@@ -5,34 +5,10 @@ setMethod("extract_private", signature = "R6",
             x$.__enclos_env__$private
 })
 
-setGeneric("set_geometry", function(x, value) standardGeneric("set_geometry"))
-setMethod("set_geometry", signature = "Domain", 
-          function(x, value){
-            invisible(x$.__enclos_env__$private$geometry <- value)
-})
-
-setGeneric("set_time_interval", function(x, value) standardGeneric("set_time_interval"))
-setMethod("set_time_interval", signature = "Domain", 
-          function(x, value){
-            invisible(x$.__enclos_env__$private$time_interval <- value)
-})
-
-setGeneric("set_crs", function(x, value) standardGeneric("set_crs"))
-setMethod("set_crs", signature = "Domain", 
-          function(x, value){
-            invisible(x$.__enclos_env__$private$crs <- value)
-})
-
-setGeneric("set_times", function(x, value) standardGeneric("set_times"))
-setMethod("set_times", signature = "Mesh", 
-          function(x, value){
-            invisible(x$.__enclos_env__$private$times <- value)
-})
-
-setGeneric("set_time_step", function(x, value) standardGeneric("set_time_step"))
-setMethod("set_time_step", signature = "Mesh", 
-          function(x, value){
-            invisible(x$.__enclos_env__$private$time_step <- value)
+setGeneric("set_private", function(x, attribute, value) standardGeneric("set_private"))
+setMethod("set_private", signature = c("R6", "character"), 
+          function(x, attribute, value){
+            invisible(x$.__enclos_env__$private[[attribute]] <- value)
 })
 
 # extract_private <- function(x){

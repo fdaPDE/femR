@@ -90,9 +90,9 @@ template <int M, int N, int R> class R_PDE : public PDEWrapper {
         } break;
         case pde_type::second_order_parabolic: {
             SMatrix<M> K = Rcpp::as<DMatrix<double>>(pde_parameters_["diffusion"]);
-            DVector<double> time_mesh = Rcpp::as<DVector<double>>(pde_parameters_["time_mesh"]);
+            DVector<double> time_nodes = Rcpp::as<DVector<double>>(pde_parameters_["time_nodes"]);
             auto L = dt<FEM>() + diffusion<FEM>(K) + advection<FEM>(b) + reaction<FEM>(c);
-            pde_ = PDEType<decltype(L)>(domain_, time_mesh, L);
+            pde_ = PDEType<decltype(L)>(domain_, time_nodes, L);
         } break;
         }
     }
@@ -104,8 +104,8 @@ template <int M, int N, int R> class R_PDE : public PDEWrapper {
         pde_.set_initial_condition(data);
     }
     // getters
-    DMatrix<double> get_quadrature_nodes() const { return integrator_.quadrature_nodes(domain_); };
-    DMatrix<double> get_dofs_coordinates() const { return pde_.dof_coords(); };
+    DMatrix<double> quadrature_nodes() const { return integrator_.quadrature_nodes(domain_); };
+    DMatrix<double> dofs_coordinates() const { return pde_.dof_coords(); };
     // avaiable only after initialization
     const SpMatrix<double>& mass() const { return pde_.mass(); }
     const SpMatrix<double>& stiff() const { return pde_.stiff(); }

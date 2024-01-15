@@ -58,17 +58,17 @@ pde <- Pde(L, f)
 pde$set_boundary_condition(g)
 pde$set_initial_condition(u0)
 
-pde$set_boundary_condition(g(pde$get_dofs_coordinates(),times))
-pde$set_initial_condition(u0(pde$get_dofs_coordinates()))
+pde$set_boundary_condition(g(pde$dofs_coordinates(),times))
+pde$set_initial_condition(u0(pde$dofs_coordinates()))
 
 pde$solve()
 
 ## compute L2 norm of the error
-u_ex <- exact_solution(pde$get_dofs_coordinates(), times)
+u_ex <- exact_solution(pde$dofs_coordinates(), times)
  
 error.L2 <- matrix(0, nrow=length(times), ncol=1)
 for( t in 1:length(times)){
-  error.L2[t] <- sqrt(sum(pde$get_mass() %*% (u_ex[,t] - u$coeff[,t])^2))
+  error.L2[t] <- sqrt(sum(pde$mass() %*% (u_ex[,t] - u$coefficients()[,t])^2))
   cat(paste0("L2 error at time ",times[t]," ", error.L2[t], "\n"))
 }
 # ------------------------------------------------------------------------------

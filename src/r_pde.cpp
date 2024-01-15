@@ -22,8 +22,8 @@ using cpp_pde_2d_fe1 = R_PDE<2,2,1>;
 RCPP_MODULE(cpp_pde_2d_fe1) {
     Rcpp::class_<R_PDE<2,2,1>>("cpp_pde_2d_fe1")
       .constructor<Rcpp::Environment, int, Rcpp::Nullable<Rcpp::List>>()
-      .method("get_quadrature_nodes" , &R_PDE<2,2,1>::get_quadrature_nodes )
-      .method("get_dofs_coordinates" , &R_PDE<2,2,1>::get_dofs_coordinates )
+      .method("quadrature_nodes"     , &R_PDE<2,2,1>::quadrature_nodes     )
+      .method("dofs_coordinates"     , &R_PDE<2,2,1>::dofs_coordinates     )
       .method("mass"                 , &R_PDE<2,2,1>::mass                 )
       .method("stiff"                , &R_PDE<2,2,1>::stiff                )
       .method("force"                , &R_PDE<2,2,1>::force                )
@@ -38,8 +38,8 @@ using cpp_pde_2d_fe2 = R_PDE<2,2,2>;
 RCPP_MODULE(cpp_pde_2d_fe2) {
     Rcpp::class_<R_PDE<2,2,2>>("cpp_pde_2d_fe2")
       .constructor<Rcpp::Environment, int, Rcpp::Nullable<Rcpp::List>>()
-      .method("get_quadrature_nodes" , &R_PDE<2,2,2>::get_quadrature_nodes )
-      .method("get_dofs_coordinates" , &R_PDE<2,2,2>::get_dofs_coordinates )
+      .method("quadrature_nodes"     , &R_PDE<2,2,2>::quadrature_nodes     )
+      .method("dofs_coordinates"     , &R_PDE<2,2,2>::dofs_coordinates     )
       .method("mass"                 , &R_PDE<2,2,2>::mass                 )
       .method("stiff"                , &R_PDE<2,2,2>::stiff                )
       .method("force"                , &R_PDE<2,2,2>::force                )

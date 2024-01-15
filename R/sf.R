@@ -15,23 +15,23 @@
 #' @export
 st_as_sf.Domain <- function(x, ...){
   geom_sf <- list()
-  for(sub_id in 1:length(extract_private(x)$geometry)){
+  for(sub_id in 1:length(extract_private(x)$geometry_)){
     
-    geometry <- extract_private(x)$geometry[[sub_id]]
+    geometry <- extract_private(x)$geometry_[[sub_id]]
     path_id <- unique(geometry$edges_ring)
     
     path_list = vector(mode="list", length=length(path_id))
     for(i in 1:length(path_id)){
       path  <- t(geometry$edges[geometry$edges_ring==path_id[i],][,1]) 
       path  <- c(path,path[1]) 
-      nodes <- as.matrix(extract_private(x)$coords[path,1:2]) 
+      nodes <- as.matrix(extract_private(x)$coords_[path,1:2]) 
       path_list[[i]] <- st_linestring(nodes)
     }
     
     # edges to st_linestring ! (FAST)
     edge_list <- lapply(as.list(as.data.frame(t(geometry$edges))), FUN=
                           function(edge){
-                            st_linestring(as.matrix(extract_private(x)$coords[edge,1:2]))
+                            st_linestring(as.matrix(extract_private(x)$coords_[edge,1:2]))
                           })
     
     # nodes to st_point ! (FAST)
@@ -46,7 +46,7 @@ st_as_sf.Domain <- function(x, ...){
             1:nrow(geometry$nodes))
     
     group <- as.factor(group)
-    crs <- extract_private(x)$crs
+    crs <- extract_private(x)$crs_
     if(is.na(crs)) crs <- NA_crs_
     geom_sfc <- st_sfc( append(append(path_list, edge_list), pts_list), crs=crs)
     geom_sf[[sub_id]] <- st_as_sf(data.frame(label= label,
@@ -54,7 +54,7 @@ st_as_sf.Domain <- function(x, ...){
                                   geometry = geom_sfc)
     
   }
-  if(length(extract_private(x)$geometry)==1) geom_sf <- geom_sf[[1]]
+  if(length(extract_private(x)$geometry_)==1) geom_sf <- geom_sf[[1]]
   return(geom_sf)
 }
 
@@ -67,25 +67,25 @@ st_as_sf.Domain <- function(x, ...){
 #' @rdname sf
 #' @export
 st_as_sfc.Domain <- function(x, ...){
-  polygon_list <- list(mode="list", length=length(extract_private(x)$geometry))
-  for(sub_id in 1:length(extract_private(x)$geometry)){
-    geometry <- extract_private(x)$geometry[[sub_id]]
+  polygon_list <- list(mode="list", length=length(extract_private(x)$geometry_))
+  for(sub_id in 1:length(extract_private(x)$geometry_)){
+    geometry <- extract_private(x)$geometry_[[sub_id]]
     
     path_id <- unique(geometry$edges_ring)
     path_list = vector(mode="list", length=length(path_id))
     for(i in 1:length(path_id)){
       path  <- t(geometry$edges[geometry$edges_ring==path_id[i],])[1,]
       path  <- c(path,path[1]) 
-      nodes <- as.matrix(extract_private(x)$coords[path,1:2]) 
+      nodes <- as.matrix(extract_private(x)$coords_[path,1:2]) 
       path_list[[i]] <- nodes
     }
     polygon_list[[sub_id]] <- st_cast(st_polygon(path_list),
                                       to="MULTIPOLYGON")
   }
-  crs <- extract_private(x)$crs
+  crs <- extract_private(x)$crs_
   if(is.na(crs)) crs <- NA_crs_
   
-  if(length(extract_private(x)$geometry)==1){
+  if(length(extract_private(x)$geometry_)==1){
     result <- st_sfc(polygon_list[[1]], crs=crs)
   }else{
     result <- st_sfc(polygon_list, crs=crs)
@@ -101,13 +101,13 @@ st_as_sfc.Domain <- function(x, ...){
 #' @export
 st_as_sfc.Mesh <- function(x, ...){
 
-  polygon_list <- apply(x$get_elements(), MARGIN=1, FUN=function(elem){
-    st_cast(st_linestring(x$get_nodes()[elem,]),
+  polygon_list <- apply(x$elements(), MARGIN=1, FUN=function(elem){
+    st_cast(st_linestring(x$nodes()[elem,]),
             to ="POLYGON"
     )
   })
   
-  crs <- extract_private(x)$crs
+  crs <- extract_private(x)$crs_
   if(is.na(crs)) crs <- NA_crs_
   mesh_sf <- st_sfc(polygon_list, crs = crs)
   mesh_sf
@@ -126,7 +126,6 @@ st_crs.Domain <- function(x, ...){
 `st_crs<-.Domain` = function(x, value) {
   sfc <- st_as_sfc(x)
   st_crs(sfc) <- value
-  set_crs(x, value)
-  #crs <- st_crs(sfc)$input
+  set_private(x, "crs_", value)
 }
 

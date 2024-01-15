@@ -20,7 +20,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.align= "center",
 library(sf, quietly = T)
 library(mapview, quietly = T)
 library(femR, quietly = T)
-library(rmapshaper, quietly = T)
+#library(rmapshaper, quietly = T)
 ```
 
 Lake Como, nestled in the Lombardy region, is recognized as a crucial freshwater ecosystem esteemed for its biodiversity and ecological significance. Environmental studies have suggested the presence and spreading of a substance of interest within the lake's waters. This hypothetical presence prompts a thorough examination to understand its nature, source, and potential implications on Lake Como's delicate ecosystem.<br>
@@ -28,18 +28,16 @@ Assume that several monitoring stations have been strategically established arou
 The following interactive figure shows the comprehensive map of Lake Como and includes georeferenced black points denoting the strategic placement of monitoring stations across its expanse. 
 The red points denote potential 'hotspots' where, in the hypothetical scenario under investigation, abnormal concentrations of the substance of interest have been recorded. 
 ```{r, echo=FALSE}
-lake_bd <- read_sf("data/deims_sites_boundariesPolygon.shp")
-lake_bd_simp <- rmapshaper::ms_simplify(lake_bd, keep= 0.5, 
-                                        keep_shapes=T)
-st_crs(lake_bd_simp) <- 4326
-domain <- Domain(st_geometry(lake_bd_simp))
+data("lake_como_boundary", package="femR")
+st_crs(lake_como_boundary) <- 4326
+domain <- Domain(st_geometry(lake_como_boundary))
 mesh <- build_mesh(domain, maximum_area = 0.25e-5, minimum_angle = 20)
 mesh_sf <- st_as_sfc(mesh)
 set.seed(0)
 num_stations <- 20
-boundary_points <- which(mesh$get_boundary() == 1)
+boundary_points <- which(mesh$boundary() == 1)
 boundary_id <- sample(x = 1:length(boundary_points),size = num_stations)
-stations <- lapply(as.list(as.data.frame(t(mesh$get_nodes()[boundary_id,]))),
+stations <- lapply(as.list(as.data.frame(t(mesh$nodes()[boundary_id,]))),
                    st_point)
 
 stations <- st_sfc(stations, crs=4326)
@@ -53,14 +51,14 @@ map.type <- "Esri.WorldTopoMap"
 mappa_completa <-  mapview(stations, legend=F, cex=5, col.region="black",
         map.type=map.type) + 
   mapview(sources, legend=F, cex=5, col.region="red") +
-  mapview(lake_bd_simp, col.regions = "white", lwd = 2, 
+  mapview(lake_como_boundary, col.regions = "white", lwd = 2, 
           alpha.regions=0.2,legend=F)
 mappa_completa
 
 mappa_mesh <- mapview(mesh_sf, col.region="white",alpha.regions=0.2,legend=F,  alpha=0.2,
         lwd=0.4,
         map.type=map.type) + 
-  mapview(lake_bd_simp, col.regions = "white", lwd = 2, 
+  mapview(lake_como_boundary, col.regions = "white", lwd = 2, 
           alpha.regions=0.2,legend=F)
 
 beta <- lapply(st_geometry(stations)[c(9,8)], as.numeric)
@@ -92,16 +90,16 @@ library(femR, quietly = T)
 library(rmapshaper, quietly = T)
 
 lake_bd <- read_sf("data/deims_sites_boundariesPolygon.shp")
-lake_bd_simp <- rmapshaper::ms_simplify(lake_bd, keep= 0.5, 
+lake_como_boundary <- rmapshaper::ms_simplify(lake_bd, keep= 0.5, 
                                         keep_shapes=T)
-st_crs(lake_bd_simp) <- 4326
+st_crs(lake_como_boundary) <- 4326
 
 ```
 
 The `femR` package includes utilities  to read a `sfc` (Simple Features Collection) object, such as the boundary of the Lake, and generating meshes by specifying the `maximum_area` of each triangle and the `minimum_angle` between adjacent sides of the triangles.
 ```{r}
 # create the physical domain
-domain <- Domain(st_geometry(lake_bd_simp)) 
+domain <- Domain(st_geometry(lake_como_boundary)) 
 # create the mesh
 mesh <- build_mesh(domain, maximum_area = 0.25e-5, minimum_angle = 20)
 ```
@@ -111,7 +109,7 @@ Furthermore, the `Mesh` class overloads the `st_as_sfc` method, enabling visuali
 mesh_sf <- st_as_sfc(mesh)
 
 map.type <- "Esri.WorldTopoMap"
-mapview(lake_bd_simp, col.regions = "white", lwd = 2, 
+mapview(lake_como_boundary, col.regions = "white", lwd = 2, 
           alpha.regions=0.2, legend=F, map.type=map.type) +
 mapview(mesh_sf, col.region="white", alpha.regions=0.2, legend=F,  alpha=0.4,
         lwd=0.4, map.type=map.type) 
@@ -159,9 +157,9 @@ pde$solve()
 ```
 It is possible to visualize the computed solution on an interactive map using the `mapview` package as the following code snippet shows.
 ```{r}
-coeff <- apply(mesh$get_elements(), MARGIN=1, 
+coeff <- apply(mesh$elements(), MARGIN=1, 
                FUN= function(edge){
-                     mean(u$coeff[edge])
+                     mean(u$coefficients()[edge])
          })
 U <- st_sf(data.frame(coeff = coeff), geometry= mesh_sf)
 mapview(U, alpha.regions=0.8, alpha = 0, map.type=map.type)
@@ -170,8 +168,8 @@ mapview(U, alpha.regions=0.8, alpha = 0, map.type=map.type)
 ```{r,eval=FALSE, include=FALSE}
 library(webshot2)
 library(leaflet)
-cntr_crds <- c(mean(mesh$get_nodes()[, 1]),
-               mean(mesh$get_nodes()[, 2]))
+cntr_crds <- c(mean(mesh$nodes()[, 1]),
+               mean(mesh$nodes()[, 2]))
 
 solution <- mapview(U, alpha.regions=0.8,  legend=F,
                     alpha = 0,                
@@ -260,7 +258,7 @@ g <- function(points, times){
   return(res)
 }
 # initial condition
-u0 <- g(mesh$get_nodes(), times[1])
+u0 <- g(mesh$nodes(), times[1])
 # build PDE object
 pde <- Pde(Lu, 0.)
 # set initial conditions

@@ -1,11 +1,16 @@
 # gradient of Function
 .FunctionGradCtr <- R6Class("FunctionGrad",
+  private = list(
+    Function_ = "Function"
+  ),
   public = list(
-    f = "Function", ## Function of which the gradient is taken
     K = "ANY",      ## set by product operator
-    initialize = function(f, K=matrix(c(1,0,0,1), nrow=2,ncol=2,byrow=T)){
-      self$f <- f
+    initialize = function(Function, K=matrix(c(1,0,0,1), nrow=2,ncol=2,byrow=T)){
+      private$Function_ <- Function
       self$K <- K
+    },
+    Function = function(){
+      private$Function_
     }
   )
 )
@@ -21,7 +26,7 @@ setOldClass(c("FunctionGrad", "R6"))
 
 #' compute gradient of Function
 #'
-#' @param f a Function created by \code{Function}:
+#' @param Function a Function created by \code{Function}:
 #' @return An S4 object representing the gradient of the Function passed as parameter.
 #' @export 
 #' @rdname grad
@@ -34,11 +39,11 @@ setOldClass(c("FunctionGrad", "R6"))
 #' f <- Function(Vh)
 #' grad_f <- grad(f)
 #' }
-setGeneric("grad", function(f) standardGeneric("grad"))
+setGeneric("grad", function(Function) standardGeneric("grad"))
 
 #' @rdname grad
-setMethod("grad", signature(f = "Function"), function(f) {
-  .FunctionGradCtr$new(f = f)
+setMethod("grad", signature(Function = "Function"), function(Function) {
+  .FunctionGradCtr$new(Function = Function)
 })
 
 # setMethod("*", signature=c(e1="matrix", e2="FunctionGrad")
@@ -51,22 +56,27 @@ setMethod("grad", signature(f = "Function"), function(f) {
 #' @export 
 `*.FunctionGrad` <- function(e1, e2){
   if (!is.matrix(e1)) stop("First argument must be a matrix!")
-        .FunctionGradCtr$new(f = e2$f, K = e1)    
+        .FunctionGradCtr$new(Function = e2$Function(), K = e1)    
 }
 
 ## base class for differential operators
 .DiffOpCtr <- R6Class("DiffOpObject",
+    private = list(
+      ## Function to which the operator is applied
+      Function_ = "Function"
+    ),
     public = list(
-        initialize = function(tokens, params, f){
+        initialize = function(tokens, params, Function){
           self$tokens <- tokens
           self$params <- params
-          self$f <- f
+          private$Function_ <- Function
         },
         ## single blocks composing the overall operator
         tokens = "vector",
         params = "list",
-        ## Function to which the operator is applied
-        f = "Function"
+        Function = function(){
+          private$Function_
+        }
     )
 )
 
@@ -89,7 +99,7 @@ setOldClass(c("DiffOpObject", "R6"))
 #' @name DifferentialOps
 #' @export 
 `+.DiffOpObject` <- function(e1, e2){
-            if (!identical(e1$f, e2$f)) {
+            if (!identical(e1$Function(), e2$Function())) {
               stop("operator arguments must be the same")
             }
             ## check for duplicated operator tokens
@@ -99,7 +109,7 @@ setOldClass(c("DiffOpObject", "R6"))
             .DiffOpCtr$new(
               tokens = c(e1$tokens, e2$tokens),
               params = c(e1$params, e2$params),
-              f = e1$f
+              Function = e1$Function()
             )
 }
 
@@ -117,7 +127,7 @@ setOldClass(c("DiffOpObject", "R6"))
             if(missing(e2)){
               e1$params[[1]] <- -e1$params[[1]]
               return(e1)
-            }else if (!identical(e1$f, e2$f)) {
+            }else if (!identical(e1$Function(), e2$Function())) {
               stop("operator arguments must be the same")
             }
             ## check for duplicated operator tokens
@@ -130,7 +140,7 @@ setOldClass(c("DiffOpObject", "R6"))
             .DiffOpCtr$new(
               tokens = c(e1$tokens, e2$tokens),
               params = c(e1$params, e2$params),
-              f = e1$f
+              Function = e1$Function()
             )
   }
 
@@ -161,7 +171,7 @@ setOldClass(c("DiffOpObject", "R6"))
             if (!is.numeric(e1)) stop("bad product")
             e2$params[[1]] <- e1*e2$params[[1]]
             e2
-          }
+}
   
 ## diffusion term
 .DiffusionCtr <- R6Class("DiffusionOperator",
@@ -180,7 +190,7 @@ setOldClass(c("DiffusionOperator", "DiffOpObject"))
 
 #' laplace operator for Function class
 #'
-#' @param f a Function.
+#' @param Function a Function.
 #' @return A S4 object representing the laplace operator applied to the function passed as parameter.
 #' @rdname DiffusionOperator
 #' @export 
@@ -193,14 +203,14 @@ setOldClass(c("DiffusionOperator", "DiffOpObject"))
 #' f <- Function(Vh)
 #' laplace_f <- laplace(f)
 #' }
-laplace <- function(f) {
-    if (!is(f, "Function")) {
+laplace <- function(Function) {
+    if (!is(Function, "Function")) {
         stop("wrong argument type")
     }
     .DiffusionCtr$new(
         tokens = "diffusion",
         params = list(diffusion = 1),
-        f = f
+        Function = Function
     )
 }
 
@@ -208,7 +218,7 @@ laplace <- function(f) {
 
 #' divergence operator FunctionGrad
 #'
-#' @param f a Function.
+#' @param Function a Function.
 #' @return A S4 object representing the diffusion term of a second order linear differential operator.
 #' @rdname DiffusionOperator
 #' @export
@@ -222,13 +232,13 @@ laplace <- function(f) {
 #' K <- matrix(c(1,2,1,0),nrow=2,ncol=2)
 #' diffusion <- div(K*grad(f))
 #' } 
-div <- function(f) {
-    if (is(f, "FunctionGrad")) {
-        if (!is.null(f$K)) {
+div <- function(Function) {
+    if (is(Function, "FunctionGrad")) {
+        if (!is.null(Function$K)) {
             return(.DiffusionCtr$new(
                        tokens = "diffusion",
-                       params = list(diffusion = f$K),
-                       f = f$f)
+                       params = list(diffusion = Function$K),
+                       Function = Function$Function())
                    )
         }
     }
@@ -272,7 +282,7 @@ setMethod("dot", signature(op1 = "vector", op2 = "FunctionGrad"),
               .TransportCtr$new(
                   tokens = "transport",
                   params = list(transport = as.matrix(op1)),
-                  f = op2$f
+                  Function = op2$Function()
               )
 })
 
@@ -311,7 +321,7 @@ setOldClass(c("ReactionOperator", "DiffOpObject"))
             .ReactionCtr$new(
               tokens = "reaction",
               params = list(reaction = e1),
-              f = e2
+              Function = e2
             )
 }
 
@@ -346,8 +356,8 @@ setOldClass(c("TimeDerivative", "DiffOpObject"))
 setMethod("dt", signature = c(x="Function", df="missing", ncp="missing"),
            function(x,df,ncp){
              .TimeDerivativeCtr$new(
-               tokens="time",
+               tokens = "time",
                params = list(time=1L),
-              f=x
+               Function = x
             )
 })

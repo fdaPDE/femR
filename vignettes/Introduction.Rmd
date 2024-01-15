@@ -56,8 +56,8 @@ p <- pslg(P=rbind(c(0, 0), c(1, 0), c(1, 1), c(0, 1)),
           S=rbind(c(1, 2), c(2, 3), c(3, 4), c(4,1)))
 unit_square <- triangulate(p, a = 0.00125, q=30)
 domain <- Mesh(unit_square)
-xrange <- range(domain$get_nodes()[,1])
-yrange <- range(domain$get_nodes()[,2])
+xrange <- range(domain$nodes()[,1])
+yrange <- range(domain$nodes()[,2])
 Nx <- 40
 Ny <- 40
 eval_x <- seq(from=xrange[1], to=xrange[2], length.out=Nx)
@@ -194,10 +194,10 @@ mesh_aux <- Mesh(tpp)
 Vh_aux <- FunctionSpace(mesh_aux)
 hat_function <- Function(Vh_aux)
 
-coeff_aux <- rep(0, times=nrow(mesh$get_nodes()))
+coeff_aux <- rep(0, times=nrow(mesh_aux$nodes()))
 coeff_aux[5] = 1
 
-hat_function$set_coeff(as.matrix(coeff_aux))
+hat_function$set_coefficients(as.matrix(coeff_aux))
 
 # scene = list(camera = list(eye = list(x = 0, y = 0, z = 1.25)),
 #              yaxis = list(autorange="reversed"),
@@ -268,8 +268,8 @@ Since, we are dealing with a simple differential problem and we know the analyti
 exact_solution <- function(points){
     return( sin(2.*pi*points[,1])*sin(2.*pi*points[,2]))
 }
-u_ex <- as.matrix(exact_solution(pde$get_dofs_coordinates()))
-error.L2 <- sqrt(sum(pde$get_mass()%*%(u_ex-u$coeff)^2))
+u_ex <- as.matrix(exact_solution(pde$dofs_coordinates()))
+error.L2 <- sqrt(sum(pde$mass()%*%(u_ex-u$coefficients())^2))
 cat("L2 error = ", error.L2, "\n")
 ```
 
@@ -319,13 +319,13 @@ domain <- domain %X% c(0,1)
 mesh <- build_mesh(domain, maximum_area = 0.00125, minimum_angle = 20)
 # time step
 dT = 1e-2
-mesh$set_deltaT(dT)
+mesh$set_time_step(dT)
 ## create Functional Space
 Vh <- FunctionSpace(mesh)
 ## define differential operator in its strong formulation
 u <- Function(Vh)
 ## define differential operator in its strong formulation
-Lu <- dt(u) -laplace(u)
+Lu <- dt(u) - laplace(u)
 ## forcing term
 f <- function(points,times){
   res <- matrix(0, nrow=nrow(points), ncol=length(times))

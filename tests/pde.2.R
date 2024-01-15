@@ -35,8 +35,8 @@ pde$set_boundary_condition(fun=0.,
 pde$solve()
 
 ## compute L2 norm of the error
-u_ex <- as.matrix(exact_solution(pde$get_dofs_coordinates()))
-error.L2 <- sqrt(sum(pde$get_mass() %*% (u_ex - f$coeff)^2))
+u_ex <- as.matrix(exact_solution(pde$dofs_coordinates()))
+error.L2 <- sqrt(sum(pde$mass() %*% (u_ex - f$coefficients())^2))
 cat("L2 error = ", error.L2, "\n")
 
 ## perform evaluation at single point
@@ -49,7 +49,7 @@ y <- x
 points <- expand.grid(x, y)
 max(abs( f$eval(points) - as.matrix(exact_solution(points))))
 
-evaluations <- max(abs(f$eval(mesh$get_nodes()) - exact_solution(mesh$get_nodes())))
+evaluations <- max(abs(f$eval(mesh$nodes()) - exact_solution(mesh$nodes())))
 ## plot solution 
 options(warn=-1)
 plot(f) %>% layout(scene=list(aspectmode="cube")) %>% hide_colorbar()
@@ -59,16 +59,16 @@ contour(f)
 
 ### 
 
-basis_function <- Vh$get_basis()
-Psi <- basis_function$eval(basis_function$get_dofs_coordinates())
+basis <- Vh$get_basis()
+Psi <- basis$eval(basis$get_dofs_coordinates())
 dim(Psi)
 
-A  <- basis_function$eval(as.matrix(points))
+A  <- basis$eval(as.matrix(points))
 dim(A)
 
 R0 <- pde$get_mass()
 R1 <- pde$get_stiff()
-n <- basis_function$size()
+n <- basis$size()
 lambda <- 1.
 row_1 <- cbind( 1/n * t(Psi)%*%Psi, lambda*t(R1))
 row_2 <- cbind(lambda*R1, R0)
@@ -76,3 +76,5 @@ row_2 <- cbind(lambda*R1, R0)
 M <- rbind(row_1,
            row_2)
 dim(M)
+
+y <- u_ex()

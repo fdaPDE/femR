@@ -29,6 +29,5 @@ Encoding: UTF-8
 Suggests: 
     knitr,
     rmarkdown,
-    rmapshaper,
     mapview
 VignetteBuilder: knitr

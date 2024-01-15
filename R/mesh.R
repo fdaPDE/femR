@@ -1,40 +1,37 @@
-
-## Mesh Class Definition
-#' @export 
 .MeshCtr <- R6Class("Mesh", inherit = .DomainCtr,
                     private = list(
-                      cpp_handler = "ANY",                        ## cpp backend
-                      m = 0L,                                     ## local dim
-                      n = 0L,                                     ## embedding dim
-                      times = vector(mode="double", length = 0L), ## time mesh for parabolic problems
-                      time_step = NA                              ## time step for parabolic problems
+                      cpp_handler_ = "ANY",                        ## cpp backend
+                      m_ = 0L,                                     ## local dim
+                      n_ = 0L,                                     ## embedding dim
+                      time_nodes_ = vector(mode="double", length = 0L), ## time mesh for parabolic problems
+                      time_step_ = NA                              ## time step for parabolic problems
                     ),
                     public = list(
                       initialize = function(cpp_handler, m, n){
-                        private$cpp_handler <- cpp_handler
-                        private$m <- m
-                        private$n <- n
+                        private$cpp_handler_ <- cpp_handler
+                        private$m_ <- m
+                        private$n_ <- n
                       },
-                      get_nodes = function(){
-                        private$cpp_handler$nodes()
+                      nodes = function(){
+                        private$cpp_handler_$nodes()
                       },
-                      get_elements = function(){
-                        private$cpp_handler$elements()+1
+                      elements = function(){
+                        private$cpp_handler_$elements()+1
                       },
-                      get_boundary = function(){
-                        private$cpp_handler$boundary()
+                      boundary = function(){
+                        private$cpp_handler_$boundary()
                       },
-                      get_neighbors = function(){
-                        private$cpp_handler$neighbors()
+                      neighbors = function(){
+                        private$cpp_handler_$neighbors()
                       },
-                      get_times = function(){
-                        private$times
+                      time_nodes = function(){
+                        private$time_nodes_
                       },
                       set_time_step = function(time_step){
-                        if(length(private$time_interval)==0)
+                        if(length(private$time_interval_)==0)
                           stop("Error!")
-                        private$time_step <- time_step
-                        private$times <- seq(private$time_interval[1], private$time_interval[2], by=time_step)
+                        private$time_step_ <- time_step
+                        private$time_nodes_ <- seq(private$time_interval_[1], private$time_interval_[2], by=time_step)
                       }
                     )
 )
@@ -49,7 +46,7 @@
 #'           an entry '0' indicates that the corresponding node is not a boundary node.}
 #' }
 #' 
-#' @return An S4 object representing a Mesh.
+#' @return A R6 class representing a Mesh.
 #' @rdname Mesh
 #' @export
 #' @examples
@@ -104,7 +101,7 @@ setMethod("Mesh", signature=c(domain="triangulation"),
 # 
 # @param op1 A mesh object created by \code{Mesh}.
 # @param op2 A numeric vector.
-# @return An S4 object representing a spatio-temporal domain.
+# @return A R6 object representing a spatio-temporal domain.
 # @rdname Domain_times_vector
 # @export
 #setGeneric("%X%", function(op1, op2) standardGeneric("%X%"))
@@ -114,19 +111,19 @@ setMethod("%X%", signature=c(op1="Mesh", op2="numeric"),
           function(op1, op2){
             if(op2[1] > op2[length(op2)])
               stop("Error! First time instant is greater than last time instant.")
-            set_times(op1, op2)
-            set_time_interval(op1, c(op2[1], op2[length(op2)]))
-            set_time_step(op1, (op2[2] - op2[1]))
+            set_private(op1, "time_nodes_", op2)
+            set_private(op1, "time_interval_", c(op2[1], op2[length(op2)]))
+            set_private(op1, "time_step_", (op2[2] - op2[1]))
             op1
 })
 
 ## Mesh - auxiliary methods
 # unroll_edges_aux <- function(mesh){
-#   edges <- matrix(nrow=3*nrow(mesh$get_elements()), ncol=2)
-#   for(i in 1:nrow(mesh$get_elements())){
-#     edges[(3*(i-1) + 1),]   = mesh$get_elements()[i,c(1,2)] 
-#     edges[(3*(i-1) + 2),]   = mesh$get_elements()[i,c(2,3)] 
-#     edges[(3*(i-1) + 3),]   = mesh$get_elements()[i,c(3,1)] 
+#   edges <- matrix(nrow=3*nrow(mesh$elements()), ncol=2)
+#   for(i in 1:nrow(mesh$elements())){
+#     edges[(3*(i-1) + 1),]   = mesh$elements()[i,c(1,2)] 
+#     edges[(3*(i-1) + 2),]   = mesh$elements()[i,c(2,3)] 
+#     edges[(3*(i-1) + 3),]   = mesh$elements()[i,c(3,1)] 
 #   }
 #   edges
 # }
@@ -134,11 +131,11 @@ setMethod("%X%", signature=c(op1="Mesh", op2="numeric"),
 setGeneric("unroll_edges", function(mesh) standardGeneric("unroll_edges"))
 setMethod("unroll_edges", "Mesh", function(mesh){
   #unroll_edges_aux(mesh)
-  edges <- matrix(nrow=3*nrow(mesh$get_elements()), ncol=2)
-  for(i in 1:nrow(mesh$get_elements())){
-    edges[(3*(i-1) + 1),]   = mesh$get_elements()[i,c(1,2)] 
-    edges[(3*(i-1) + 2),]   = mesh$get_elements()[i,c(2,3)] 
-    edges[(3*(i-1) + 3),]   = mesh$get_elements()[i,c(3,1)] 
+  edges <- matrix(nrow=3*nrow(mesh$elements()), ncol=2)
+  for(i in 1:nrow(mesh$elements())){
+    edges[(3*(i-1) + 1),]   = mesh$elements()[i,c(1,2)] 
+    edges[(3*(i-1) + 2),]   = mesh$elements()[i,c(2,3)] 
+    edges[(3*(i-1) + 3),]   = mesh$elements()[i,c(3,1)] 
   }
   edges
 })
@@ -146,18 +143,18 @@ setMethod("unroll_edges", "Mesh", function(mesh){
 plot_mesh_aux <- function(x, ...){
   edges <- unroll_edges(x)
   plot_ly(...) %>% 
-    add_markers(x = x$get_nodes()[,1],
-                y = x$get_nodes()[,2],
+    add_markers(x = x$nodes()[,1],
+                y = x$nodes()[,2],
                 color = I('black'), size = I(1),
                 hoverinfo = 'text',
-                text = paste('</br><b> Coordinates:', round(x$get_nodes()[,1],2),
-                             round(x$get_nodes()[,2],2)),
+                text = paste('</br><b> Coordinates:', round(x$nodes()[,1],2),
+                             round(x$nodes()[,2],2)),
                 showlegend = T,
                 visible = T) %>%
-    add_segments(x = x$get_nodes()[edges[,1],1],
-                 y = x$get_nodes()[edges[,1],2],
-                 xend = x$get_nodes()[edges[,2],1],
-                 yend = x$get_nodes()[edges[,2],2], 
+    add_segments(x = x$nodes()[edges[,1],1],
+                 y = x$nodes()[edges[,1],2],
+                 xend = x$nodes()[edges[,2],1],
+                 yend = x$nodes()[edges[,2],2], 
                  color = I('black'), size = I(1),
                  showlegend = F) %>%
     layout(
