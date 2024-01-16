@@ -28,7 +28,7 @@ g <- function(points){
 }
 ## Pde constructor
 pde <- Pde(L,u)
-pde$set_boundary_condition(fun=0.,
+pde$set_boundary_condition(boundary_condition =0.,
                            type = "dirichlet")
 
 ## solve problem

@@ -15,11 +15,6 @@
   )
 )
 
-#' Function gradient
-#'
-#' @name grad
-#'
-#' @exportClass FunctionGrad
 setOldClass(c("FunctionGrad", "R6"))
 
 ## take gradient of Function
@@ -27,7 +22,7 @@ setOldClass(c("FunctionGrad", "R6"))
 #' compute gradient of Function
 #'
 #' @param Function a Function created by \code{Function}:
-#' @return An S4 object representing the gradient of the Function passed as parameter.
+#' @return A R6 object representing the gradient of the Function passed as parameter.
 #' @export 
 #' @rdname grad
 #' @examples
@@ -46,7 +41,7 @@ setMethod("grad", signature(Function = "Function"), function(Function) {
   .FunctionGradCtr$new(Function = Function)
 })
 
-# setMethod("*", signature=c(e1="matrix", e2="FunctionGrad")
+# #`*.FunctionGrad` <- function(e1, e2){ setMethod("*", signature=c(e1="matrix", e2="FunctionGrad"),
 
 #' product overload for FunctionGradObejct
 #'
@@ -60,7 +55,7 @@ setMethod("grad", signature(Function = "Function"), function(Function) {
 }
 
 ## base class for differential operators
-.DiffOpCtr <- R6Class("DiffOpObject",
+.DifferentialOpCtr <- R6Class("DifferentialOp",
     private = list(
       ## Function to which the operator is applied
       Function_ = "Function"
@@ -80,25 +75,20 @@ setMethod("grad", signature(Function = "Function"), function(Function) {
     )
 )
 
-#' R6 class representing a differential operator
-#' 
-#' @name Differential Operator
-#'
-#' @exportClass DiffOpObject
-setOldClass(c("DiffOpObject", "R6"))
+setOldClass(c("DifferentialOp", "R6"))
 
-##setMethod("+", signature = c(e1="DiffOpObject", e2="DiffOpObject"),
+##setMethod("+", signature = c(e1="DifferentialOp", e2="DifferentialOp"),
+## `+.DifferentialOp` <- function(e1, e2){
 
 ## sum of differential operators
 
-#' plus operator overload for DiffOpObject
+#' Sum of DifferentialOp
 #'
-#' @param e1 a DiffOpObject.
-#' @param e2 a DiffOpObject.
-#' @return A S4 object representing the sum of two differential operators.
-#' @name DifferentialOps
+#' @param e1 a \code{DifferentialOp}.
+#' @param e2 a \code{DifferentialOp}.
+#' @return A R6 class representing the sum of two differential operators.
 #' @export 
-`+.DiffOpObject` <- function(e1, e2){
+`+.DifferentialOp` <- function(e1, e2){
             if (!identical(e1$Function(), e2$Function())) {
               stop("operator arguments must be the same")
             }
@@ -106,30 +96,32 @@ setOldClass(c("DiffOpObject", "R6"))
             if (any(duplicated(c(e1$tokens, e2$tokens)))) {
               stop("duplicated operator")
             }
-            .DiffOpCtr$new(
+            .DifferentialOpCtr$new(
               tokens = c(e1$tokens, e2$tokens),
               params = c(e1$params, e2$params),
               Function = e1$Function()
             )
 }
 
-# setMethod("-", signature = c(e1="DiffOpObject", e2="DiffOpObject"),
+# setMethod("-", signature = c(e1="DifferentialOp", e2="DifferentialOp"),
+# `-.DifferentialOp` <- function(e1, e2){
 
-#' difference of differential operators
+#' Difference of differential operators 
 #'
-#' @param e1 a DiffOpObject.
-#' @param e2 a DiffOpObject.
-#' @return A S4 object representing the difference of two differential operators.
-#' @rdname minus_DiffOb_op
-#' @name DifferentialOps
+#' @param e1 a \code{DifferentialOp}.
+#' @param e2 a \code{DifferentialOp} or missing.
+#' @return A R6 class representing the difference of two differential operators.
 #' @export 
-`-.DiffOpObject` <- function(e1, e2){
+`-.DifferentialOp` <-function(e1 ,e2){
             if(missing(e2)){
               e1$params[[1]] <- -e1$params[[1]]
               return(e1)
             }else if (!identical(e1$Function(), e2$Function())) {
               stop("operator arguments must be the same")
             }
+            if (!identical(e1$Function(), e2$Function())) 
+              stop("operator arguments must be the same")
+            
             ## check for duplicated operator tokens
             if (any(duplicated(c(e1$tokens, e2$tokens)))) {
               stop("duplicated operator")
@@ -137,37 +129,44 @@ setOldClass(c("DiffOpObject", "R6"))
             for(i in 1:length(e2$params)){
               e2$params[[i]] = -e2$params[[i]] 
             }
-            .DiffOpCtr$new(
+            .DifferentialOpCtr$new(
               tokens = c(e1$tokens, e2$tokens),
               params = c(e1$params, e2$params),
               Function = e1$Function()
             )
-  }
+}
 
-#setMethod("-", signature =c(e1 = "DiffOpObject", e2 = "missing"),
+#setMethod("-", signature =c(e1 = "DifferentialOp", e2 = "missing"),
 
 # minus (unary) operator for differential operators
 # 
-# @param e1 a DiffOpObject.
-# @return A S4 object differential operator whose paramter has changed sign.
+# @param e1 a DifferentialOp.
+# @return A R6 class differential operator whose paramter has changed sign.
+# @name DifferentialOps
 # @export
+# setMethod("-", signature =c(e1 = "DifferentialOp", e2 = "missing"),
+#           function(e1 ,e2){
+#             e1$params[[1]] <- -e1$params[[1]]
+#             e1
+# })
 
 # @rdname minus_DiffOb_op
-# `-.DiffOpObject` <- function(e1){
+# `-.DifferentialOp` <- function(e1){
 #             e1$params[[1]] <- -e1$params[[1]]
 #             e1
 # }
 
-# setMethod("*", signature=c(e1="numeric", e2="DiffOpObject"),
+# setMethod("*", signature=c(e1="numeric", e2="DifferentialOp"),
+# `*.DifferentialOp` <- function(e1,e2){  
 
 #' product by scalar for differential operators
 #'
 #' @param e1 a numeric.
-#' @param e2 a DiffOpObject.
-#' @return A S4 object representing the product by scalar for a differential operator.
-#' @name DifferentialOps
+#' @param e2 a DifferentialOp.
+#' @return A R6 class representing the product by scalar for a differential operator.
+#' @name times_DifferentialOps
 #' @export 
-`*.DiffOpObject` <- function(e1,e2){  
+`*.DifferentialOp` <- function(e1,e2){
             if (!is.numeric(e1)) stop("bad product")
             e2$params[[1]] <- e1*e2$params[[1]]
             e2
@@ -175,15 +174,10 @@ setOldClass(c("DiffOpObject", "R6"))
   
 ## diffusion term
 .DiffusionCtr <- R6Class("DiffusionOperator",
-    inherit = .DiffOpCtr
+    inherit = .DifferentialOpCtr
 )
 
-#' Diffusion Operator
-#'
-#' @name DifferentialOperator
-#'
-#' @exportClass DiffusionOperator
-setOldClass(c("DiffusionOperator", "DiffOpObject"))
+setOldClass(c("DiffusionOperator", "DifferentialOp"))
 
 ## laplace() returns a special operator for the case of
 ## isotropic  and stationary diffusion
@@ -191,7 +185,7 @@ setOldClass(c("DiffusionOperator", "DiffOpObject"))
 #' laplace operator for Function class
 #'
 #' @param Function a Function.
-#' @return A S4 object representing the laplace operator applied to the function passed as parameter.
+#' @return A R6 class representing the laplace operator applied to the function passed as parameter.
 #' @rdname DiffusionOperator
 #' @export 
 #' @examples
@@ -219,7 +213,7 @@ laplace <- function(Function) {
 #' divergence operator FunctionGrad
 #'
 #' @param Function a Function.
-#' @return A S4 object representing the diffusion term of a second order linear differential operator.
+#' @return A R6 class representing the diffusion term of a second order linear differential operator.
 #' @rdname DiffusionOperator
 #' @export
 #' @examples
@@ -247,21 +241,16 @@ div <- function(Function) {
 
 ## transport term
 .TransportCtr <- R6Class("TransportOperator",
-    inherit = .DiffOpCtr
+    inherit = .DifferentialOpCtr
 )
 
-#' Transport Operator
-#'
-#' @name TransportOperator
-#'
-#' @exportClass TransportOperator
-setOldClass(c("TransportOperator", "DiffOpObject"))
+setOldClass(c("TransportOperator", "DifferentialOp"))
 
 #' dot product between vector and FunctionGrad
 #'
 #' @param op1 a numeric vector.
 #' @param op2 a FunctionGrad.
-#' @return A S4 object representing the advection term of a second order linear differential operator.
+#' @return A R6 class representing the advection term of a second order linear differential operator.
 #' @rdname TransportOperator
 #' @export
 #' @examples
@@ -288,23 +277,19 @@ setMethod("dot", signature(op1 = "vector", op2 = "FunctionGrad"),
 
 ## reaction term
 .ReactionCtr <- R6Class("ReactionOperator",
-    inherit = .DiffOpCtr
+    inherit = .DifferentialOpCtr
 )
 
-#' Reaction Operator
-#'
-#' @name ReactionOperator
-#'
-#' @exportClass ReactionOperator
-setOldClass(c("ReactionOperator", "DiffOpObject"))
+setOldClass(c("ReactionOperator", "DifferentialOp"))
 
 # setMethod("*", signature = c(e1="numeric", e2="Function"),
-          
+# `*.Function` <- function(e1,e2){
+
 #' product by scalar for FunctionObejct
 #'
 #' @param e1 a numeric.
 #' @param e2 a FunctioObject created by \code{Function}.
-#' @return A S4 object representing the reaction term of a second order linear differential operator.
+#' @return A R6 class representing the reaction term of a second order linear differential operator.
 #' @rdname ReactionOperator
 #' @export 
 #' @examples
@@ -326,13 +311,10 @@ setOldClass(c("ReactionOperator", "DiffOpObject"))
 }
 
 .TimeDerivativeCtr <- R6Class("TimeDerivative",
-  inherit = .DiffOpCtr
+  inherit = .DifferentialOpCtr
 )
 
-#' @name TimeDerivative
-#'
-#' @exportClass TimeDerivative
-setOldClass(c("TimeDerivative", "DiffOpObject"))
+setOldClass(c("TimeDerivative", "DifferentialOp"))
 
 # overloading stats::dt function
 
@@ -341,7 +323,7 @@ setOldClass(c("TimeDerivative", "DiffOpObject"))
 #' @param x a Function.
 #' @param df missing.
 #' @param ncp missing.
-#' @return A S4 object representing the time derivative of a Function.
+#' @return A R6 class representing the time derivative of a Function.
 #' @rdname TimeDerivative
 #' @export
 #' @examples

@@ -4,6 +4,7 @@
 #' @importFrom Rcpp evalCpp
 #' @import plotly
 #' @import Matrix
+#' @import R6
 NULL
 
 ## load required modules

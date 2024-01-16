@@ -106,7 +106,7 @@ g <- function(points){
 pde <- Pde(Lu, f)
 # setting boundary conditions
 pde$set_boundary_condition(type="dirichlet",
-                           fun=g)
+                           boundary_condition=g)
 ## 7. computing the discrete solution
 pde$solve()
 
@@ -255,7 +255,7 @@ pde <- Pde(Lu, f)
 
 ## set Dirichlet boundary conditions
 pde$set_boundary_condition(type="dirichlet",
-                           fun=g)
+                           boundary_condition=g)
 ```
 We can compute the discrete solution of the Poisson problem calling the `solve` method:
 ```{r Solving the problem}
@@ -342,7 +342,7 @@ u0 <- function(points){
 pde <- Pde(Lu, f)
 # set initial condition and dirichlet BC
 pde$set_initial_condition(u0)
-pde$set_boundary_condition(fun= 0.0, type="dirichlet")
+pde$set_boundary_condition(boundary_condition= 0.0, type="dirichlet")
 ## solve problem
 pde$solve()
 ## plot solution

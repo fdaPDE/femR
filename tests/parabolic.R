@@ -54,7 +54,7 @@ u0 <- function(points){
 }
   
 ## create pde
-pde <- Pde(L, f)
+pde <- Pde(L, 0.)
 pde$set_boundary_condition(g)
 pde$set_initial_condition(u0)
 

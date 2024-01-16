@@ -10,8 +10,3 @@ setMethod("set_private", signature = c("R6", "character"),
           function(x, attribute, value){
             invisible(x$.__enclos_env__$private[[attribute]] <- value)
 })
-
-# extract_private <- function(x){
-#   if(!is(x,"R6")) stop("Input parameter must be an R6 class.")
-#   x$.__enclos_env__$private
-# }

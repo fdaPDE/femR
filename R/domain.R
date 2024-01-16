@@ -16,19 +16,11 @@
                       )
 )
 
-#' @name Domain
-#'
-#' @exportClass Domain
 setOldClass(c("Domain", "R6"))
 
-#' Mesh 
-#'
-#' @name Mesh
-#'
-#' @exportClass Mesh
 setOldClass(c("Mesh","Domain"))
 
-#' S4 class representing a spatial (spatio-temporal) domain
+#' R6 class representing a spatial (spatio-temporal) domain
 #' 
 #' @param x could be a \code{pslg} returned by \code{\link[RTriangle]{triangulate}}, 
 #' a \code{sfc} returned by \code{\link[sf]{st_geometry}} or a named list containing:
@@ -294,7 +286,7 @@ setMethod("build_mesh", signature=c("Domain", "numeric", "numeric"),
 #'
 #' @param op1 A mesh object created by \code{Mesh}.
 #' @param op2 A numeric vector.
-#' @return An S4 object representing a spatio-temporal domain.
+#' @return A R6 object representing a spatio-temporal domain.
 #' @rdname Domain_times_vector
 #' @export 
 setGeneric("%X%", function(op1, op2) standardGeneric("%X%"))

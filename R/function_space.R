@@ -32,11 +32,6 @@
   )
 )
 
-#' Finite Element Basis 
-#'
-#' @name Basis
-#'
-#' @exportClass BasisFunction
 setOldClass(c("BasisFunction", "R6"))
 
 setGeneric("BasisFunction", function(mesh, fe_order) standardGeneric("BasisFunction"))
@@ -74,18 +69,13 @@ setMethod("BasisFunction", signature = signature("Mesh","integer"),
                               )
 )
 
-#' Finite Element Functional Space
-#'
-#' @name FunctionSpace
-#'
-#' @exportClass FunctionSpace
 setOldClass(c("FunctionSpace", "R6"))
 
 #' Create FunctionSpace object
 #'
 #' @param mesh A mesh object created by \code{Mesh}:
 #' @param fe_order Either '1' or '2'. It specifies the finite element order.
-#' @return An S4 object representing a Function Space.
+#' @return A R6 object representing a Function Space.
 #' @export 
 #' @rdname FunctionSpace
 setGeneric("FunctionSpace", function(mesh, fe_order) standardGeneric("FunctionSpace"))
@@ -169,11 +159,6 @@ setMethod("FunctionSpace", signature = c(mesh="Mesh", fe_order="missing"),
                         )
 )
 
-#' Finite Element Function
-#'
-#' @name Function
-#'
-#' @exportClass Function
 setOldClass(c("Function", "R6"))
 
 ## constructor
@@ -181,7 +166,7 @@ setOldClass(c("Function", "R6"))
 #' Create Function object
 #'
 #' @param FunctionSpace a FunctionSpace object created by \code{FunctionSpace}:
-#' @return An S4 object representing a Function belonging to the FunctionSpace passed as parameter.
+#' @return A R6 object representing a Function belonging to the FunctionSpace passed as parameter.
 #' @export 
 #' @examples
 #' \dontrun{

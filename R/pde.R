@@ -8,7 +8,7 @@ pde_type_list <- list("laplacian" = 1, "elliptic" = 2, "parabolic" = 3)
     is_initialCondition_set = "logical",
     is_parabolic ="logical",          
     cpp_handler_ = "ANY",
-    DifferentialOp_ = "DiffOpObject"
+    DifferentialOp_ = "DifferentialOp"
   ),
   public = list(
     initialize = function(cpp_handler, DifferentialOp, is_parabolic, is_dirichletBC_set, is_initialCondition_set){
@@ -40,26 +40,26 @@ pde_type_list <- list("laplacian" = 1, "elliptic" = 2, "parabolic" = 3)
     dofs_coordinates = function(){
       private$cpp_handler_$dofs_coordinates()
     },
-    set_boundary_condition = function(fun, type="dirichlet", on=NULL){
+    set_boundary_condition = function(boundary_condition, type="dirichlet", on=NULL){
       if(!any(type == c("dirichlet", "Dirichlet", "d"))) 
         stop("Only Dirichlet boundary condtions allowed.")
       dirichletBC_ <- NULL
-      if(any(typeof(fun) == c("function", "closure"))){
+      if(any(typeof(boundary_condition) == c("function", "closure"))){
         if(!private$is_parabolic){
-          dirichletBC_ <- as.matrix(fun(private$cpp_handler_$dofs_coordinates()))
+          dirichletBC_ <- as.matrix(boundary_condition(private$cpp_handler_$dofs_coordinates()))
         }else{
           times <- private$DifferentialOp_$Function()$FunctionSpace()$mesh()$time_nodes()
-          dirichletBC_ <- fun(private$cpp_handler_$dofs_coordinates(), times)
+          dirichletBC_ <- boundary_condition(private$cpp_handler_$dofs_coordinates(), times)
         }
-      }else if(any(typeof(fun) == c("matrix","vector", "numeric" ,"double"))){
-        if(nrow(as.matrix(fun)) == nrow(private$cpp_handler_$dofs_coordinates())){
-          dirichletBC_ <- fun  
-        }else if (nrow(as.matrix(fun)) == 1L){
+      }else if(any(typeof(boundary_condition) == c("matrix","vector", "numeric" ,"double"))){
+        if(nrow(as.matrix(boundary_condition)) == nrow(private$cpp_handler_$dofs_coordinates())){
+          dirichletBC_ <- boundary_condition  
+        }else if (nrow(as.matrix(boundary_condition)) == 1L){
           if(!private$is_parabolic)
-            dirichletBC_ <- matrix(fun, nrow=nrow(private$cpp_handler_$dofs_coordinates()), ncol=1)
+            dirichletBC_ <- matrix(boundary_condition, nrow=nrow(private$cpp_handler_$dofs_coordinates()), ncol=1)
           else{
             times <- private$DifferentialOp_$Function()$FunctionSpace()$mesh()$time_nodes()
-            dirichletBC_ <- matrix(fun, nrow=nrow(private$cpp_handler_$dofs_coordinates()), 
+            dirichletBC_ <- matrix(boundary_condition, nrow=nrow(private$cpp_handler_$dofs_coordinates()), 
                                         ncol=length(times))
           }
         }   
@@ -68,17 +68,17 @@ pde_type_list <- list("laplacian" = 1, "elliptic" = 2, "parabolic" = 3)
       private$cpp_handler_$set_dirichlet_bc(dirichletBC_)
       invisible(self)
     },
-    set_initial_condition = function(fun){
+    set_initial_condition = function(initial_condition){
       if(!private$is_parabolic)
         stop("Cannot set initial condition for elliptic problem.")
       private$is_initialCondition_set <- TRUE
-      if(typeof(fun) == "closure"){ 
-        private$cpp_handler_$set_initial_condition(fun(private$cpp_handler_$dofs_coordinates()))
-      }else if(any(typeof(fun) == c("matrix","vector", "numeric" ,"double"))){
-        if(nrow(as.matrix(fun)) == nrow(private$cpp_handler_$dofs_coordinates())){
-          private$cpp_handler_$set_initial_condition(fun)
-        }else if(nrow(as.matrix(fun)) == 1L){
-          private$cpp_handler_$set_initial_condition(matrix(fun, nrow=nrow(private$cpp_handler_$dofs_coordinates()),
+      if(typeof(initial_condition) == "closure"){ 
+        private$cpp_handler_$set_initial_condition(initial_condition(private$cpp_handler_$dofs_coordinates()))
+      }else if(any(typeof(initial_condition) == c("matrix","vector", "numeric" ,"double"))){
+        if(nrow(as.matrix(initial_condition)) == nrow(private$cpp_handler_$dofs_coordinates())){
+          private$cpp_handler_$set_initial_condition(initial_condition)
+        }else if(nrow(as.matrix(initial_condition)) == 1L){
+          private$cpp_handler_$set_initial_condition(matrix(initial_condition, nrow=nrow(private$cpp_handler_$dofs_coordinates()),
                                                  ncol=1))   
         }
       }
@@ -93,9 +93,6 @@ pde_type_list <- list("laplacian" = 1, "elliptic" = 2, "parabolic" = 3)
   )
 )
 
-#' @name pde
-#'
-#' @exportClass Pde
 setOldClass(c("Pde", "R6"))
 
 ## infers the type of a pde
@@ -154,15 +151,15 @@ make_pde <- function(DifferentialOp) {
 #' A PDEs object
 #'
 #' @param DifferentialOp a differential operator.
-#' @param f a standard R function representing the forcing term of the PDE or a numeric value, in case of constant forcing term.
+#' @param forcing a standard R function representing the forcing term of the PDE or a numeric value, in case of constant forcing term.
 #' @return A R6 class representing a PDE.
 #' @rdname pde
 #' @export 
-setGeneric("Pde", function(DifferentialOp, f) standardGeneric("Pde"))
+setGeneric("Pde", function(DifferentialOp, forcing) standardGeneric("Pde"))
 
 #' @rdname pde
-setMethod("Pde", signature=c(DifferentialOp="DiffOpObject", f="function"),
-          function(DifferentialOp,f){
+setMethod("Pde", signature=c(DifferentialOp="DifferentialOp", forcing="function"),
+          function(DifferentialOp,forcing){
             
             pde_type = extract_pde_type(DifferentialOp)
             cpp_handler <- make_pde(DifferentialOp)
@@ -171,9 +168,9 @@ setMethod("Pde", signature=c(DifferentialOp="DiffOpObject", f="function"),
             ## evaluate forcing term on quadrature nodes
             if(pde_type == pde_type_list$parabolic) {
               times <- DifferentialOp$Function()$FunctionSpace()$mesh()$time_nodes()
-              cpp_handler$set_forcing(as.matrix(f(quad_nodes, times)))
+              cpp_handler$set_forcing(as.matrix(forcing(quad_nodes, times)))
             }else{
-              cpp_handler$set_forcing(as.matrix(f(quad_nodes)))
+              cpp_handler$set_forcing(as.matrix(forcing(quad_nodes)))
             }
             
             ## initialize solver 
@@ -190,20 +187,20 @@ setMethod("Pde", signature=c(DifferentialOp="DiffOpObject", f="function"),
 })
 
 #' @rdname pde
-setMethod("Pde", signature=c(DifferentialOp="DiffOpObject", f="numeric"),
-          function(DifferentialOp,f){
+setMethod("Pde", signature=c(DifferentialOp="DifferentialOp", forcing="numeric"),
+          function(DifferentialOp,forcing){
             pde_type = extract_pde_type(DifferentialOp)
             
-            fun <- NULL
+            forcing_ <- NULL
             if(pde_type!=pde_type_list$parabolic){
-              fun <- function(points){
-                return( matrix(f, nrow=nrow(points), ncol=1))
+              forcing_ <- function(points){
+                return( matrix(forcing, nrow=nrow(points), ncol=1))
               }
             }else{
-              fun <- function(points, times){
-                return( matrix(f, nrow=nrow(points), ncol=length(times)))
+              forcing_ <- function(points, times){
+                return( matrix(forcing, nrow=nrow(points), ncol=length(times)))
               }  
             }
             
-            return(Pde(DifferentialOp,fun))
+            return(Pde(DifferentialOp,forcing_))
 })

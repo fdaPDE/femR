@@ -1,13 +1,12 @@
-#' sf methods for Domain and Mesh
+#' Integration with sf package
 #'
-#' \code{\link[sf]{sf}} methods for \code{Domain} and \code{Mesh} objects.
+#' \code{\link[sf]{sf}} methods for \code{Domain} and \code{Mesh} classes.
 ##
 #' @param x An object of class \code{Domain} or \code{Mesh}.
-#' @param ... Arguments passed on the corresponding \code{sf} function.
+#' @param ... Arguments passed to the corresponding \code{sf} method
 #' @param value The value to be assigned. See the documentation of the
 #' corresponding sf function for details.
-#' @return The \code{femR} method for \code{\link[sf]{st_as_sf}} returns
-#' ............ \code{\link[sf]{sf}}.
+#' @return All methods return the same type of object of the corresponding \code{\link[sf]{sf}} method.
 #' @importFrom sf st_as_sf
 #' @importFrom sf st_polygon
 #' @importFrom sf st_as_sfc

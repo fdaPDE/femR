@@ -87,15 +87,10 @@ The upcoming sections will illustrate how to obtain a discrete solution of the p
 library(sf, quietly = T)
 library(mapview, quietly = T)
 library(femR, quietly = T)
-library(rmapshaper, quietly = T)
 
-lake_bd <- read_sf("data/deims_sites_boundariesPolygon.shp")
-lake_como_boundary <- rmapshaper::ms_simplify(lake_bd, keep= 0.5, 
-                                        keep_shapes=T)
+data("lake_como_boundary", package="femR")
 st_crs(lake_como_boundary) <- 4326
-
 ```
-
 The `femR` package includes utilities  to read a `sfc` (Simple Features Collection) object, such as the boundary of the Lake, and generating meshes by specifying the `maximum_area` of each triangle and the `minimum_angle` between adjacent sides of the triangles.
 ```{r}
 # create the physical domain
@@ -149,7 +144,7 @@ Finally, we build a `Pde` object passing the differential operator `L`, as first
 # build PDE object
 pde <- Pde(Lu, 0.)
 # set boundary conditions
-pde$set_boundary_condition(fun= g, type= "dirichlet")
+pde$set_boundary_condition(boundary_condition= g, type= "dirichlet")
 ```
 We can compute the discrete solution of the problem calling the `solve` method:
 ```{r}
@@ -264,7 +259,7 @@ pde <- Pde(Lu, 0.)
 # set initial conditions
 pde$set_initial_condition(u0)
 # set boundary conditions
-pde$set_boundary_condition(fun= g, type= "dirichlet")
+pde$set_boundary_condition(boundary_condition= g, type= "dirichlet")
 # compute the discrete solution
 pde$solve()
 ```
