@@ -5,7 +5,7 @@
 \alias{Domain,list-method}
 \alias{Domain,pslg-method}
 \alias{Domain,sfc-method}
-\title{S4 class representing a spatial (spatio-temporal) domain}
+\title{R6 class representing a spatial (spatio-temporal) domain}
 \usage{
 Domain(x)
 
@@ -23,5 +23,5 @@ a \code{sfc} returned by \code{\link[sf]{st_geometry}} or a named list containin
 }}
 }
 \description{
-S4 class representing a spatial (spatio-temporal) domain
+R6 class representing a spatial (spatio-temporal) domain
 }

@@ -18,7 +18,7 @@ op1 \%X\% op2
 \item{op2}{A numeric vector.}
 }
 \value{
-An S4 object representing a spatio-temporal domain.
+A R6 object representing a spatio-temporal domain.
 }
 \description{
 create spatio-temporal domain

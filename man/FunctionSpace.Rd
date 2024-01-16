@@ -4,7 +4,7 @@
 \alias{FunctionSpace}
 \alias{FunctionSpace,Mesh,numeric-method}
 \alias{FunctionSpace,Mesh,missing-method}
-\title{Finite Element Functional Space}
+\title{Create FunctionSpace object}
 \usage{
 FunctionSpace(mesh, fe_order)
 
@@ -18,11 +18,9 @@ FunctionSpace(mesh, fe_order)
 \item{fe_order}{Either '1' or '2'. It specifies the finite element order.}
 }
 \value{
-An S4 object representing a Function Space.
+A R6 object representing a Function Space.
 }
 \description{
-Finite Element Functional Space
-
 Create FunctionSpace object
 }
 \examples{

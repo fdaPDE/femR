@@ -13,9 +13,9 @@ div(Function)
 \item{Function}{a Function.}
 }
 \value{
-A S4 object representing the laplace operator applied to the function passed as parameter.
+A R6 class representing the laplace operator applied to the function passed as parameter.
 
-A S4 object representing the diffusion term of a second order linear differential operator.
+A R6 class representing the diffusion term of a second order linear differential operator.
 }
 \description{
 laplace operator for Function class

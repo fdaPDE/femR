@@ -6,7 +6,7 @@
 \alias{st_as_sfc.Mesh}
 \alias{st_crs.Domain}
 \alias{st_crs<-.Domain}
-\title{sf methods for Domain and Mesh}
+\title{Integration with sf package}
 \usage{
 \method{st_as_sf}{Domain}(x, ...)
 
@@ -21,15 +21,14 @@
 \arguments{
 \item{x}{An object of class \code{Domain} or \code{Mesh}.}
 
-\item{...}{Arguments passed on the corresponding \code{sf} function.}
+\item{...}{Arguments passed to the corresponding \code{sf} method}
 
 \item{value}{The value to be assigned. See the documentation of the
 corresponding sf function for details.}
 }
 \value{
-The \code{femR} method for \code{\link[sf]{st_as_sf}} returns
-............ \code{\link[sf]{sf}}.
+All methods return the same type of object of the corresponding \code{\link[sf]{sf}} method.
 }
 \description{
-\code{\link[sf]{sf}} methods for \code{Domain} and \code{Mesh} objects.
+\code{\link[sf]{sf}} methods for \code{Domain} and \code{Mesh} classes.
 }
