@@ -23,7 +23,7 @@ License: GPL (>= 2)
 URL: https://github.com/fdaPDE/femR, https://fdapde.github.io/femR/
 Imports: Rcpp (>= 1.0.7), RcppEigen
 LinkingTo: Rcpp, RcppEigen
-RoxygenNote: 7.3.0
+RoxygenNote: 7.3.1
 SystemRequirements: GNU make
 Encoding: UTF-8
 Suggests: 
