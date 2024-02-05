@@ -126,19 +126,19 @@ setMethod("FunctionSpace", signature = c(mesh="Mesh", fe_order="missing"),
                             private$coeff_ <- coefficients
                           },
                           eval = function(X) {
-                            M = dim(extract_private(private$FunctionSpace_)$mesh_$nodes())[2]
+                            M = dim(private$FunctionSpace_$mesh()$nodes())[2]
                             if(is.vector(X)) X <- t(as.matrix(X)) 
                             
                             if(dim(X)[2] != M) {
                               stop(paste("matrix of evaluation points should be a 2 columns matrix"))
                             }
                             evals <- NULL  
-                            if(length(extract_private(private$FunctionSpace_)$mesh_$time_nodes()) == 0){
+                            if(length(private$FunctionSpace_$mesh()$time_nodes()) == 0){
                               evals <- apply(private$FunctionSpace_$basis()$eval(as.matrix(X)) %*% private$coeff_, 
                                              MARGIN=1, FUN=sum)
                             }else{
-                              evals <- matrix(nrow=nrow(X),ncol=length(extract_private(private$FunctionSpace_)$mesh_$time_nodes()))
-                              for(t in 1:length(extract_private(private$FunctionSpace_)$mesh_$time_nodes())){
+                              evals <- matrix(nrow=nrow(X),ncol=length(private$FunctionSpace_$mesh()$time_nodes()))
+                              for(t in 1:length(private$FunctionSpace_$mesh()$time_nodes())){
                                 evals[,t] <- apply(private$FunctionSpace_$basis()$eval(as.matrix(X)) %*% private$coeff_[,t], 
                                                    MARGIN=1, FUN=sum) 
                               }  
@@ -146,8 +146,11 @@ setMethod("FunctionSpace", signature = c(mesh="Mesh", fe_order="missing"),
                             return(evals)
                           },
                           set_coefficients = function(coefficients){
-                            if( nrow(coefficients) != private$FunctionSpace_$basis()$size())
-                              stop("Input parameter dimension is different from function space size.")
+                            if( ((length(private$FunctionSpace_$mesh()$times_nodes) == 0) &&
+                                 nrow(coefficients) != private$FunctionSpace_$basis()$size()) | 
+                                ((ncol(coefficients) != length(private$FunctionSpace_$mesh()$times_nodes())) &&
+                                 nrow(coefficients) != private$FunctionSpace_$basis()$size()))
+                              stop("Wrong input parameter dimensions.")
                             private$coeff_ <- coefficients
                           },
                           coefficients = function(){

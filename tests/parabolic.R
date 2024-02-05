@@ -19,7 +19,7 @@ plot(mesh)
 # create Functional Space
 Vh <- FunctionSpace(mesh)
 
-exact_solution <- function(points,t){
+exact_solution <- function(points,times){
   res <- matrix(0, nrow=nrow(points), ncol=length(times))
   for( t in 1:length(times)){
     res[,t] = sin( 2.* pi * points[,1]) * sin(2.*pi* points[,2]) * exp(-times[t])
@@ -54,7 +54,7 @@ u0 <- function(points){
 }
   
 ## create pde
-pde <- Pde(L, 0.)
+pde <- Pde(L, f)
 pde$set_boundary_condition(g)
 pde$set_initial_condition(u0)
 
@@ -86,9 +86,15 @@ max(abs( u$eval(points) - as.matrix(exact_solution(points))))
 # ## plot solution 
 options(warn=-1)
 plot(u) 
-
 plot(u) %>% layout(scene =list(camera=list(eye=list(z=1))))
 plot(u, showscale=FALSE) # no color bar :)
+
+# ------------------------------------------------------------------------------
+
+u_exact <- Function(Vh)
+u_exact$set_coefficients(exact_solution(Vh$basis()$dofs_coordinates(), times))
+plot(u_exact) %>% layout(scene =list(camera=list(eye=list(z=1))))
+plot(u_exact, showscale=FALSE) # no color bar :)
 
 plot(u)
 
