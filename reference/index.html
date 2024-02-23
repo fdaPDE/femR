@@ -26,7 +26,6 @@
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/Introduction.html">Introduction</a>
     <a class="dropdown-item" href="../articles/LakeComo.html">Spread of a substance of interest in Lake Como</a>
-    <a class="dropdown-item" href="../articles/Parabolic.html">Solving a parabolic problem</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
@@ -61,9 +60,14 @@
 
       <dl><dt>
           
+          <code><a href="DiffusionOperator.html">laplace()</a></code> <code><a href="DiffusionOperator.html">div()</a></code> 
+        </dt>
+        <dd>laplace operator for Function class</dd>
+      </dl><dl><dt>
+          
           <code><a href="Domain.html">Domain()</a></code> 
         </dt>
-        <dd>S4 class representing a spatial (spatio-temporal) domain</dd>
+        <dd>R6 class representing a spatial (spatio-temporal) domain</dd>
       </dl><dl><dt>
           
           <code><a href="Domain_times_vector.html">`%X%`</a></code> 
@@ -86,6 +90,21 @@
         <dd>Create mesh object</dd>
       </dl><dl><dt>
           
+          <code><a href="ReactionOperator.html">`*`(<i>&lt;Function&gt;</i>)</a></code> 
+        </dt>
+        <dd>product by scalar for FunctionObejct</dd>
+      </dl><dl><dt>
+          
+          <code><a href="TimeDerivative.html">dt(<i>&lt;Function&gt;</i>,<i>&lt;missing&gt;</i>,<i>&lt;missing&gt;</i>)</a></code> 
+        </dt>
+        <dd>time derivate of FunctionObejct</dd>
+      </dl><dl><dt>
+          
+          <code><a href="TransportOperator.html">dot()</a></code> 
+        </dt>
+        <dd>dot product between vector and FunctionGrad</dd>
+      </dl><dl><dt>
+          
           <code><a href="build_mesh.html">build_mesh()</a></code> 
         </dt>
         <dd>Delaunay triangulation of the spatial domain</dd>
@@ -96,19 +115,9 @@
         <dd>Create a contour plot of a Function</dd>
       </dl><dl><dt>
           
-          <code><a href="div.html">div()</a></code> 
+          <code><a href="dot-DifferentialOp.html">`-`(<i>&lt;DifferentialOp&gt;</i>)</a></code> 
         </dt>
-        <dd>divergence operator FunctionGrad</dd>
-      </dl><dl><dt>
-          
-          <code><a href="dot_product.html">dot()</a></code> 
-        </dt>
-        <dd>dot product between vector and FunctionGrad</dd>
-      </dl><dl><dt>
-          
-          <code><a href="dt-Function-missing-missing-method.html">dt(<i>&lt;Function&gt;</i>,<i>&lt;missing&gt;</i>,<i>&lt;missing&gt;</i>)</a></code> 
-        </dt>
-        <dd>time derivate of FunctionObejct</dd>
+        <dd>Difference of differential operators</dd>
       </dl><dl><dt>
           
           <code><a href="grad.html">grad()</a></code> 
@@ -116,14 +125,14 @@
         <dd>compute gradient of Function</dd>
       </dl><dl><dt>
           
-          <code><a href="laplace.html">laplace()</a></code> 
+          <code><a href="image-Function-method.html">image(<i>&lt;Function&gt;</i>)</a></code> 
         </dt>
-        <dd>laplace operator for Function</dd>
+        <dd>Create two-dimensional plot of a Function</dd>
       </dl><dl><dt>
           
-          <code><a href="minus_DiffOb_op.html">`-`(<i>&lt;DiffOpObject&gt;</i>,<i>&lt;DiffOpObject&gt;</i>)</a></code> <code><a href="minus_DiffOb_op.html">`-`(<i>&lt;DiffOpObject&gt;</i>,<i>&lt;missing&gt;</i>)</a></code> 
+          <code><a href="lake_como_boundary.html">lake_como_boundary</a></code> 
         </dt>
-        <dd>difference of differential operators</dd>
+        <dd>Lake Como boundary</dd>
       </dl><dl><dt>
           
           <code><a href="pde.html">Pde()</a></code> 
@@ -141,9 +150,9 @@
         <dd>Plot a Mesh object</dd>
       </dl><dl><dt>
           
-          <code><a href="plus-DiffOpObject-DiffOpObject-method.html">`+`(<i>&lt;DiffOpObject&gt;</i>,<i>&lt;DiffOpObject&gt;</i>)</a></code> 
+          <code><a href="plus-.DifferentialOp.html">`+`(<i>&lt;DifferentialOp&gt;</i>)</a></code> 
         </dt>
-        <dd>plus operator overload for DiffOpObject</dd>
+        <dd>Sum of DifferentialOp</dd>
       </dl><dl><dt>
           
           <code><a href="read_mesh.html">read_mesh()</a></code> 
@@ -153,22 +162,17 @@
           
           <code><a href="sf.html">st_as_sf(<i>&lt;Domain&gt;</i>)</a></code> <code><a href="sf.html">st_as_sfc(<i>&lt;Domain&gt;</i>)</a></code> <code><a href="sf.html">st_as_sfc(<i>&lt;Mesh&gt;</i>)</a></code> <code><a href="sf.html">st_crs(<i>&lt;Domain&gt;</i>)</a></code> <code><a href="sf.html">`st_crs&lt;-`(<i>&lt;Domain&gt;</i>)</a></code> 
         </dt>
-        <dd>sf methods for Domain and Mesh</dd>
+        <dd>Integration with sf package</dd>
       </dl><dl><dt>
           
-          <code><a href="times-matrix-FunctionGrad-method.html">`*`(<i>&lt;matrix&gt;</i>,<i>&lt;FunctionGrad&gt;</i>)</a></code> 
+          <code><a href="times-.FunctionGrad.html">`*`(<i>&lt;FunctionGrad&gt;</i>)</a></code> 
         </dt>
         <dd>product overload for FunctionGradObejct</dd>
       </dl><dl><dt>
           
-          <code><a href="times-numeric-DiffOpObject-method.html">`*`(<i>&lt;numeric&gt;</i>,<i>&lt;DiffOpObject&gt;</i>)</a></code> 
+          <code><a href="times_DifferentialOps.html">`*`(<i>&lt;DifferentialOp&gt;</i>)</a></code> 
         </dt>
         <dd>product by scalar for differential operators</dd>
-      </dl><dl><dt>
-          
-          <code><a href="times-numeric-Function-method.html">`*`(<i>&lt;numeric&gt;</i>,<i>&lt;Function&gt;</i>)</a></code> 
-        </dt>
-        <dd>product by scalar for FunctionObejct</dd>
       </dl><dl><dt>
           
           <code><a href="unit_square.html">unit_square</a></code> 

@@ -26,7 +26,6 @@
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/Introduction.html">Introduction</a>
     <a class="dropdown-item" href="../articles/LakeComo.html">Spread of a substance of interest in Lake Como</a>
-    <a class="dropdown-item" href="../articles/Parabolic.html">Solving a parabolic problem</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
@@ -56,15 +55,15 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">grad</span><span class="op">(</span><span class="va">f</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">grad</span><span class="op">(</span><span class="va">Function</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for Function</span></span>
-<span><span class="fu">grad</span><span class="op">(</span><span class="va">f</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">grad</span><span class="op">(</span><span class="va">Function</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>f</dt>
+    <dl><dt>Function</dt>
 <dd><p>a Function created by <code>Function</code>:</p></dd>
 
 </dl></div>
@@ -72,7 +71,7 @@
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>An S4 object representing the gradient of the Function passed as parameter.</p>
+<p>A R6 object representing the gradient of the Function passed as parameter.</p>
     </div>
 
     <div class="section level2">

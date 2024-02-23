@@ -26,7 +26,6 @@
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/Introduction.html">Introduction</a>
     <a class="dropdown-item" href="../articles/LakeComo.html">Spread of a substance of interest in Lake Como</a>
-    <a class="dropdown-item" href="../articles/Parabolic.html">Solving a parabolic problem</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
@@ -56,22 +55,22 @@
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Pde</span><span class="op">(</span><span class="va">L</span>, <span class="va">f</span><span class="op">)</span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">Pde</span><span class="op">(</span><span class="va">DifferentialOp</span>, <span class="va">forcing</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S4 method for DiffOpObject,ANY</span></span>
-<span><span class="fu">Pde</span><span class="op">(</span><span class="va">L</span>, <span class="va">f</span><span class="op">)</span></span>
+<span><span class="co"># S4 method for DifferentialOp,function</span></span>
+<span><span class="fu">Pde</span><span class="op">(</span><span class="va">DifferentialOp</span>, <span class="va">forcing</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S4 method for DiffOpObject,numeric</span></span>
-<span><span class="fu">Pde</span><span class="op">(</span><span class="va">L</span>, <span class="va">f</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># S4 method for DifferentialOp,numeric</span></span>
+<span><span class="fu">Pde</span><span class="op">(</span><span class="va">DifferentialOp</span>, <span class="va">forcing</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
     <h2 id="arguments">Arguments<a class="anchor" aria-label="anchor" href="#arguments"></a></h2>
-    <dl><dt>L</dt>
+    <dl><dt>DifferentialOp</dt>
 <dd><p>a differential operator.</p></dd>
 
 
-<dt>f</dt>
+<dt>forcing</dt>
 <dd><p>a standard R function representing the forcing term of the PDE or a numeric value, in case of constant forcing term.</p></dd>
 
 </dl></div>
@@ -79,7 +78,7 @@
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>A S4 object representing a PDE.</p>
+<p>A R6 class representing a PDE.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
