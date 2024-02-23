@@ -206,16 +206,18 @@ hat_function$set_coefficients(as.matrix(coeff_aux))
 # plot_hat <- plot(hat_function) %>% layout(scene=scene,aspectmode="cube",
 #                                           dragmode=FALSE) %>%hide_colorbar() %>% config(displayModeBar =FALSE, scrollZoom = FALSE)
 
-scene = list(camera = list(eye = list(x = 0, y = 0, z = 1.25)),
-             xaxis = list(autorange="reversed"),
-             yaxis = list(autorange="reversed"))
+# scene = list(camera = list(eye = list(x = 0, y = 0, z = 1.25)),
+#              xaxis = list(autorange="reversed"),
+#              yaxis = list(autorange="reversed"))
+# 
+# plot_hat <- plot(hat_function) %>% 
+#             layout(dragmode=FALSE, scene=scene,aspectmode="cube") %>%
+#             hide_colorbar() %>% 
+#             config(displayModeBar =FALSE)
+# 
+# plot_hat
 
-plot_hat <- plot(hat_function) %>% 
-            layout(dragmode=FALSE, scene=scene,aspectmode="cube") %>%
-            hide_colorbar() %>% 
-            config(displayModeBar =FALSE)
-
-plot_hat
+image(hat_function)
 ```
 
 Then, we define the differential operator in its strong formulation.
@@ -346,5 +348,5 @@ pde$set_boundary_condition(boundary_condition= 0.0, type="dirichlet")
 ## solve problem
 pde$solve()
 ## plot solution
-plot(u)
+image(u)
 ```
